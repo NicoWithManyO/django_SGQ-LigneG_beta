@@ -206,10 +206,25 @@ Toute logique complexe doit être dans les serializers, pas dans les modèles :
 - Validations croisées (ex: rouleau non conforme → pas de destination PRODUCTION)
 - Transformations de données
 
-### Frontend : Alpine.js + HTMX
+### Frontend
 
-Le projet utilise une combinaison d'Alpine.js et HTMX :
-- Alpine.js pour l'état local et les interactions simples
-- HTMX pour les mises à jour partielles du DOM
+**État actuel** : L'application frontend a été entièrement réinitialisée. Tous les fichiers HTML, CSS et JS ont été supprimés pour repartir sur une base propre.
+
+**Architecture prévue** :
 - Bootstrap 5.3 pour le styling
+- Alpine.js pour l'état local et les interactions simples  
+- HTMX pour les mises à jour partielles du DOM
 - Pas de framework JavaScript lourd (React, Vue, etc.)
+
+**Structure des dossiers frontend** :
+```
+frontend/
+├── templates/frontend/
+│   ├── base.html           # Template de base (à recréer)
+│   ├── components/         # Composants réutilisables
+│   └── pages/             # Pages de l'application
+├── static/frontend/
+│   ├── css/               # Styles CSS
+│   ├── js/                # Scripts JavaScript
+│   └── img/               # Images
+```

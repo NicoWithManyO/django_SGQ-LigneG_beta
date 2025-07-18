@@ -1,1 +1,0 @@
-// JavaScript principal pour SGQ Ligne G
