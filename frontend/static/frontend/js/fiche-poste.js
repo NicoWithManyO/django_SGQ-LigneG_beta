@@ -5,6 +5,13 @@ function fichePoste() {
         operatorId: '',
         shiftDate: '',
         vacation: '',
+        startTime: '',
+        endTime: '',
+        machineStarted: false,
+        machineStopped: false,
+        lengthStart: '',
+        lengthEnd: '',
+        comment: '',
         shiftId: null,
         isValid: false,
         
@@ -13,11 +20,42 @@ function fichePoste() {
             // Charger les données de session
             this.loadFromSession();
             
-            // Watcher pour générer l'ID du poste
-            this.$watch(['operatorId', 'shiftDate', 'vacation'], () => {
+            // Générer l'ID au chargement après que le DOM soit mis à jour
+            this.$nextTick(() => {
+                this.generateShiftId();
+            });
+            
+            // Watchers pour générer l'ID du poste et sauvegarder
+            this.$watch('operatorId', () => {
                 this.generateShiftId();
                 this.saveToSession();
             });
+            this.$watch('shiftDate', () => {
+                this.generateShiftId();
+                this.saveToSession();
+            });
+            this.$watch('vacation', () => {
+                this.generateShiftId();
+                this.setDefaultHours();
+                this.saveToSession();
+            });
+            this.$watch('startTime', () => this.saveToSession());
+            this.$watch('endTime', () => this.saveToSession());
+            this.$watch('machineStarted', () => {
+                if (!this.machineStarted) {
+                    this.lengthStart = '';
+                }
+                this.saveToSession();
+            });
+            this.$watch('machineStopped', () => {
+                if (!this.machineStopped) {
+                    this.lengthEnd = '';
+                }
+                this.saveToSession();
+            });
+            this.$watch('lengthStart', () => this.saveToSession());
+            this.$watch('lengthEnd', () => this.saveToSession());
+            this.$watch('comment', () => this.saveToSession());
         },
         
         // Charger depuis la session
@@ -26,6 +64,13 @@ function fichePoste() {
                 this.operatorId = window.sessionData.operator_id || '';
                 this.shiftDate = window.sessionData.shift_date || '';
                 this.vacation = window.sessionData.vacation || '';
+                this.startTime = window.sessionData.start_time || '';
+                this.endTime = window.sessionData.end_time || '';
+                this.machineStarted = window.sessionData.machine_started || false;
+                this.machineStopped = window.sessionData.machine_stopped || false;
+                this.lengthStart = window.sessionData.length_start || '';
+                this.lengthEnd = window.sessionData.length_end || '';
+                this.comment = window.sessionData.comment || '';
             }
         },
         
@@ -35,6 +80,13 @@ function fichePoste() {
                 operator_id: this.operatorId || null,
                 shift_date: this.shiftDate || null,
                 vacation: this.vacation || null,
+                start_time: this.startTime || null,
+                end_time: this.endTime || null,
+                machine_started: this.machineStarted,
+                machine_stopped: this.machineStopped,
+                length_start: this.lengthStart || null,
+                length_end: this.lengthEnd || null,
+                comment: this.comment || null,
             };
             
             try {
@@ -69,9 +121,12 @@ function fichePoste() {
                 const operatorName = operatorSelect?.options[operatorSelect.selectedIndex]?.text || '';
                 
                 if (operatorName && operatorName !== '--') {
-                    const [firstName, lastName] = operatorName.split(' ');
+                    const nameParts = operatorName.trim().split(' ');
+                    const firstName = nameParts[0] || '';
+                    const lastName = nameParts.slice(1).join('').toUpperCase() || '';
                     this.shiftId = `${day}${month}${year}_${firstName}${lastName}_${this.vacation}`;
                     this.isValid = true;
+                    console.log('ID généré:', this.shiftId); // Debug
                 } else {
                     this.shiftId = null;
                     this.isValid = false;
@@ -82,10 +137,44 @@ function fichePoste() {
             }
         },
         
+        // Définir les heures par défaut selon la vacation
+        setDefaultHours() {
+            switch(this.vacation) {
+                case 'Matin':
+                    this.startTime = '04:00';
+                    this.endTime = '12:00';
+                    break;
+                case 'ApresMidi':
+                    this.startTime = '12:00';
+                    this.endTime = '20:00';
+                    break;
+                case 'Nuit':
+                    this.startTime = '20:00';
+                    this.endTime = '04:00';
+                    break;
+                case 'Journee':
+                    this.startTime = '07:30';
+                    this.endTime = '15:30';
+                    break;
+                default:
+                    // Ne pas changer si vacation vide
+                    break;
+            }
+        },
+        
         // Récupérer le token CSRF
         getCsrfToken() {
             const csrfInput = document.querySelector('[name=csrfmiddlewaretoken]');
             return csrfInput ? csrfInput.value : '';
+        },
+        
+        // Sauvegarder le poste
+        async saveShift() {
+            if (!this.isValid) return;
+            
+            // TODO: Implémenter la sauvegarde du poste
+            console.log('Sauvegarde du poste avec ID:', this.shiftId);
+            alert('Fonctionnalité à implémenter : Sauvegarde du poste');
         }
     };
 }

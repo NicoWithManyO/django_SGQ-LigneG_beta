@@ -22,8 +22,8 @@
 
 #accordionPoste .form-control:focus,
 #accordionPoste .form-select:focus {
-    border-color: #215c98;
-    box-shadow: 0 0 0 0.2rem rgba(33, 92, 152, 0.25);
+    border-color: #6ba3d8;
+    box-shadow: 0 0 0 0.2rem rgba(107, 163, 216, 0.25);
 }
 
 /* Bouton ajouter opérateur */
@@ -39,14 +39,33 @@
 }
 
 /* ID Poste status */
-.shift-id-status {
+.shift-id-status .status-icon {
     font-size: 1rem;
 }
 
-.shift-id-status .status-icon {
-    font-size: 1.25rem;
+/* Champs mètres */
+input[type="number"].meters-input {
+    text-align: center;
+    -moz-appearance: textfield;
 }
 
-.shift-id-value {
-    font-weight: 500;
+input[type="number"].meters-input::-webkit-outer-spin-button,
+input[type="number"].meters-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+/* Conteneur des champs mètres */
+.meters-container {
+    min-height: 31px;
+}
+
+/* Icône baguette magique */
+.magic-icon {
+    font-size: 0.8rem;
+}
+
+/* Bouton sauvegarder */
+.btn-save-shift {
+    width: 200px;
 }

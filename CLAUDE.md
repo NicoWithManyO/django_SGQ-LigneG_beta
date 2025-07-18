@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Vue d'ensemble du projet
 
-**SGQ Ligne G** est un système de gestion de production pour Saint-Gobain Quartz SAS - Nemours, conforme aux normes ISO 9001, ISO 14001 et ISO 45001. Il gère la production de feutre avec traçabilité complète.
+**SGQ Ligne G** est un système de gestion de production industrielle conforme aux normes ISO 9001, ISO 14001 et ISO 45001. Il gère la production avec traçabilité complète.
 
 ## Architecture du projet
 
@@ -17,7 +17,20 @@ django_SGQ-LigneG_beta/
 ├── quality/        # Contrôles qualité et défauts
 ├── wcm/           # World Class Manufacturing (temps perdus, check-lists)
 ├── planification/ # Opérateurs et ordres de fabrication
+├── livesession/   # Gestion de l'état actuel (session + CurrentProfile)
 └── frontend/      # Templates et composants UI
+    ├── static/
+    │   ├── css/   # Architecture CSS modulaire
+    │   │   ├── base.css         # Styles de base
+    │   │   ├── components.css   # Composants réutilisables
+    │   │   ├── layout.css       # Structure de page
+    │   │   └── fiche-poste.css  # Styles spécifiques
+    │   └── js/
+    │       └── fiche-poste.js   # Composant Alpine.js isolé
+    └── templates/
+        └── frontend/
+            ├── components/      # Composants réutilisables
+            └── pages/          # Pages complètes
 ```
 
 ### Dossier de référence AIDE
@@ -28,7 +41,7 @@ Le dossier `/home/nico/claude/django_SGQ-LigneG_beta/AIDE/` contient une version
 
 ```bash
 # Environnement virtuel
-source venv/bin/activate
+source .venv/bin/activate  # Note: .venv pas venv
 
 # Migrations
 python manage.py makemigrations
@@ -37,11 +50,17 @@ python manage.py migrate
 # Serveur de développement
 python manage.py runserver
 
-# Tests (à implémenter)
-python manage.py test
+# Shell Django pour debug
+python manage.py shell
 
 # Création superuser
 python manage.py createsuperuser
+
+# Tests (à implémenter)
+python manage.py test
+
+# Vérifier les dépendances installées
+pip freeze | grep -i django
 ```
 
 ## Architecture des modèles (après refactoring récent)
@@ -143,37 +162,62 @@ Le projet utilise une application `livesession` pour gérer l'état actuel de pr
    - Source de vérité unique pour le profil en cours
    - Synchronisé avec la session Django
    
-2. **API Session** : `/api/session/` (PATCH) pour mettre à jour le profil
-   - Accepte `profile_id` (peut être null)
+2. **API Session** : `/api/session/` (PATCH) pour mettre à jour tous les champs de session
+   - Gère operator_id, shift_date, vacation, profile_id, etc.
    - Met à jour CurrentProfile et la session Django
+   - Sérialise automatiquement les dates/heures pour le stockage
 
 3. **Système de mise à jour dynamique** :
-   - Les pages utilisent Alpine.js pour les interactions réactives
-   - Les changements de profil peuvent recharger la page ou utiliser HTMX/fetch pour des mises à jour partielles
+   - Alpine.js pour l'état local réactif
+   - Sauvegarde automatique via watchers
+   - Pas de rechargement de page nécessaire
 
-### Patterns d'implémentation courants
+### Pattern Frontend Alpine.js
 
-#### Sélecteur de profil avec mise à jour dynamique
+#### Structure modulaire des composants
 ```javascript
-x-data="{
-    profileId: {{ current_profile.id|default:'null' }},
-    async saveProfile() {
-        const response = await fetch('/api/session/', {
-            method: 'PATCH',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': '{{ csrf_token }}'
-            },
-            body: JSON.stringify({ profile_id: this.profileId || null })
-        });
-        if (response.ok) {
-            // Option 1: Recharger la page
-            window.location.reload();
-            // Option 2: Mise à jour partielle avec HTMX
-            // htmx.ajax('GET', '/partial/profile-details/', {target: '#profile-details'});
+// Dans un fichier JS séparé (ex: fiche-poste.js)
+function fichePoste() {
+    return {
+        // État
+        operatorId: '',
+        shiftDate: '',
+        vacation: '',
+        
+        // Initialisation
+        init() {
+            this.loadFromSession();
+            this.$watch(['operatorId', 'shiftDate', 'vacation'], () => {
+                this.saveToSession();
+            });
+        },
+        
+        // Méthodes
+        async saveToSession() {
+            // API call avec gestion CSRF
         }
-    }
-}"
+    };
+}
+```
+
+#### Template HTML avec composant isolé
+```html
+<!-- Dans templates/frontend/components/fiche-poste.html -->
+<div class="accordion-body" x-data="fichePoste()" x-init="init()">
+    <!-- Structure HTML pure, pas de logique -->
+</div>
+
+<!-- Dans la page principale -->
+{% include 'frontend/components/fiche-poste.html' %}
+```
+
+#### Passage des données Django vers Alpine.js
+```html
+<script>
+// Données globales depuis Django
+window.sessionData = {{ session_data|safe }};
+</script>
+<script src="{% static 'frontend/js/fiche-poste.js' %}"></script>
 ```
 
 ## Commandes de lint et tests
@@ -206,29 +250,108 @@ Toute logique complexe doit être dans les serializers, pas dans les modèles :
 - Validations croisées (ex: rouleau non conforme → pas de destination PRODUCTION)
 - Transformations de données
 
-### Frontend
+### Frontend : Architecture et Patterns
 
-**État actuel** : L'application frontend a été entièrement réinitialisée. Tous les fichiers HTML, CSS et JS ont été supprimés pour repartir sur une base propre.
-
-**Architecture prévue** :
-- Bootstrap 5.3 pour le styling
-- Alpine.js pour l'état local et les interactions simples  
-- HTMX pour les mises à jour partielles du DOM
+**Stack technique** :
+- Bootstrap 5.3 pour le styling de base
+- Alpine.js 3.x pour la réactivité (pas de build nécessaire)
+- Django templates avec includes pour les composants
 - Pas de framework JavaScript lourd (React, Vue, etc.)
+- HTMX disponible mais pas encore utilisé
 
-**Structure des dossiers frontend** :
+**Architecture CSS modulaire** :
+```css
+/* base.css - Fondation */
+- Reset et styles globaux
+- Variables CSS (couleurs: #215c98, #9da1a8, #dae9f8)
+- Typographie de base
+
+/* components.css - Composants globaux */
+- Accordéons Bootstrap customisés
+- Tables centrées
+- Badges et boutons
+
+/* layout.css - Structure */
+- Grille 3 colonnes (3-6-3 ou personnalisable)
+- Responsive design
+- Espacements standards
+
+/* [feature].css - Styles spécifiques */
+- Ex: fiche-poste.css pour la fiche de poste
 ```
-frontend/
-├── templates/frontend/
-│   ├── base.html           # Template de base (à recréer)
-│   ├── components/         # Composants réutilisables
-│   └── pages/             # Pages de l'application
-├── static/frontend/
-│   ├── css/               # Styles CSS
-│   ├── js/                # Scripts JavaScript
-│   └── img/               # Images
+
+**Pattern de composant réutilisable** :
+1. Template HTML isolé dans `components/`
+2. JavaScript Alpine.js dans fichier séparé
+3. CSS spécifique si nécessaire
+4. Include Django pour l'utilisation
+
+**Conventions de nommage** :
+- Templates : kebab-case (`fiche-poste.html`)
+- Composants JS : camelCase (`fichePoste()`)
+- Classes CSS : kebab-case avec préfixes (`.form-row`, `.shift-id-status`)
+- IDs HTML : kebab-case (`operator-select`)
+
+## Patterns d'architecture spécifiques
+
+### Pattern "Catalog + Through Tables"
+Le projet utilise un pattern sophistiqué pour gérer les configurations :
+```python
+# Catalogue (définit les types disponibles)
+class SpecItem(models.Model):
+    name = models.CharField(max_length=100)
+    # Métadonnées uniquement
+
+# Table intermédiaire (stocke les valeurs)
+class ProfileSpecValue(models.Model):
+    profile = models.ForeignKey(ProfileTemplate)
+    spec_item = models.ForeignKey(SpecItem)
+    min_value = models.DecimalField()
+    nominal_value = models.DecimalField()
+    max_value = models.DecimalField()
+    # Valeurs réelles
 ```
+
+### Génération automatique des IDs (critique)
+Les IDs sont générés automatiquement dans la méthode save() des modèles :
+```python
+# Shift ID : JJMMAA_PrenomNom_Vacation
+def save(self):
+    if not self.shift_id:
+        date_str = self.date.strftime('%d%m%y')
+        operator_name = f"{self.operator.first_name}{self.operator.last_name}"
+        self.shift_id = f"{date_str}_{operator_name}_{self.vacation}"
+```
+
+### Session-based workflow
+1. Les rouleaux sont créés avec `session_key` avant assignation à un poste
+2. L'état actuel (profil, opérateur) est maintenu via Django sessions
+3. L'API `/api/session/` synchronise frontend et backend
+
+## UI/UX Patterns
+
+### Accordéons Bootstrap customisés
+- Headers bleus (#215c98) avec texte blanc
+- Body en fond gris clair (#f8f9fa)
+- Tous ouverts par défaut (`collapse show`)
+- Icônes Bootstrap Icons intégrées
+
+### Formulaires
+- **Champs vides affichent "--"** (convention utilisateur)
+- Labels sans font-weight (normal)
+- Champs avec fond bleu clair (#dae9f8) et bordure bleue
+- Select avec options vides : `<option value="">--</option>`
+
+### Layout responsive
+- Grille principale : 3-6-3 sur desktop
+- Colonnes s'empilent sur mobile (`col-lg-*`)
+- Scrollbar toujours visible : `body { overflow-y: scroll; }`
 
 ## Mémoires de développement
 
-- **un champ vide doit afficher --**
+- **Un champ vide doit afficher --**
+- **Les IDs auto-générés ne doivent JAMAIS être modifiés**
+- **Toujours utiliser des includes pour les composants réutilisables**
+- **Pas de styles inline dans le HTML final**
+- **Commentaires en français dans le code**
+- **Ne jamais créer de fichiers de documentation non demandés**

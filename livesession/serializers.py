@@ -14,6 +14,15 @@ class SessionSerializer(serializers.Serializer):
     start_time = serializers.TimeField(required=False, allow_null=True)
     end_time = serializers.TimeField(required=False, allow_null=True)
     
+    # États machine
+    machine_started = serializers.BooleanField(required=False)
+    machine_stopped = serializers.BooleanField(required=False)
+    length_start = serializers.CharField(required=False, allow_null=True, allow_blank=True)
+    length_end = serializers.CharField(required=False, allow_null=True, allow_blank=True)
+    
+    # Commentaire
+    comment = serializers.CharField(required=False, allow_null=True, allow_blank=True)
+    
     def update(self, instance, validated_data):
         """Met à jour la session avec les données validées."""
         # instance = request.session
