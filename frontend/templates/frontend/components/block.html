@@ -1,0 +1,24 @@
+{# Composant Block Réutilisable #}
+{# 
+   Utilisation simple (sans include) :
+   
+   <div class="sgq-block">
+       <div class="sgq-block-header">
+           <h3 class="sgq-block-title">
+               <span class="sgq-block-icon">☑</span>
+               Titre
+           </h3>
+       </div>
+       <div class="sgq-block-body">
+           <div class="sgq-block-content">
+               Contenu...
+           </div>
+       </div>
+   </div>
+   
+   Pour un block collapsible, ajouter:
+   - x-data="{ isOpen: true }" sur sgq-block
+   - @click="isOpen = !isOpen" et :class="{ 'collapsed': !isOpen }" sur sgq-block-header
+   - x-show="isOpen" x-collapse sur sgq-block-body
+   - <span class="sgq-block-arrow" :class="{ 'rotated': !isOpen }">▼</span> dans le header
+#}

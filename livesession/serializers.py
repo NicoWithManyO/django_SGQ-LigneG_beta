@@ -6,9 +6,13 @@ class SessionSerializer(serializers.Serializer):
     # Profil sélectionné
     profile_id = serializers.IntegerField(required=False, allow_null=True)
     
-    # Autres données qu'on ajoutera plus tard
+    # Données du poste
     shift_id = serializers.IntegerField(required=False, allow_null=True)
     operator_id = serializers.IntegerField(required=False, allow_null=True)
+    shift_date = serializers.DateField(required=False, allow_null=True)
+    vacation = serializers.CharField(required=False, allow_null=True, allow_blank=True)
+    start_time = serializers.TimeField(required=False, allow_null=True)
+    end_time = serializers.TimeField(required=False, allow_null=True)
     
     def update(self, instance, validated_data):
         """Met à jour la session avec les données validées."""
@@ -18,7 +22,12 @@ class SessionSerializer(serializers.Serializer):
                 # Supprimer de la session si None
                 instance.pop(key, None)
             else:
-                # Sauvegarder dans la session
-                instance[key] = value
+                # Convertir les dates et heures en string pour la session
+                if key == 'shift_date' and value:
+                    instance[key] = value.isoformat()
+                elif key in ['start_time', 'end_time'] and value:
+                    instance[key] = value.strftime('%H:%M')
+                else:
+                    instance[key] = value
         instance.save()  # Important pour persister
         return instance

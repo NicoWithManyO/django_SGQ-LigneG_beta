@@ -19,7 +19,7 @@ SGQ Ligne G est un système de gestion de production pour Saint-Gobain Quartz SA
 ```
 django_SGQ-LigneG_beta/
 ├── catalog/                # Modèles de référence centralisés
-│   ├── models.py          # Tous les modèles support préfixés
+│   ├── models.py          # ProfileTemplate, SpecItem, ParamItem, etc.
 │   └── ...
 ├── production/             # Gestion de la production
 │   ├── models.py          # Shift, Roll
@@ -33,19 +33,35 @@ django_SGQ-LigneG_beta/
 ├── planification/          # Planification de production
 │   ├── models.py          # Operator, FabricationOrder
 │   └── ...
+├── livesession/            # Gestion de l'état actuel
+│   ├── models.py          # CurrentProfile (singleton)
+│   └── ...
+├── frontend/               # Interface utilisateur
+│   ├── static/
+│   │   ├── css/
+│   │   │   ├── layout.css # Layout 3 colonnes SGQ
+│   │   │   └── blocks.css # Composants blocks réutilisables
+│   │   └── js/
+│   │       └── blocks.js  # Composants Alpine.js
+│   └── templates/
+│       └── frontend/
+│           └── pages/
+│               └── production.html  # Page principale de production
 └── ...
 ```
 
 ### Répartition des Modèles
 
 #### CATALOG (Modèles de référence)
+- **ProfileTemplate** : Profils de production (80g/m², 40g/m²)
+- **SpecItem** : Catalogue des types de spécifications
+- **ParamItem** : Catalogue des types de paramètres machine
+- **ProfileSpecValue** : Valeurs de spécifications pour un profil
+- **ProfileParamValue** : Valeurs de paramètres pour un profil
 - **QualityDefectType** : Types de défauts avec criticité
 - **WcmChecklistTemplate** : Templates de check-lists
 - **WcmChecklistItem** : Items de check-list
 - **WcmLostTimeReason** : Motifs de temps perdu
-- **WcmProfile** : Profils de production (80g/m², 40g/m²)
-- **WcmProfileSpec** : Spécifications d'un profil (micronnaire, épaisseur, etc.)
-- **WcmProfileMachineParam** : Paramètres machine d'un profil
 
 #### PRODUCTION
 - **Shift** : Postes de travail (matin, après-midi, nuit)
@@ -110,6 +126,25 @@ django_SGQ-LigneG_beta/
 - Les labels affichés sont en français
 
 ### Architecture et Patterns
+
+#### Architecture Frontend
+
+**Structure des composants** :
+- Templates Django dans `templates/frontend/pages/` et `includes/`
+- JavaScript Alpine.js dans `static/frontend/js/`
+- CSS modulaire dans `static/frontend/css/` (layout.css, blocks.css, forms.css)
+
+**Pattern de composant réutilisable** :
+1. Template HTML avec classes CSS réutilisables (pas de styles inline)
+2. Composant Alpine.js avec état local et méthodes
+3. Session API pour la persistance des données
+4. Debounce sur les watchers pour optimiser les appels API
+
+**Gestion de session** :
+- API REST `/api/session/` pour lecture/écriture
+- Données passées par le contexte Django au chargement
+- Sauvegarde automatique des changements avec debounce
+- Conversion automatique des dates/heures pour la sérialisation
 
 #### Séparation des Responsabilités
 
@@ -437,6 +472,72 @@ def mark_as_defective(self, request, pk=None):
    - API REST pour les données métier
    - Session Django pour l'état temporaire
    - Transactions pour la cohérence
+
+## Système de Design SGQ
+
+### Architecture Frontend
+
+Le frontend utilise un système de composants modulaires et réutilisables :
+
+#### CSS Modulaire
+- **layout.css** : Gestion du layout 3 colonnes (1fr 2fr 1fr)
+  - Body avec fond gris foncé (#2C3E50)
+  - Colonnes responsives avec breakpoints
+  - Classes utilitaires pour le responsive
+
+- **blocks.css** : Composants blocks réutilisables
+  - Headers bleus (#0066CC) avec titre et icône
+  - Body gris clair (#E9ECEF)
+  - Contenu en bleu (#0066CC) avec font-weight: 600
+  - Transitions d'enroulement/déroulement
+  - Styles pour tables SGQ
+
+#### JavaScript Modulaire
+- **blocks.js** : Composants Alpine.js
+  - `sgqBlock()` : Composant pour gérer l'état ouvert/fermé
+  - `x-sgq-transitions` : Directive pour les animations standardisées
+
+#### Utilisation des Composants
+
+```html
+<!-- Block SGQ standard -->
+<div class="sgq-block" x-data="sgqBlock()">
+    <div class="sgq-block-header" @click="toggle()" :class="{ 'collapsed': !isOpen }">
+        <h3 class="sgq-block-title">
+            <span class="sgq-block-icon">📊</span>
+            Titre du Block
+        </h3>
+        <span class="sgq-block-arrow" :class="{ 'rotated': !isOpen }">▼</span>
+    </div>
+    <div class="sgq-block-body" x-sgq-transitions>
+        <div class="sgq-block-content">
+            <!-- Contenu ici -->
+        </div>
+    </div>
+</div>
+
+<!-- Table SGQ -->
+<table class="sgq-table">
+    <thead>
+        <tr>
+            <th>Colonne 1</th>
+            <th>Colonne 2</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>Donnée 1</td>
+            <td>Donnée 2</td>
+        </tr>
+    </tbody>
+</table>
+```
+
+#### Variantes de Blocks
+- `.sgq-block-success` : Header vert
+- `.sgq-block-warning` : Header jaune
+- `.sgq-block-error` : Header rouge
+- `.sgq-block-no-padding` : Sans padding dans le contenu
 
 ## Commandes de Développement
 

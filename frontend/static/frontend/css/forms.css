@@ -1,0 +1,62 @@
+/* ===== SGQ FORM ELEMENTS ===== */
+
+/* Select SGQ de base */
+.sgq-select {
+    background-color: #DAE9F8; /* Bleu clair SGQ */
+    border: 1px solid #215C98; /* Bleu foncé SGQ */
+    border-radius: 6px;
+    padding: 0.5rem 0.75rem;
+    font-weight: normal;
+    color: #215C98; /* Texte bleu foncé SGQ */
+    transition: all 0.2s ease;
+    width: 100%;
+}
+
+/* Select SGQ small */
+.sgq-select-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem; /* Cohérent avec Bootstrap form-select-sm */
+    height: calc(1.5em + 0.5rem + 2px); /* Hauteur Bootstrap */
+}
+
+.sgq-select:focus {
+    background-color: #FFFFFF;
+    border-color: #4D93D9;
+    box-shadow: 0 0 0 3px rgba(77, 147, 217, 0.1);
+    outline: none;
+}
+
+.sgq-select option {
+    font-weight: normal;
+    padding: 0.5rem;
+}
+
+.sgq-select option:checked {
+    background-color: #215C98;
+    color: white;
+}
+
+/* ===== INPUTS SGQ ===== */
+.sgq-input {
+    background-color: #DAE9F8;
+    border: 1px solid #215C98;
+    color: #215C98;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+.sgq-input:focus {
+    background-color: #FFFFFF;
+    border-color: #4D93D9;
+    box-shadow: 0 0 0 3px rgba(77, 147, 217, 0.1);
+    outline: none;
+}
+
+/* ===== FORM LABELS ===== */
+.sgq-label {
+    font-size: 0.75rem;  /* Plus petit : 12px */
+    color: #6c757d;
+    margin-bottom: 0.25rem;
+    font-weight: normal;
+    display: inline-block;
+}

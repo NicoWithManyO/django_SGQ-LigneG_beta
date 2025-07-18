@@ -187,8 +187,6 @@ class ProfileTemplateAdmin(admin.ModelAdmin):
     search_fields = ['name', 'description']
     ordering = ['name']
     inlines = [ProfileSpecValueInline, ProfileParamValueInline]
-    readonly_fields = ['belt_speed_m_per_minute']
-    
     fieldsets = (
         ('Identification', {
             'fields': ('name', 'description')

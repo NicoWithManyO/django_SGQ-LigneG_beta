@@ -437,29 +437,33 @@ class ProfileTemplate(models.Model):
         default_str = " (Par défaut)" if self.is_default else ""
         return f"{self.name}{default_str}"
     
-    def update_belt_speed_m_per_minute(self):
-        """Met à jour le champ belt_speed_m_per_minute basé sur la valeur du paramètre vitesse tapis."""
+    def save(self, *args, **kwargs):
+        """Override save pour calculer belt_speed_m_per_minute avant sauvegarde."""
+        # Calculer la vitesse en m/min AVANT de sauvegarder
         try:
-            # Chercher le paramètre vitesse tapis pour ce profil (insensible à la casse)
+            # Chercher le paramètre vitesse tapis pour ce profil
             from django.db.models import Q
-            belt_speed_param = self.profileparamvalue_set.filter(
-                Q(param_item__name__iexact='vitesse_tapis') |
-                Q(param_item__name__iexact='vitesse tapis') |
-                Q(param_item__name__iexact='belt_speed') |
-                Q(param_item__name__iexact='speed_belt') |
-                Q(param_item__display_name__icontains='vitesse') & Q(param_item__display_name__icontains='tapis')
-            ).first()
             
-            if belt_speed_param and belt_speed_param.value:
-                # Convertir de m/h en m/min
-                self.belt_speed_m_per_minute = round(float(belt_speed_param.value) / 60, 2)
-            else:
-                self.belt_speed_m_per_minute = None
-            
-            # Sauvegarder uniquement ce champ
-            self.save(update_fields=['belt_speed_m_per_minute'])
+            # Si l'objet a déjà un ID, on peut chercher dans les relations
+            if self.pk:
+                belt_speed_param = self.profileparamvalue_set.filter(
+                    Q(param_item__name__iexact='vitesse_tapis') |
+                    Q(param_item__name__iexact='vitesse tapis') |
+                    Q(param_item__name__iexact='belt_speed') |
+                    Q(param_item__name__iexact='speed_belt') |
+                    Q(param_item__display_name__icontains='vitesse') & Q(param_item__display_name__icontains='tapis')
+                ).first()
+                
+                if belt_speed_param and belt_speed_param.value:
+                    # Convertir de m/h en m/min
+                    self.belt_speed_m_per_minute = round(float(belt_speed_param.value) / 60, 2)
+                else:
+                    self.belt_speed_m_per_minute = None
         except Exception as e:
-            print(f"Erreur lors de la mise à jour de belt_speed_m_per_minute: {e}")
+            print(f"Erreur lors du calcul de belt_speed_m_per_minute: {e}")
+        
+        # Sauvegarder normalement
+        super().save(*args, **kwargs)
 
 
 class ProfileSpecValue(models.Model):
@@ -571,14 +575,6 @@ class ProfileParamValue(models.Model):
         help_text="Valeur du paramètre pour ce profil"
     )
     
-    @property
-    def value_m_per_minute(self):
-        """Convertit la vitesse tapis de m/h en m/min si c'est le paramètre vitesse tapis."""
-        # Vérifier si c'est le paramètre vitesse tapis (belt_speed ou speed_belt)
-        if self.param_item.name in ['belt_speed', 'speed_belt', 'vitesse_tapis', 'Vitesse Tapis']:
-            return round(float(self.value) / 60, 2)
-        return None
-    
     class Meta:
         verbose_name = "Valeur de paramètre"
         verbose_name_plural = "Valeurs de paramètres"
@@ -591,6 +587,7 @@ class ProfileParamValue(models.Model):
         """Override save pour mettre à jour belt_speed_m_per_minute du profil si nécessaire."""
         super().save(*args, **kwargs)
         
-        # Si c'est un paramètre de vitesse tapis, mettre à jour le profil
-        if self.param_item.name in ['belt_speed', 'speed_belt', 'vitesse_tapis']:
-            self.profile.update_belt_speed_m_per_minute()
+        # Si c'est un paramètre de vitesse tapis, forcer le recalcul du profil
+        if self.param_item.name.lower() in ['belt_speed', 'speed_belt', 'vitesse_tapis', 'vitesse tapis']:
+            # Forcer le recalcul en sauvegardant le profil
+            self.profile.save()

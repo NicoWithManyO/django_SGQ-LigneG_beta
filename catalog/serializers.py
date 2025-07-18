@@ -37,7 +37,7 @@ class ProfileParamValueSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = ProfileParamValue
-        fields = ['id', 'param_item', 'value', 'value_m_per_minute']
+        fields = ['id', 'param_item', 'value']
 
 
 class ProfileTemplateSerializer(serializers.ModelSerializer):

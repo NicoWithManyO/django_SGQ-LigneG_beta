@@ -14,6 +14,10 @@ class SessionAPIView(APIView):
             'profile_id': request.session.get('profile_id'),
             'shift_id': request.session.get('shift_id'),
             'operator_id': request.session.get('operator_id'),
+            'shift_date': request.session.get('shift_date'),
+            'vacation': request.session.get('vacation'),
+            'start_time': request.session.get('start_time'),
+            'end_time': request.session.get('end_time'),
         }
         return Response(data)
     
@@ -50,6 +54,10 @@ class SessionAPIView(APIView):
                 'profile_id': request.session.get('profile_id'),
                 'shift_id': request.session.get('shift_id'),
                 'operator_id': request.session.get('operator_id'),
+                'shift_date': request.session.get('shift_date'),
+                'vacation': request.session.get('vacation'),
+                'start_time': request.session.get('start_time'),
+                'end_time': request.session.get('end_time'),
             })
         
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

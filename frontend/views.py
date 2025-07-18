@@ -1,30 +1,14 @@
 from django.shortcuts import render
+from django.db.models import Prefetch
 from catalog.models import ProfileTemplate, ProfileSpecValue, ProfileParamValue
+from catalog.serializers import ProfileTemplateSerializer
 from production.models import CurrentProfile
+from planification.models import Operator
+import json
 
 
 def production_view(request):
     """Vue principale de production."""
-    # Récupérer le profil actuel
-    try:
-        current_profile = CurrentProfile.objects.first()
-        profile = current_profile.profile if current_profile else None
-    except CurrentProfile.DoesNotExist:
-        profile = None
-    
-    # Récupérer tous les profils disponibles
-    profiles = ProfileTemplate.objects.filter(is_active=True).order_by('name')
-    
-    context = {
-        'current_profile': profile,
-        'profiles': profiles,
-    }
-    
-    return render(request, 'frontend/pages/production.html', context)
-
-
-def test_view(request):
-    """Vue de test."""
     # Récupérer le profil depuis CurrentProfile (source de vérité)
     try:
         current_profile_obj = CurrentProfile.objects.first()
@@ -40,7 +24,6 @@ def test_view(request):
         request.session.pop('profile_id', None)
     
     # Récupérer tous les profils avec leurs relations (prefetch pour optimiser)
-    from django.db.models import Prefetch
     profiles = ProfileTemplate.objects.filter(is_active=True).prefetch_related(
         Prefetch('profilespecvalue_set', 
                  queryset=ProfileSpecValue.objects.select_related('spec_item')),
@@ -49,14 +32,39 @@ def test_view(request):
     ).order_by('name')
     
     # Sérialiser tous les profils pour JavaScript
-    from catalog.serializers import ProfileTemplateSerializer
     profiles_data = ProfileTemplateSerializer(profiles, many=True).data
     
-    import json
+    # Récupérer les opérateurs actifs
+    operators = Operator.objects.filter(is_active=True).order_by('first_name', 'last_name')
+    
+    # Récupérer l'opérateur depuis la session
+    current_operator_id = request.session.get('operator_id')
+    current_operator = None
+    if current_operator_id:
+        try:
+            current_operator = Operator.objects.get(id=current_operator_id)
+        except Operator.DoesNotExist:
+            request.session.pop('operator_id', None)
+    
     context = {
         'current_profile': profile,
         'profiles': profiles,
         'profiles_json': json.dumps(profiles_data),  # Pour Alpine.js
+        'operators': operators,
+        'current_operator': current_operator,
+        # JSON pour JavaScript
+        'current_operator_json': json.dumps({
+            'id': current_operator.id,
+            'first_name': current_operator.first_name,
+            'last_name': current_operator.last_name
+        }) if current_operator else 'null',
+        # Données de session pour la fiche de poste
+        'session_data': json.dumps({
+            'shift_date': request.session.get('shift_date', ''),
+            'vacation': request.session.get('vacation', ''),
+            'start_time': request.session.get('start_time', ''),
+            'end_time': request.session.get('end_time', ''),
+        }),
     }
     
-    return render(request, 'frontend/pages/test.html', context)
+    return render(request, 'frontend/pages/production.html', context)
