@@ -16,24 +16,26 @@ function ordreFabrication() {
             // Charger les données de session
             this.loadFromSession();
             
-            // Watchers pour sauvegarder et reverrouiller automatiquement
+            // Watchers pour sauvegarder automatiquement
             this.$watch('ofEnCours', () => {
                 if (this.editingOF) {
-                    // Sauvegarder et reverrouiller après modification
                     this.saveToSession();
-                    this.$nextTick(() => {
-                        this.editingOF = false;
-                    });
+                }
+                // Émettre un événement pour la sticky bar
+                window.dispatchEvent(new CustomEvent('of-changed', {
+                    detail: { ofEnCours: this.ofEnCours }
+                }));
+            });
+            
+            this.$watch('longueurCible', () => {
+                if (this.editingLongueur) {
+                    this.saveToSession();
                 }
             });
-            // Pas de watcher automatique pour longueurCible - on sauvegarde sur blur/enter
+            
             this.$watch('ofDecoupe', () => {
                 if (this.editingOFDecoupe) {
-                    // Sauvegarder et reverrouiller après modification
                     this.saveToSession();
-                    this.$nextTick(() => {
-                        this.editingOFDecoupe = false;
-                    });
                 }
             });
         },
@@ -106,11 +108,6 @@ function ordreFabrication() {
             }
         },
         
-        // Sauvegarder et fermer le champ longueur
-        saveAndCloseLongueur() {
-            this.saveToSession();
-            this.editingLongueur = false;
-        },
         
         // Récupérer le token CSRF
         getCsrfToken() {

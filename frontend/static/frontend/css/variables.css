@@ -1,0 +1,37 @@
+/* ===== VARIABLES CSS ===== */
+/* Centralisation des couleurs et tailles */
+
+:root {
+    /* Couleurs principales */
+    --primary-blue: #215c98;
+    --primary-blue-hover: #6ba3d8;
+    --light-blue-bg: #dae9f8;
+    --light-blue-hover: #c5ddf3;
+    
+    /* Couleurs Bootstrap */
+    --bs-success: #198754;
+    --bs-warning: #ffc107;
+    --bs-danger: #dc3545;
+    
+    /* Couleurs de fond */
+    --body-bg: #9da1a8;
+    
+    /* Tailles de police */
+    --font-size-sm: 0.75rem;
+    --font-size-base: 0.875rem;
+    --font-size-md: 1rem;
+    --font-size-lg: 1.125rem;
+    --font-size-xl: 1.25rem;
+    
+    /* Espacement */
+    --spacing-xs: 0.125rem;
+    --spacing-sm: 0.25rem;
+    --spacing-base: 0.5rem;
+    --spacing-md: 0.75rem;
+    --spacing-lg: 1rem;
+    
+    /* Dimensions */
+    --btn-square-size: 31px;
+    --input-width: 80px;
+    --sticky-bar-height: 80px;
+}

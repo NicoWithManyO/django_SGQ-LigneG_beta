@@ -30,6 +30,12 @@ def production(request):
         'of_en_cours': request.session.get('of_en_cours', ''),
         'longueur_cible': request.session.get('longueur_cible', ''),
         'of_decoupe': request.session.get('of_decoupe', ''),
+        # Sticky bar
+        'roll_number': request.session.get('roll_number', ''),
+        'tube_mass': request.session.get('tube_mass', ''),
+        'roll_length': request.session.get('roll_length', ''),
+        'total_mass': request.session.get('total_mass', ''),
+        'next_tube_mass': request.session.get('next_tube_mass', ''),
     }
     
     context = {

@@ -1,0 +1,181 @@
+/* ===== STICKY BOTTOM BAR STYLES ===== */
+
+/* Barre sticky en bas */
+.sticky-bottom-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 80px;
+    background-color: #215c98;
+    color: white;
+    z-index: 1040;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Conteneur pour l'alignement vertical */
+.sticky-bottom-bar .container-fluid,
+.sticky-bottom-bar .row {
+    height: 100%;
+}
+
+/* Indicateur de statut */
+.status-indicator {
+    display: flex;
+    align-items: center;
+    font-size: 0.875rem;
+}
+
+/* Items d'information */
+.info-item {
+    text-align: center;
+    min-width: 80px;
+}
+
+.info-label {
+    font-size: 0.8125rem;
+    opacity: 0.8;
+    margin-bottom: 0;
+}
+
+/* Style spécifique pour la masse nette */
+.net-mass-label {
+    font-size: 1rem;
+    opacity: 1;
+    text-align: left;
+}
+
+
+.info-value {
+    font-size: 1.125rem;
+    font-weight: 500;
+}
+
+/* Inputs éditables style épuré */
+input.info-value.editable-value {
+    background-color: #dae9f8;
+    color: #215c98;
+    padding: 2px 8px;
+    border: none;
+    border-radius: 4px;
+    font-size: 1.125rem;
+    font-weight: 500;
+    text-align: center;
+    width: 80px;
+    outline: none;
+}
+
+
+/* Input verrouillé - non cliquable */
+input.info-value.editable-value[readonly] {
+    cursor: default;
+    pointer-events: none;
+}
+
+input.info-value.editable-value:hover {
+    cursor: pointer;
+}
+
+input.info-value.editable-value:focus {
+    background-color: white;
+    cursor: text;
+}
+
+/* Masquer les flèches des inputs number */
+input.info-value.editable-value::-webkit-inner-spin-button,
+input.info-value.editable-value::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+input.info-value.editable-value[type=number] {
+    -moz-appearance: textfield;
+}
+
+
+/* Ajustement du padding bottom de la page pour la sticky bar */
+.page-wrapper {
+    padding-bottom: 100px; /* 80px de la barre + 20px de marge */
+}
+
+/* Boutons dans la sticky bar */
+.sticky-bottom-bar .btn-outline-light {
+    border-color: rgba(255, 255, 255, 0.5);
+}
+
+.sticky-bottom-bar .btn-outline-light:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    border-color: white;
+}
+
+
+/* Centrage vertical des icônes dans les boutons */
+.sticky-bottom-bar .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Supprimer bordure sur bouton success */
+.sticky-bottom-bar .btn-success {
+    border: none;
+}
+
+/* Bouton crayon inline */
+.btn-pencil-inline {
+    padding: 0;
+    margin-left: 0.25rem;
+    border: 0;
+    background: none;
+}
+
+.btn-pencil-inline i {
+    font-size: 0.875rem;
+}
+
+/* Boutons carrés */
+.btn-square {
+    width: 31px;
+    height: 31px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-square i {
+    font-size: 0.875rem;
+}
+
+/* Icônes petites */
+.icon-sm {
+    font-size: 0.875rem;
+}
+
+
+.sticky-bottom-bar .btn i {
+    line-height: 1;
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+    .info-item {
+        min-width: 60px;
+    }
+    
+    .info-value {
+        font-size: 1rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .sticky-bottom-bar {
+        height: auto;
+        padding: 1rem 0;
+    }
+    
+    .info-item {
+        min-width: auto;
+        margin: 0 0.5rem;
+    }
+}

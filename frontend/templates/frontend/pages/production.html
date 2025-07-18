@@ -3,7 +3,7 @@
 {% block title %}Production - SGQ Ligne G{% endblock %}
 
 {% block extra_css %}
-<link href="https://cdn.jsdelivr.net/npm/alpine@3.x.x/dist/alpine.min.css" rel="stylesheet">
+<!-- Alpine.js n'a pas de fichier CSS, c'est uniquement du JavaScript -->
 {% endblock %}
 
 {% block content %}
@@ -269,6 +269,8 @@
 window.sessionData = {{ session_data|safe }};
 </script>
 {% load static %}
+<script src="{% static 'frontend/js/roll-calculations.js' %}"></script>
 <script src="{% static 'frontend/js/fiche-poste.js' %}"></script>
 <script src="{% static 'frontend/js/ordre-fabrication.js' %}"></script>
+<script src="{% static 'frontend/js/sticky-bottom.js' %}"></script>
 {% endblock %}

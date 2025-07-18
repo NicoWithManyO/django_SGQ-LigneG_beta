@@ -69,26 +69,35 @@ django_SGQ-LigneG_beta/
 frontend/
 ├── static/frontend/
 │   ├── css/
-│   │   ├── base.css          # Reset et styles globaux
-│   │   ├── components.css    # Composants réutilisables (accordions, badges)
-│   │   ├── layout.css        # Mise en page et responsivité
-│   │   └── fiche-poste.css   # Styles spécifiques fiche de poste
+│   │   ├── variables.css         # Variables CSS globales (couleurs, tailles)
+│   │   ├── base.css              # Reset et styles globaux
+│   │   ├── components.css        # Composants réutilisables (accordions, badges)
+│   │   ├── layout.css            # Mise en page et responsivité
+│   │   ├── fiche-poste.css       # Styles spécifiques fiche de poste
+│   │   ├── ordre-fabrication.css # Styles bloc ordre de fabrication
+│   │   └── sticky-bottom.css     # Styles barre fixe en bas
 │   └── js/
-│       └── fiche-poste.js    # Composant Alpine.js fiche de poste
+│       ├── roll-calculations.js  # Module de calculs métier (masse, grammage)
+│       ├── fiche-poste.js        # Composant Alpine.js fiche de poste
+│       ├── ordre-fabrication.js  # Composant Alpine.js ordre de fabrication
+│       └── sticky-bottom.js      # Composant Alpine.js sticky bar
 ├── templates/frontend/
-│   ├── base.html              # Template de base avec imports CSS/JS
+│   ├── base.html                 # Template de base avec imports CSS/JS
 │   ├── components/
-│   │   ├── navbar.html        # Barre de navigation
-│   │   └── fiche-poste.html   # Composant formulaire fiche de poste
+│   │   ├── navbar.html           # Barre de navigation
+│   │   ├── fiche-poste.html      # Composant formulaire fiche de poste
+│   │   ├── ordre-fabrication.html # Composant bloc OF avec édition inline
+│   │   └── sticky-bottom.html    # Barre fixe données rouleau
 │   └── pages/
-│       ├── index.html         # Page d'accueil
-│       └── production.html    # Page de production avec accordions
-└── views.py                   # Vues Django et gestion des contextes
+│       ├── index.html            # Page d'accueil
+│       └── production.html       # Page de production avec accordions
+└── views.py                      # Vues Django et gestion des contextes
 ```
 
 ### Architecture modulaire
 
-- **CSS organisé par responsabilité** : base, composants, layout, features
+- **CSS organisé par responsabilité** : variables, base, composants, layout, features
+- **Logique métier séparée** : Module dédié pour les calculs (roll-calculations.js)
 - **Composants Alpine.js** : État local réactif avec persistance automatique
 - **Templates Django** : Héritage et inclusion pour réutilisabilité
 - **API REST** : Communication asynchrone avec sauvegarde en session

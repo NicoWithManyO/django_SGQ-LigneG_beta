@@ -7,7 +7,7 @@
 
 body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    background-color: #9da1a8;
+    background-color: var(--body-bg);
     color: #212529;
     line-height: 1.5;
     overflow-y: scroll;

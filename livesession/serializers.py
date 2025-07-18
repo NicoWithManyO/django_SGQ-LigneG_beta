@@ -28,6 +28,13 @@ class SessionSerializer(serializers.Serializer):
     longueur_cible = serializers.CharField(required=False, allow_null=True, allow_blank=True)
     of_decoupe = serializers.CharField(required=False, allow_null=True, allow_blank=True)
     
+    # Sticky bar - Données du rouleau
+    roll_number = serializers.CharField(required=False, allow_null=True, allow_blank=True)
+    tube_mass = serializers.CharField(required=False, allow_null=True, allow_blank=True)
+    roll_length = serializers.CharField(required=False, allow_null=True, allow_blank=True)
+    total_mass = serializers.CharField(required=False, allow_null=True, allow_blank=True)
+    next_tube_mass = serializers.CharField(required=False, allow_null=True, allow_blank=True)
+    
     def update(self, instance, validated_data):
         """Met à jour la session avec les données validées."""
         # instance = request.session
