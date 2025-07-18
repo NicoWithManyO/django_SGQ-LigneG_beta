@@ -35,13 +35,7 @@
                             </button>
                         </h2>
                         <div id="collapseOF" class="accordion-collapse collapse show">
-                            <div class="accordion-body bg-light">
-                                <p>Lorem ipsum dolor sit amet.</p>
-                                <select class="form-select">
-                                    <option>Lorem ipsum option 1</option>
-                                    <option>Lorem ipsum option 2</option>
-                                </select>
-                            </div>
+                            {% include 'frontend/components/ordre-fabrication.html' %}
                         </div>
                     </div>
                 </div>
@@ -276,4 +270,5 @@ window.sessionData = {{ session_data|safe }};
 </script>
 {% load static %}
 <script src="{% static 'frontend/js/fiche-poste.js' %}"></script>
+<script src="{% static 'frontend/js/ordre-fabrication.js' %}"></script>
 {% endblock %}

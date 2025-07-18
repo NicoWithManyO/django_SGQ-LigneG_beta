@@ -87,6 +87,32 @@
     font-weight: 500;
 }
 
+/* Formulaires personnalisés */
+.form-control,
+.form-select {
+    border-color: #215c98;
+    color: #215c98;
+    background-color: #dae9f8;
+    font-size: 0.875rem;
+}
+
+.form-control:focus,
+.form-select:focus {
+    border-color: #6ba3d8;
+    box-shadow: none;
+}
+
+/* Labels de formulaire */
+.form-label {
+    margin-bottom: 0.125rem;
+    font-weight: normal;
+}
+
+/* Espacement des lignes de formulaire */
+.form-row {
+    margin-bottom: 0.5rem;
+}
+
 /* Cards info */
 .text-center small {
     display: block;

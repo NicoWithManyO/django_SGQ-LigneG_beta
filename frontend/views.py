@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from planification.models import Operator
+from planification.models import Operator, FabricationOrder
 import json
 
 
@@ -9,6 +9,10 @@ def index(request):
 
 def production(request):
     operators = Operator.objects.filter(is_active=True).order_by('first_name', 'last_name')
+    
+    # Récupérer les ordres de fabrication non terminés
+    fabrication_orders = FabricationOrder.objects.filter(terminated=False).order_by('-creation_date')
+    cutting_orders = FabricationOrder.objects.filter(terminated=False, for_cutting=True).order_by('-creation_date')
     
     # Récupérer les données de session
     session_data = {
@@ -22,10 +26,16 @@ def production(request):
         'length_start': request.session.get('length_start', ''),
         'length_end': request.session.get('length_end', ''),
         'comment': request.session.get('comment', ''),
+        # Ordre de fabrication
+        'of_en_cours': request.session.get('of_en_cours', ''),
+        'longueur_cible': request.session.get('longueur_cible', ''),
+        'of_decoupe': request.session.get('of_decoupe', ''),
     }
     
     context = {
         'operators': operators,
+        'fabrication_orders': fabrication_orders,
+        'cutting_orders': cutting_orders,
         'session_data': json.dumps(session_data),
     }
     return render(request, 'frontend/pages/production.html', context)

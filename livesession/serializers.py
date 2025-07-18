@@ -23,6 +23,11 @@ class SessionSerializer(serializers.Serializer):
     # Commentaire
     comment = serializers.CharField(required=False, allow_null=True, allow_blank=True)
     
+    # Ordre de fabrication
+    of_en_cours = serializers.CharField(required=False, allow_null=True, allow_blank=True)
+    longueur_cible = serializers.CharField(required=False, allow_null=True, allow_blank=True)
+    of_decoupe = serializers.CharField(required=False, allow_null=True, allow_blank=True)
+    
     def update(self, instance, validated_data):
         """Met à jour la session avec les données validées."""
         # instance = request.session

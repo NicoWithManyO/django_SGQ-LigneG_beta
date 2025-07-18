@@ -1,0 +1,70 @@
+/* ===== ORDRE DE FABRICATION STYLES ===== */
+/* Styles spécifiques au composant ordre de fabrication */
+
+/* Champs éditables avec bouton crayon */
+.editable-field .input-group-text {
+    background-color: #dae9f8;
+    border-color: #215c98;
+    color: #215c98;
+    font-size: 0.875rem;
+}
+
+/* Boutons d'édition */
+.btn-edit-field {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+    border-left: none;
+}
+
+/* Retirer la bordure droite des champs dans les input-group */
+.input-group > .form-control,
+.input-group > .form-select {
+    border-right: none;
+}
+
+/* Forcer les arrondis sur tous les champs */
+.input-group .form-control[readonly],
+.input-group .form-select {
+    border-top-left-radius: 0.375rem !important;
+    border-bottom-left-radius: 0.375rem !important;
+}
+
+/* S'assurer que le bouton crayon a la bonne bordure */
+.input-group > .btn-edit-field {
+    border-color: #215c98;
+}
+
+.input-group > .btn-edit-field:hover {
+    border-color: #6ba3d8;
+}
+
+/* Champs readonly - garder le même style que les champs normaux */
+.form-control[readonly] {
+    background-color: #dae9f8 !important;
+    border-color: #215c98 !important;
+    color: #215c98 !important;
+    cursor: default;
+}
+
+/* Focus sur les champs readonly - empêcher le changement de style */
+.form-control[readonly]:focus {
+    background-color: #dae9f8 !important;
+    border-color: #215c98 !important;
+    box-shadow: none !important;
+}
+
+/* Transition douce lors du passage en mode édition */
+.form-control {
+    transition: background-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* Cacher le chevron des select dans ordre-fabrication */
+.input-group .form-select {
+    background-image: none;
+    padding-right: 0.75rem;
+}
+
+/* Transition douce lors du passage en mode édition */
+.form-control {
+    transition: background-color 0.2s ease, box-shadow 0.2s ease;
+}

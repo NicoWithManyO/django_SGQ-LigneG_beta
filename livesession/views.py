@@ -23,6 +23,9 @@ class SessionAPIView(APIView):
             'length_start': request.session.get('length_start'),
             'length_end': request.session.get('length_end'),
             'comment': request.session.get('comment'),
+            'of_en_cours': request.session.get('of_en_cours'),
+            'longueur_cible': request.session.get('longueur_cible'),
+            'of_decoupe': request.session.get('of_decoupe'),
         }
         return Response(data)
     
@@ -68,6 +71,9 @@ class SessionAPIView(APIView):
                 'length_start': request.session.get('length_start'),
                 'length_end': request.session.get('length_end'),
                 'comment': request.session.get('comment'),
+                'of_en_cours': request.session.get('of_en_cours'),
+                'longueur_cible': request.session.get('longueur_cible'),
+                'of_decoupe': request.session.get('of_decoupe'),
             })
         
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
