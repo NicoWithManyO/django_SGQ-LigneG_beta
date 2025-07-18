@@ -18,7 +18,7 @@ source .venv/bin/activate  # Linux/Mac
 # Installer les dépendances
 pip install -r requirements.txt
 # ou
-pip install django djangorestframework django-htmx
+pip install django djangorestframework
 
 # Initialiser la base de données
 python manage.py migrate
@@ -46,7 +46,6 @@ python manage.py runserver
 - Django REST Framework 3.15.2
 - Bootstrap 5.3
 - Alpine.js 3.x
-- HTMX 2.0
 - SQLite (dev) / PostgreSQL (prod recommandé)
 
 ## 📂 Structure du projet
@@ -61,4 +60,37 @@ django_SGQ-LigneG_beta/
 ├── livesession/   # API de gestion des sessions
 └── frontend/      # Interface utilisateur et composants
 ```
+
+## 🎨 Architecture Frontend
+
+### Structure des fichiers
+
+```
+frontend/
+├── static/frontend/
+│   ├── css/
+│   │   ├── base.css          # Reset et styles globaux
+│   │   ├── components.css    # Composants réutilisables (accordions, badges)
+│   │   ├── layout.css        # Mise en page et responsivité
+│   │   └── fiche-poste.css   # Styles spécifiques fiche de poste
+│   └── js/
+│       └── fiche-poste.js    # Composant Alpine.js fiche de poste
+├── templates/frontend/
+│   ├── base.html              # Template de base avec imports CSS/JS
+│   ├── components/
+│   │   ├── navbar.html        # Barre de navigation
+│   │   └── fiche-poste.html   # Composant formulaire fiche de poste
+│   └── pages/
+│       ├── index.html         # Page d'accueil
+│       └── production.html    # Page de production avec accordions
+└── views.py                   # Vues Django et gestion des contextes
+```
+
+### Architecture modulaire
+
+- **CSS organisé par responsabilité** : base, composants, layout, features
+- **Composants Alpine.js** : État local réactif avec persistance automatique
+- **Templates Django** : Héritage et inclusion pour réutilisabilité
+- **API REST** : Communication asynchrone avec sauvegarde en session
+- **Design responsive** : Mobile-first avec Bootstrap 5.3
 
