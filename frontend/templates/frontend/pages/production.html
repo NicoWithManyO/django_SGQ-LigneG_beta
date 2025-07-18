@@ -1,0 +1,279 @@
+{% extends 'frontend/base.html' %}
+
+{% block title %}Production - SGQ Ligne G{% endblock %}
+
+{% block extra_css %}
+<link href="https://cdn.jsdelivr.net/npm/alpine@3.x.x/dist/alpine.min.css" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<div class="page-wrapper">
+    <div class="container-fluid">
+        <div class="row g-3">
+            <!-- Colonne gauche -->
+            <div class="col-lg-3">
+                <!-- Bloc Fiche de Poste -->
+                <div class="accordion" id="accordionPoste">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button bg-primary text-white" type="button" data-bs-toggle="collapse" data-bs-target="#collapsePoste" aria-expanded="true">
+                                <i class="bi bi-card-list me-2"></i> Fiche de Poste
+                            </button>
+                        </h2>
+                        <div id="collapsePoste" class="accordion-collapse collapse show">
+                            {% include 'frontend/components/fiche-poste.html' %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bloc Ordre de Fabrication -->
+                <div class="accordion mt-3" id="accordionOF">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button bg-primary text-white" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOF" aria-expanded="true">
+                                <i class="bi bi-list-task me-2"></i> Ordre de Fabrication
+                            </button>
+                        </h2>
+                        <div id="collapseOF" class="accordion-collapse collapse show">
+                            <div class="accordion-body bg-light">
+                                <p>Lorem ipsum dolor sit amet.</p>
+                                <select class="form-select">
+                                    <option>Lorem ipsum option 1</option>
+                                    <option>Lorem ipsum option 2</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Colonne centrale -->
+            <div class="col-lg-6">
+                <!-- Bloc Déclaration de Temps -->
+                <div class="accordion" id="accordionTemps">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button bg-primary text-white" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTemps" aria-expanded="true">
+                                <i class="bi bi-clock me-2"></i> Déclaration de Temps : 2h05
+                            </button>
+                        </h2>
+                        <div id="collapseTemps" class="accordion-collapse collapse show">
+                            <div class="accordion-body bg-light">
+                                <p>Lorem ipsum dolor sit amet, consectetur adipiscing.</p>
+                                <div class="row">
+                                    <div class="col-6">
+                                        <small class="text-muted">Lorem ipsum</small>
+                                        <h5>2h05</h5>
+                                    </div>
+                                    <div class="col-6">
+                                        <small class="text-muted">Lorem dolor</small>
+                                        <h5>Lorem</h5>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bloc Profil -->
+                <div class="accordion mt-3" id="accordionProfil">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button bg-primary text-white" type="button" data-bs-toggle="collapse" data-bs-target="#collapseProfil" aria-expanded="true">
+                                <i class="bi bi-graph-up me-2"></i> Profil : 80g/m² (Permissif)
+                            </button>
+                        </h2>
+                        <div id="collapseProfil" class="accordion-collapse collapse show">
+                            <div class="accordion-body bg-light">
+                                <!-- Profil de production -->
+                                <h6>Profil de production</h6>
+                                <select class="form-select mb-3">
+                                    <option>80g/m²</option>
+                                    <option>Lorem ipsum</option>
+                                </select>
+
+                                <!-- Modes -->
+                                <h6>Modes</h6>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="mode" id="permissif" checked>
+                                    <label class="form-check-label" for="permissif">Permissif</label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="mode" id="controles">
+                                    <label class="form-check-label" for="controles">Contrôles++</label>
+                                </div>
+
+                                <!-- Paramètres machine -->
+                                <h6 class="mt-3">Paramètres machine</h6>
+                                <table class="table table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th></th>
+                                            <th>Oxygène</th>
+                                            <th>Propane</th>
+                                            <th>Vitesse</th>
+                                            <th>Vitesse tapis</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>PRIMAIRE</td>
+                                            <td>--</td>
+                                            <td>--</td>
+                                            <td>31 m/h</td>
+                                            <td>17.40 m/h</td>
+                                        </tr>
+                                        <tr>
+                                            <td>SECONDAIRE</td>
+                                            <td>--</td>
+                                            <td>--</td>
+                                            <td>37 m/h</td>
+                                            <td>0.29 m/min</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+
+                                <!-- Spécifications qualité -->
+                                <h6 class="mt-3">Spécifications qualité</h6>
+                                <table class="table table-sm">
+                                    <tbody>
+                                        <tr>
+                                            <td>Épaisseur (mm)</td>
+                                            <td>3.2</td>
+                                            <td><span class="badge bg-success">6.5</span></td>
+                                            <td>--</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Extrait sec (%)</td>
+                                            <td>0.14</td>
+                                            <td><span class="badge bg-success">0.24</span></td>
+                                            <td>0.34</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Micronnaire (μm)</td>
+                                            <td>25</td>
+                                            <td><span class="badge bg-success">32</span></td>
+                                            <td>42</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Colonne droite -->
+            <div class="col-lg-3">
+                <!-- Bloc Check-list -->
+                <div class="accordion" id="accordionChecklist">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button bg-primary text-white" type="button" data-bs-toggle="collapse" data-bs-target="#collapseChecklist" aria-expanded="true">
+                                <i class="bi bi-check2-square me-2"></i> Check-list
+                            </button>
+                        </h2>
+                        <div id="collapseChecklist" class="accordion-collapse collapse show">
+                            <div class="accordion-body bg-light">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="check1">
+                                    <label class="form-check-label" for="check1">
+                                        Lorem ipsum dolor sit
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="check2">
+                                    <label class="form-check-label" for="check2">
+                                        Consectetur adipiscing elit
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="check3">
+                                    <label class="form-check-label" for="check3">
+                                        Sed do eiusmod tempor
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bloc Contrôles Qualité -->
+        <div class="row mt-3">
+            <div class="col-12">
+                <div class="accordion" id="accordionQualite">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button bg-primary text-white" type="button" data-bs-toggle="collapse" data-bs-target="#collapseQualite" aria-expanded="true">
+                                <i class="bi bi-clipboard-check me-2"></i> Contrôles Qualité
+                            </button>
+                        </h2>
+                        <div id="collapseQualite" class="accordion-collapse collapse show">
+                            <div class="accordion-body bg-light">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <h5 class="text-center text-success">CONFORME</h5>
+                                        <p class="text-center">Lorem ipsum dolor sit amet</p>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <button class="btn btn-warning">Renseigner les données du rouleau</button>
+                                    </div>
+                                </div>
+                                <div class="row mt-3">
+                                    <div class="col">
+                                        <div class="text-center">
+                                            <small class="text-muted">N° Rouleau</small>
+                                            <h5>3</h5>
+                                        </div>
+                                    </div>
+                                    <div class="col">
+                                        <div class="text-center">
+                                            <small class="text-muted">ID Rouleau</small>
+                                            <h5>3165_005</h5>
+                                        </div>
+                                    </div>
+                                    <div class="col">
+                                        <div class="text-center">
+                                            <small class="text-muted">Masse tube (g)</small>
+                                            <h5>6</h5>
+                                        </div>
+                                    </div>
+                                    <div class="col">
+                                        <div class="text-center">
+                                            <small class="text-muted">Lg (m)</small>
+                                            <h5>6</h5>
+                                        </div>
+                                    </div>
+                                    <div class="col">
+                                        <div class="text-center">
+                                            <small class="text-muted">Masse totale (g)</small>
+                                            <h5>506g</h5>
+                                        </div>
+                                    </div>
+                                    <div class="col">
+                                        <div class="text-center text-warning">
+                                            <h4>84.3g/m²</h4>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+<script>
+// Passer les données de session au JS
+window.sessionData = {{ session_data|safe }};
+</script>
+{% load static %}
+<script src="{% static 'frontend/js/fiche-poste.js' %}"></script>
+{% endblock %}

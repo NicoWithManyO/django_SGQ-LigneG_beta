@@ -1,0 +1,53 @@
+/* ===== BASE CSS ===== */
+/* Reset et styles de base */
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background-color: #9da1a8;
+    color: #212529;
+    line-height: 1.5;
+    overflow-y: scroll;
+}
+
+/* Reset des marges par défaut */
+h1, h2, h3, h4, h5, h6, p {
+    margin-top: 0;
+}
+
+/* Liens */
+a {
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+/* Tables */
+table {
+    width: 100%;
+}
+
+/* Forms */
+.form-label {
+    font-weight: normal;
+    margin-bottom: 0.5rem;
+}
+
+.form-control,
+.form-select {
+    font-size: 0.875rem;
+}
+
+/* Utility classes */
+.text-muted {
+    color: #6c757d !important;
+}
+
+.bg-light {
+    background-color: #f8f9fa !important;
+}

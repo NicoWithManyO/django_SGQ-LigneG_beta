@@ -1,0 +1,99 @@
+/* ===== COMPONENTS CSS ===== */
+/* Styles des composants réutilisables */
+
+/* Accordion modifications */
+.accordion-item {
+    border: none;
+    margin-bottom: 0;
+}
+
+.accordion-button {
+    font-weight: 500;
+    border: none;
+    border-radius: 0;
+    padding: 0.75rem 1rem;
+}
+
+.accordion-button:not(.collapsed) {
+    background-color: inherit;
+    box-shadow: none;
+}
+
+.accordion-button:focus {
+    box-shadow: none;
+    border-color: transparent;
+}
+
+.accordion-button.bg-primary {
+    background-color: #215c98 !important;
+}
+
+.accordion-button.bg-primary:not(.collapsed) {
+    background-color: #215c98 !important;
+    color: white;
+}
+
+.accordion-button::after {
+    filter: brightness(0) invert(1);
+}
+
+.accordion-body {
+    padding: 1rem;
+}
+
+.accordion-body.bg-light {
+    background-color: #f8f9fa;
+}
+
+/* Tables dans les accordions */
+.accordion-body table {
+    margin-bottom: 0;
+}
+
+.accordion-body .table-sm td,
+.accordion-body .table-sm th {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+    text-align: center;
+}
+
+.accordion-body .table-sm td:first-child {
+    text-align: left;
+}
+
+/* Badges */
+.badge {
+    font-weight: 500;
+    padding: 0.25rem 0.5rem;
+}
+
+/* Icons */
+.bi {
+    vertical-align: text-bottom;
+}
+
+/* Forms dans les accordions */
+.accordion-body .form-check {
+    margin-bottom: 0.5rem;
+}
+
+.accordion-body .form-check-label {
+    font-size: 0.875rem;
+}
+
+
+/* Boutons */
+.btn {
+    font-weight: 500;
+}
+
+/* Cards info */
+.text-center small {
+    display: block;
+    font-size: 0.75rem;
+}
+
+.text-center h5 {
+    margin-bottom: 0;
+    font-size: 1.125rem;
+}

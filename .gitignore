@@ -29,3 +29,6 @@ __pycache__/
 # Fichiers temporaires
 *.bak
 *.tmp
+
+# Images à la racine
+/*.png

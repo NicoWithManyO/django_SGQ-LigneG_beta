@@ -1,0 +1,52 @@
+/* ===== FICHE DE POSTE STYLES ===== */
+
+/* Structure et espacement */
+#accordionPoste .form-row {
+    margin-bottom: 0.5rem;
+}
+
+/* Labels */
+#accordionPoste .form-label {
+    margin-bottom: 0.125rem;
+    font-weight: normal;
+}
+
+/* Champs de formulaire */
+#accordionPoste .form-control,
+#accordionPoste .form-select {
+    border-color: #215c98;
+    color: #215c98;
+    background-color: #dae9f8;
+    font-size: 0.875rem;
+}
+
+#accordionPoste .form-control:focus,
+#accordionPoste .form-select:focus {
+    border-color: #215c98;
+    box-shadow: 0 0 0 0.2rem rgba(33, 92, 152, 0.25);
+}
+
+/* Bouton ajouter opérateur */
+.btn-add-operator {
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    font-size: 0.875rem;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* ID Poste status */
+.shift-id-status {
+    font-size: 1rem;
+}
+
+.shift-id-status .status-icon {
+    font-size: 1.25rem;
+}
+
+.shift-id-value {
+    font-weight: 500;
+}

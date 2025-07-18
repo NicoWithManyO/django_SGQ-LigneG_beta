@@ -228,3 +228,7 @@ frontend/
 │   ├── js/                # Scripts JavaScript
 │   └── img/               # Images
 ```
+
+## Mémoires de développement
+
+- **un champ vide doit afficher --**

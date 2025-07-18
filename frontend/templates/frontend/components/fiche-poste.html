@@ -1,0 +1,50 @@
+<!-- Composant Fiche de Poste -->
+<div class="accordion-body bg-light" x-data="fichePoste()" x-init="init()">
+    <!-- Ligne Opérateur -->
+    <div class="row form-row">
+        <div class="col-8">
+            <label class="form-label" for="operator-select">Opérateur</label>
+            <select class="form-select" id="operator-select" x-model="operatorId">
+                <option value="">--</option>
+                {% for operator in operators %}
+                <option value="{{ operator.id }}">{{ operator.first_name }} {{ operator.last_name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-4 d-flex align-items-end">
+            <button class="btn btn-outline-secondary btn-add-operator ms-auto" 
+                    type="button"
+                    title="Ajouter un opérateur">
+                +
+            </button>
+        </div>
+    </div>
+    
+    <!-- Ligne Date/Vacation -->
+    <div class="row form-row">
+        <div class="col-6">
+            <label class="form-label" for="shift-date">Date</label>
+            <input type="date" class="form-control" id="shift-date" x-model="shiftDate">
+        </div>
+        <div class="col-6">
+            <label class="form-label" for="vacation">Vacation</label>
+            <select class="form-select" id="vacation" x-model="vacation">
+                <option value="">--</option>
+                <option value="Matin">Matin</option>
+                <option value="ApresMidi">Après-midi</option>
+                <option value="Nuit">Nuit</option>
+                <option value="Journee">Journée</option>
+            </select>
+        </div>
+    </div>
+    
+    <!-- ID Poste -->
+    <div class="row form-row">
+        <div class="col-12 d-flex align-items-center shift-id-status">
+            <i class="bi status-icon me-2"
+               :class="isValid ? 'bi-check-circle-fill text-success' : 'bi-exclamation-triangle-fill text-warning'">
+            </i>
+            <span>ID Poste : <span class="shift-id-value" x-text="shiftId || '--'"></span></span>
+        </div>
+    </div>
+</div>
