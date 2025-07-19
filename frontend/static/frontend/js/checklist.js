@@ -10,6 +10,7 @@ function checklist() {
         shiftId: null,
         signature: '',
         signatureTime: null,
+        signatureInvalid: false,
         
         // Initialisation
         init() {
@@ -24,6 +25,21 @@ function checklist() {
                 this.loadTemplateFromSession();
                 this.loadSignatureFromSession();
                 this.loadResponses();
+            });
+            
+            // Écouter les changements d'opérateur
+            window.addEventListener('operator-changed', () => {
+                // Effacer la signature si elle existe
+                if (this.signature) {
+                    this.signature = '';
+                    this.signatureTime = null;
+                    this.signatureInvalid = false;
+                    // Sauvegarder l'effacement
+                    api.saveToSession({
+                        checklist_signature: null,
+                        checklist_signature_time: null
+                    });
+                }
             });
         },
         
@@ -147,6 +163,24 @@ function checklist() {
             }
         },
         
+        // Obtenir les initiales attendues depuis le champ opérateur
+        getExpectedInitials() {
+            // Récupérer le select de l'opérateur
+            const operatorSelect = document.querySelector('select[x-model="operatorId"]');
+            if (!operatorSelect || !operatorSelect.selectedOptions[0]) return null;
+            
+            // Récupérer le texte de l'option sélectionnée (format: "Prénom NOM")
+            const operatorText = operatorSelect.selectedOptions[0].text;
+            if (!operatorText || operatorText === '--') return null;
+            
+            // Extraire prénom et nom
+            const parts = operatorText.split(' ');
+            if (parts.length < 2) return null;
+            
+            // Première lettre du prénom + première lettre du nom
+            return parts[0].charAt(0).toUpperCase() + parts[1].charAt(0).toUpperCase();
+        },
+        
         // Sauvegarder la signature
         async saveSignature() {
             // S'assurer que signature est une chaîne avant toUpperCase
@@ -161,6 +195,16 @@ function checklist() {
                 });
                 return;
             }
+            
+            // Vérifier que les initiales correspondent
+            const expectedInitials = this.getExpectedInitials();
+            if (expectedInitials && this.signature !== expectedInitials) {
+                this.signatureInvalid = true;
+                return;
+            }
+            
+            // Signature valide
+            this.signatureInvalid = false;
             
             try {
                 // Générer l'heure actuelle

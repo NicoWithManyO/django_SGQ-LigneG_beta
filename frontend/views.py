@@ -44,10 +44,14 @@ def production(request):
         'checklist_signature_time': request.session.get('checklist_signature_time', ''),
     }
     
+    # Préparer les données des opérateurs pour JS
+    operators_data = list(operators.values('id', 'first_name', 'last_name', 'employee_id'))
+    
     context = {
         'operators': operators,
         'fabrication_orders': fabrication_orders,
         'cutting_orders': cutting_orders,
         'session_data': json.dumps(session_data),
+        'operators_json': json.dumps(operators_data),
     }
     return render(request, 'frontend/pages/production.html', context)

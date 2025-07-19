@@ -30,6 +30,8 @@ function shiftForm() {
             // Watchers individuels pour les champs qui affectent shiftId
             this.$watch('operatorId', () => {
                 this.generateShiftId();
+                // Émettre un événement pour notifier le changement d'opérateur
+                window.dispatchEvent(new Event('operator-changed'));
             });
             
             this.$watch('shiftDate', () => {

@@ -3,14 +3,24 @@
 
 /* Item de checklist */
 .checklist-item {
-    padding: 0.125rem 0;
+    padding: 0.0625rem 0;
+}
+
+/* Numéro de l'item */
+.checklist-number {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: #6c757d;
+    margin-right: 0.5rem;
+    min-width: 1.2rem;
+    display: inline-block;
 }
 
 /* Texte de l'item */
 .checklist-text {
-    font-size: 0.875rem;
+    font-size: 0.75rem;
     flex: 1;
-    margin-right: 1rem;
+    margin-right: 0.5rem;
     text-align: right;
 }
 
@@ -30,10 +40,10 @@
 
 /* Boutons d'état */
 .checklist-item .btn {
-    padding: 0.25rem 0.5rem;
-    font-size: 0.75rem;
+    padding: 0.2rem 0.4rem;
+    font-size: 0.7rem;
     font-weight: 600;
-    min-width: 40px;
+    min-width: 36px;
 }
 
 /* États actifs */
@@ -68,7 +78,7 @@
 
 /* Message d'info */
 .accordion-body .text-muted {
-    font-size: 0.875rem;
+    font-size: 0.75rem;
 }
 
 /* Spinner de chargement */
@@ -79,7 +89,7 @@
 
 /* Zone de signature */
 .signature-zone {
-    padding: 0.75rem;
+    padding: 0.5rem;
 }
 
 .signature-zone input {

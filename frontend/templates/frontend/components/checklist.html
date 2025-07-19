@@ -9,10 +9,13 @@
     
     <!-- Liste des items -->
     <div x-show="!loading && items.length > 0">
-        <template x-for="item in items" :key="item.id">
+        <template x-for="(item, index) in items" :key="item.id">
             <div class="checklist-item mb-2">
                 <div class="d-flex align-items-center justify-content-between">
-                    <span class="checklist-text" x-text="item.text"></span>
+                    <div class="d-flex align-items-center">
+                        <span class="checklist-number" x-text="(index + 1) + '.'"></span>
+                        <span class="checklist-text" x-text="item.text"></span>
+                    </div>
                     <div class="btn-group btn-group-sm" role="group">
                         <button type="button" 
                                 class="btn btn-outline-success"
@@ -56,9 +59,11 @@
                style="font-size: 1.2rem; width: 1.2rem; display: inline-block;"></i>
             <input type="text" 
                    class="form-control form-control-sm text-center" 
+                   :class="{ 'is-invalid': signatureInvalid }"
                    placeholder="✍"
                    x-model="signature"
                    @blur="saveSignature()"
+                   @input="signatureInvalid = false"
                    :disabled="!isAllItemsChecked"
                    style="width: 80px;">
         </div>

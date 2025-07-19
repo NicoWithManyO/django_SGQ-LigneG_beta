@@ -268,6 +268,8 @@
 <script>
 // Passer les données de session au JS
 window.sessionData = {{ session_data|safe }};
+// Passer les données des opérateurs
+window.operatorsData = {{ operators_json|safe }};
 </script>
 <script src="{% static 'frontend/js/common.js' %}"></script>
 <script src="{% static 'frontend/js/api.js' %}"></script>
