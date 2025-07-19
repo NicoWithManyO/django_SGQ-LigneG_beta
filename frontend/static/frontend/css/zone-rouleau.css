@@ -1,6 +1,9 @@
 /* ===== ZONE ROULEAU CSS ===== */
 /* Styles pour la zone rouleau et ses composants */
 
+/* Import des animations communes */
+@import 'animations.css';
+
 /* Container principal de la zone rouleau */
 .zone-rouleau-container {
     padding: 1rem;
@@ -60,6 +63,8 @@
 
 .rouleau-table td {
     border: none;
+    border-top: 1px solid transparent;
+    border-bottom: 1px solid transparent;
     height: 2.5rem;
     padding: 1px;
     position: relative;
@@ -81,6 +86,7 @@
     opacity: 1;
     display: inline-block;
     font-weight: 600;
+    transition: font-weight 0.2s ease;
 }
 
 /* Colonnes défauts */
@@ -123,22 +129,31 @@
 }
 
 /* Bordure de repère au hover */
-.rouleau-table tr:hover td {
-    border-bottom: 1px solid #dee2e6;
+.rouleau-table tr:hover td::before {
+    border-bottom-color: rgba(222, 226, 230, 0.4);
 }
 
-/* Pas de bordure de hover sur les lignes avec défaut (qui ont déjà la ligne de découpe) */
-.rouleau-table tr.has-defaut:hover td {
-    border-bottom: none;
+/* Metrage en bold au hover de la ligne */
+.rouleau-table tr:hover .metrage-label {
+    font-weight: 700;
+}
+
+/* La ligne de hover reste visible même sur les lignes avec défaut, mais en dessous */
+.rouleau-table tr.has-defaut:hover td::before {
+    border-bottom-color: rgba(222, 226, 230, 0.4);
+    z-index: 1;
 }
 
 
 /* Ligne avec défaut - animation de la bordure */
 tr.has-defaut td::before {
-    border-color: #dc3545;
+    border-bottom-color: #dc3545 !important;
+    border-bottom-style: dashed;
     opacity: 0;
     animation: fadeInLine 0.8s ease-out forwards;
     animation-delay: calc(var(--col-index, 0) * 0.1s);
+    z-index: 10 !important;
+    bottom: 0;
 }
 
 /* Icône ciseaux sur chaque cellule */
@@ -150,7 +165,7 @@ tr.has-defaut td::after {
     transform: translateX(-50%) translateY(40%);
     color: black;
     font-size: 1.25rem;
-    z-index: 10;
+    z-index: 30;
     opacity: 0;
     animation: fadeInScissors 0.5s ease-out forwards;
     animation-delay: calc(var(--col-index, 0) * 0.1s + 0.3s);
@@ -178,10 +193,6 @@ tr.has-defaut td.col-metrage::after {
     content: none;
 }
 
-/* Pas de bordure sur la colonne métrage */
-tr.has-defaut td.col-metrage::before {
-    content: none;
-}
 
 /* Index de colonnes pour l'animation progressive */
 tr.has-defaut td:nth-child(1) { --col-index: 0; }
@@ -205,12 +216,12 @@ tr.has-defaut td:nth-child(7) { --col-index: 6; }
     padding: 2px 5px;
     border-radius: 3px;
     line-height: 1.2;
-    z-index: 10;
+    z-index: 25;
     cursor: pointer;
     transition: background-color 0.2s;
     min-width: 25px;
     text-align: center;
-    animation: popFromBehind 0.8s ease-out;
+    animation: popFromBehind 1s ease-out;
 }
 
 @keyframes popFromBehind {
@@ -218,18 +229,24 @@ tr.has-defaut td:nth-child(7) { --col-index: 6; }
         transform: translateY(-50%) scale(0) translateZ(-100px);
         opacity: 0;
     }
-    40% {
-        transform: translateY(-50%) scale(1) translateZ(0);
+    20% {
+        transform: translateY(-50%) scale(1.1) translateZ(0);
         opacity: 1;
     }
-    55% {
-        transform: translateY(-50%) scale(1.15);
-    }
-    70% {
+    35% {
         transform: translateY(-50%) scale(0.95);
     }
-    85% {
+    50% {
         transform: translateY(-50%) scale(1.05);
+    }
+    65% {
+        transform: translateY(-50%) scale(0.98);
+    }
+    80% {
+        transform: translateY(-50%) scale(1.02);
+    }
+    90% {
+        transform: translateY(-50%) scale(0.99);
     }
     100% {
         transform: translateY(-50%) scale(1);
@@ -240,12 +257,12 @@ tr.has-defaut td:nth-child(7) { --col-index: 6; }
     background-color: #c82333;
 }
 
-/* Animation de disparition */
+/* Animation de disparition avec translation Y */
 .fade-out {
-    animation: fadeOut 0.3s ease-out forwards;
+    animation: fadeOutWithTranslate 0.3s ease-out forwards;
 }
 
-@keyframes fadeOut {
+@keyframes fadeOutWithTranslate {
     from {
         opacity: 1;
         transform: translateY(-50%) scale(1);
@@ -259,8 +276,9 @@ tr.has-defaut td:nth-child(7) { --col-index: 6; }
 /* Bouton pour ajouter un défaut */
 .add-defaut-btn {
     position: absolute;
-    top: 1px;
+    top: 50%;
     right: 1px;
+    transform: translateY(-50%);
     width: 20px;
     height: 20px;
     padding: 0;
@@ -280,7 +298,7 @@ tr.has-defaut td:nth-child(7) { --col-index: 6; }
 
 .col-defaut:hover .add-defaut-btn,
 .add-defaut-btn.active {
-    opacity: 0.6;
+    opacity: 1;
 }
 
 .add-defaut-btn:hover,
@@ -308,7 +326,7 @@ tr.has-defaut td:nth-child(7) { --col-index: 6; }
     border: none;
     background: transparent;
     text-align: center;
-    font-size: 1rem;
+    font-size: 0.875rem;
     font-weight: 600;
     padding: 0;
     cursor: pointer;
@@ -316,13 +334,74 @@ tr.has-defaut td:nth-child(7) { --col-index: 6; }
     z-index: 1;
     line-height: 2.4rem;
     color: #215c98;
+    transition: all 0.3s ease;
+}
+
+/* Input avec épaisseur valide - style badge */
+.epaisseur-input.has-value {
+    background: #28a745;
+    color: white;
+    border-radius: 3px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    animation: validatePulse 0.8s ease-out;
+    position: relative;
+    z-index: 20;
+}
+
+/* Input avec épaisseur NOK (deuxième ou plus) - style badge rouge */
+.epaisseur-input.has-nok {
+    background: #dc3545;
+    color: white;
+    border-radius: 3px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    animation: validatePulse 0.8s ease-out;
+    position: relative;
+    z-index: 20;
+}
+
+@keyframes validatePulse {
+    0% {
+        transform: scale(1);
+        background-color: transparent;
+    }
+    15% {
+        transform: scale(1.08);
+        background-color: #28a745;
+    }
+    30% {
+        transform: scale(0.96);
+    }
+    45% {
+        transform: scale(1.04);
+    }
+    60% {
+        transform: scale(0.98);
+    }
+    75% {
+        transform: scale(1.02);
+    }
+    90% {
+        transform: scale(0.99);
+    }
+    100% {
+        transform: scale(1);
+        background-color: #28a745;
+    }
 }
 
 
 .epaisseur-input:focus {
     outline: none;
     box-shadow: none;
-    background: transparent;
+    caret-color: #215c98;
+}
+
+/* Garder le style badge même au focus si valeur valide */
+.epaisseur-input.has-value:focus {
+    background: #28a745;
+    color: white;
 }
 
 /* Indicateur d'épaisseur NOK */
@@ -338,12 +417,12 @@ tr.has-defaut td:nth-child(7) { --col-index: 6; }
     padding: 2px 5px;
     border-radius: 3px;
     line-height: 1.2;
-    z-index: 10;
+    z-index: 1;
     cursor: pointer;
     transition: background-color 0.2s;
     min-width: 25px;
     text-align: center;
-    animation: slideFromInput 0.8s ease-out;
+    animation: slideFromInput 1s ease-out;
 }
 
 @keyframes slideFromInput {
@@ -352,19 +431,25 @@ tr.has-defaut td:nth-child(7) { --col-index: 6; }
         transform: translateX(-50%) translateY(-50%) scale(1.5);
         opacity: 0.7;
     }
-    40% {
+    20% {
         left: 1px;
-        transform: translateX(0) translateY(-50%) scale(1);
+        transform: translateX(0) translateY(-50%) scale(1.1);
         opacity: 1;
     }
-    55% {
-        transform: translateX(0) translateY(-50%) scale(1.15);
-    }
-    70% {
+    35% {
         transform: translateX(0) translateY(-50%) scale(0.95);
     }
-    85% {
+    50% {
         transform: translateX(0) translateY(-50%) scale(1.05);
+    }
+    65% {
+        transform: translateX(0) translateY(-50%) scale(0.98);
+    }
+    80% {
+        transform: translateX(0) translateY(-50%) scale(1.02);
+    }
+    90% {
+        transform: translateX(0) translateY(-50%) scale(0.99);
     }
     100% {
         left: 1px;
@@ -377,6 +462,7 @@ tr.has-defaut td:nth-child(7) { --col-index: 6; }
 .epaisseur-nok-indicator:hover {
     background-color: #c82333;
 }
+
 
 /* Sélecteur de défauts */
 .defaut-selector {

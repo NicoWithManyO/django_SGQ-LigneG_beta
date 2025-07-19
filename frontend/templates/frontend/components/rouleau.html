@@ -1,7 +1,7 @@
 <!-- Composant Rouleau -->
 <div class="rouleau-container" x-data="rouleau()" x-init="init()">
     <!-- Grille du rouleau -->
-    <div class="rouleau-grid" style="position: relative;">
+    <div class="rouleau-grid">
         <!-- Sélecteur de défauts (position fixed pour ne pas déformer) -->
         <select x-show="showDefautSelector" 
                 x-model="selectedDefautType"
@@ -9,7 +9,7 @@
                 @blur="showDefautSelector = false"
                 class="defaut-selector position-fixed form-select form-select-sm"
                 :style="`top: ${selectorPosition.top}px; left: ${selectorPosition.left}px;`"
-                size="5">
+                :size="defautTypes.length">
             <template x-for="defaut in defautTypes" :key="defaut.id">
                 <option :value="defaut.id" x-text="defaut.name"></option>
             </template>
@@ -19,152 +19,47 @@
             <tbody>
                 <template x-for="row in 12" :key="row">
                     <tr :class="{'has-defaut': hasDefautInRow(row)}">
-                        <!-- Première moitié -->
-                        <td class="col-defaut" 
-                            :class="{'col-epaisseur': isEpaisseurRow(row), 'defaut': hasDefaut(row, 'G1')}">
-                            <div x-show="isEpaisseurRow(row)" class="cellule-epaisseur">
-                                <div x-show="hasEpaisseurNok(row, 'G1')" class="epaisseur-nok-indicator" @click.stop="removeEpaisseurNok(row, 'G1')">
-                                    <span x-text="getEpaisseurNok(row, 'G1')"></span>
-                                </div>
-                                <input type="text" 
-                                       class="epaisseur-input" 
-                                       :data-row="row" 
-                                       data-col="G1"
-                                       maxlength="5"
-                                       placeholder="--"
-                                       @click="$event.target.select()"
-                                       @focus="$event.target.select()">
-                            </div>
-                            <div x-show="hasDefaut(row, 'G1')" class="defaut-indicator" @click.stop="removeDefaut(row, 'G1')">
-                                <span x-text="getDefautCode(row, 'G1')"></span>
-                            </div>
-                            <button x-show="!hasDefaut(row, 'G1')" 
-                                    class="add-defaut-btn" 
-                                    :class="{'active': showDefautSelector && currentCell && currentCell.row === row && currentCell.col === 'G1'}"
-                                    @click.stop="openDefautSelector($event, row, 'G1')">+</button>
-                        </td>
-                        <td class="col-defaut" 
-                            :class="{'col-epaisseur': isEpaisseurRow(row), 'defaut': hasDefaut(row, 'C1')}">
-                            <div x-show="isEpaisseurRow(row)" class="cellule-epaisseur">
-                                    <div x-show="hasEpaisseurNok(row, 'C1')" class="epaisseur-nok-indicator" @click.stop="removeEpaisseurNok(row, 'C1')">
-                                    <span x-text="getEpaisseurNok(row, 'C1')"></span>
-                                </div>
-                                <input type="text" 
-                                       class="epaisseur-input" 
-                                       :data-row="row" 
-                                       data-col="C1"
-                                       maxlength="5"
-                                       placeholder="--"
-                                       @click="$event.target.select()"
-                                       @focus="$event.target.select()">
-                            </div>
-                            <div x-show="hasDefaut(row, 'C1')" class="defaut-indicator" @click.stop="removeDefaut(row, 'C1')">
-                                <span x-text="getDefautCode(row, 'C1')"></span>
-                            </div>
-                            <button x-show="!hasDefaut(row, 'C1')" 
-                                    class="add-defaut-btn" 
-                                    :class="{'active': showDefautSelector && currentCell && currentCell.row === row && currentCell.col === 'C1'}"
-                                    @click.stop="openDefautSelector($event, row, 'C1')">+</button>
-                        </td>
-                        <td class="col-defaut" 
-                            :class="{'col-epaisseur': isEpaisseurRow(row), 'defaut': hasDefaut(row, 'D1')}">
-                            <div x-show="isEpaisseurRow(row)" class="cellule-epaisseur">
-                                    <div x-show="hasEpaisseurNok(row, 'D1')" class="epaisseur-nok-indicator" @click.stop="removeEpaisseurNok(row, 'D1')">
-                                    <span x-text="getEpaisseurNok(row, 'D1')"></span>
-                                </div>
-                                <input type="text" 
-                                       class="epaisseur-input" 
-                                       :data-row="row" 
-                                       data-col="D1"
-                                       maxlength="5"
-                                       placeholder="--"
-                                       @click="$event.target.select()"
-                                       @focus="$event.target.select()">
-                            </div>
-                            <div x-show="hasDefaut(row, 'D1')" class="defaut-indicator" @click.stop="removeDefaut(row, 'D1')">
-                                <span x-text="getDefautCode(row, 'D1')"></span>
-                            </div>
-                            <button x-show="!hasDefaut(row, 'D1')" 
-                                    class="add-defaut-btn" 
-                                    :class="{'active': showDefautSelector && currentCell && currentCell.row === row && currentCell.col === 'D1'}"
-                                    @click.stop="openDefautSelector($event, row, 'D1')">+</button>
-                        </td>
-                        
-                        <!-- Colonne métrage centrale -->
-                        <td class="col-metrage">
-                            <span class="metrage-label" x-text="row"></span>
-                        </td>
-                        
-                        <!-- Deuxième moitié -->
-                        <td class="col-defaut" 
-                            :class="{'col-epaisseur': isEpaisseurRow(row), 'defaut': hasDefaut(row, 'G2')}">
-                            <div x-show="isEpaisseurRow(row)" class="cellule-epaisseur">
-                                    <div x-show="hasEpaisseurNok(row, 'G2')" class="epaisseur-nok-indicator" @click.stop="removeEpaisseurNok(row, 'G2')">
-                                    <span x-text="getEpaisseurNok(row, 'G2')"></span>
-                                </div>
-                                <input type="text" 
-                                       class="epaisseur-input" 
-                                       :data-row="row" 
-                                       data-col="G2"
-                                       maxlength="5"
-                                       placeholder="--"
-                                       @click="$event.target.select()"
-                                       @focus="$event.target.select()">
-                            </div>
-                            <div x-show="hasDefaut(row, 'G2')" class="defaut-indicator" @click.stop="removeDefaut(row, 'G2')">
-                                <span x-text="getDefautCode(row, 'G2')"></span>
-                            </div>
-                            <button x-show="!hasDefaut(row, 'G2')" 
-                                    class="add-defaut-btn" 
-                                    :class="{'active': showDefautSelector && currentCell && currentCell.row === row && currentCell.col === 'G2'}"
-                                    @click.stop="openDefautSelector($event, row, 'G2')">+</button>
-                        </td>
-                        <td class="col-defaut" 
-                            :class="{'col-epaisseur': isEpaisseurRow(row), 'defaut': hasDefaut(row, 'C2')}">
-                            <div x-show="isEpaisseurRow(row)" class="cellule-epaisseur">
-                                    <div x-show="hasEpaisseurNok(row, 'C2')" class="epaisseur-nok-indicator" @click.stop="removeEpaisseurNok(row, 'C2')">
-                                    <span x-text="getEpaisseurNok(row, 'C2')"></span>
-                                </div>
-                                <input type="text" 
-                                       class="epaisseur-input" 
-                                       :data-row="row" 
-                                       data-col="C2"
-                                       maxlength="5"
-                                       placeholder="--"
-                                       @click="$event.target.select()"
-                                       @focus="$event.target.select()">
-                            </div>
-                            <div x-show="hasDefaut(row, 'C2')" class="defaut-indicator" @click.stop="removeDefaut(row, 'C2')">
-                                <span x-text="getDefautCode(row, 'C2')"></span>
-                            </div>
-                            <button x-show="!hasDefaut(row, 'C2')" 
-                                    class="add-defaut-btn" 
-                                    :class="{'active': showDefautSelector && currentCell && currentCell.row === row && currentCell.col === 'C2'}"
-                                    @click.stop="openDefautSelector($event, row, 'C2')">+</button>
-                        </td>
-                        <td class="col-defaut" 
-                            :class="{'col-epaisseur': isEpaisseurRow(row), 'defaut': hasDefaut(row, 'D2')}">
-                            <div x-show="isEpaisseurRow(row)" class="cellule-epaisseur">
-                                    <div x-show="hasEpaisseurNok(row, 'D2')" class="epaisseur-nok-indicator" @click.stop="removeEpaisseurNok(row, 'D2')">
-                                    <span x-text="getEpaisseurNok(row, 'D2')"></span>
-                                </div>
-                                <input type="text" 
-                                       class="epaisseur-input" 
-                                       :data-row="row" 
-                                       data-col="D2"
-                                       maxlength="5"
-                                       placeholder="--"
-                                       @click="$event.target.select()"
-                                       @focus="$event.target.select()">
-                            </div>
-                            <div x-show="hasDefaut(row, 'D2')" class="defaut-indicator" @click.stop="removeDefaut(row, 'D2')">
-                                <span x-text="getDefautCode(row, 'D2')"></span>
-                            </div>
-                            <button x-show="!hasDefaut(row, 'D2')" 
-                                    class="add-defaut-btn" 
-                                    :class="{'active': showDefautSelector && currentCell && currentCell.row === row && currentCell.col === 'D2'}"
-                                    @click.stop="openDefautSelector($event, row, 'D2')">+</button>
-                        </td>
+                        <!-- Boucle pour les colonnes -->
+                        <template x-for="(col, index) in getColumns()" :key="col">
+                            <!-- Cellule selon le type -->
+                            <td :class="col === 'metrage' ? 'col-metrage' : 'col-defaut ' + (isEpaisseurRow(row) ? 'col-epaisseur' : '') + (hasDefaut(row, col) ? ' defaut' : '')">
+                                <!-- Contenu pour colonne métrage -->
+                                <template x-if="col === 'metrage'">
+                                    <span class="metrage-label" x-text="row"></span>
+                                </template>
+                                
+                                <!-- Contenu pour colonnes défaut/épaisseur -->
+                                <template x-if="col !== 'metrage'">
+                                    <div>
+                                        <div x-show="isEpaisseurRow(row)" class="cellule-epaisseur">
+                                            <div x-show="hasEpaisseurNok(row, col)" 
+                                                 class="epaisseur-nok-indicator" 
+                                                 @click.stop="removeEpaisseurNok(row, col)">
+                                                <span x-text="getEpaisseurNok(row, col)"></span>
+                                            </div>
+                                            <input type="text" 
+                                                   class="epaisseur-input" 
+                                                   :class="{'has-value': hasEpaisseurOk(row, col), 'has-nok': hasEpaisseurNokInInput(row, col)}"
+                                                   :data-row="row" 
+                                                   :data-col="col"
+                                                   maxlength="5"
+                                                   placeholder="--"
+                                                   @click="$event.target.select()"
+                                                   @focus="$event.target.select()">
+                                        </div>
+                                        <div x-show="hasDefaut(row, col)" 
+                                             class="defaut-indicator" 
+                                             @click.stop="removeDefaut(row, col)">
+                                            <span x-text="getDefautCode(row, col)"></span>
+                                        </div>
+                                        <button x-show="!hasDefaut(row, col)" 
+                                                class="add-defaut-btn" 
+                                                :class="{'active': showDefautSelector && currentCell && currentCell.row === row && currentCell.col === col}"
+                                                @click.stop="openDefautSelector($event, row, col)">+</button>
+                                    </div>
+                                </template>
+                            </td>
+                        </template>
                     </tr>
                 </template>
             </tbody>

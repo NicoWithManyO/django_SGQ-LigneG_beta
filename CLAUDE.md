@@ -24,9 +24,14 @@ django_SGQ-LigneG_beta/
     │   │   ├── base.css         # Styles de base
     │   │   ├── components.css   # Composants réutilisables
     │   │   ├── layout.css       # Structure de page
-    │   │   └── fiche-poste.css  # Styles spécifiques
+    │   │   ├── fiche-poste.css  # Styles spécifiques
+    │   │   ├── zone-rouleau.css # Styles zone qualité rouleau
+    │   │   ├── animations.css   # Bibliothèque d'animations réutilisables
+    │   │   └── components/      # Styles de micro-composants
+    │   │       └── badges.css   # Styles des badges de validation
     │   └── js/
-    │       └── fiche-poste.js   # Composant Alpine.js isolé
+    │       ├── fiche-poste.js   # Composant Alpine.js isolé
+    │       └── rouleau.js       # Composant grille qualité rouleau
     └── templates/
         └── frontend/
             ├── components/      # Composants réutilisables
@@ -201,7 +206,9 @@ L'admin Django utilise des inlines pour gérer les valeurs dans ProfileTemplate 
 
 ## Architecture des composants frontend
 
-### Déclaration de temps (nouveau composant)
+### Composants frontend récents
+
+#### Déclaration de temps
 ```
 frontend/
 ├── static/frontend/
@@ -212,12 +219,34 @@ frontend/
         └── declaration-temps.html   # Template du composant
 ```
 
-### Pattern Alpine.js pour déclaration temps
+**Pattern Alpine.js** :
 - Chargement automatique des motifs d'arrêt via API
 - Calcul en temps réel des statistiques (total, nombre)
 - Gestion CRUD complète des arrêts
 - Émission d'événements pour synchronisation (`lost-time-updated`)
 - Liste déroulante de durées pré-définies (5min à 8h par pas de 5min)
+
+#### Zone Rouleau (composant grille qualité)
+```
+frontend/
+├── static/frontend/
+│   ├── css/
+│   │   ├── zone-rouleau.css     # Styles principaux
+│   │   ├── animations.css       # Bibliothèque d'animations
+│   │   └── components/
+│   │       └── badges.css       # Badges de validation
+│   └── js/rouleau.js            # Logique Alpine.js complexe
+└── templates/frontend/components/
+    └── rouleau.html             # Template grille 12x7
+```
+
+**Fonctionnalités avancées** :
+- Grille fixe 12x7 (G1, C1, D1, métrage, G2, C2, D2)
+- Validation épaisseur en temps réel avec badges visuels
+- Gestion NOK avec récupération et multiples NOK
+- Navigation clavier optimisée (Tab/Shift+Tab)
+- Animations CSS3 (bounceIn, slideAndBounce, fadeIn/Out)
+- Indicateurs visuels multiples (badges verts/rouges, ciseaux animés)
 
 ## Tests
 
@@ -459,9 +488,13 @@ def save(self):
 - Colonnes s'empilent sur mobile (`col-lg-*`)
 - Scrollbar toujours visible : `body { overflow-y: scroll; }`
 
-### Patterns UI du composant rouleau
-- **Grille fixe** : 12 lignes × 7 colonnes (G1, C1, D1, métrage, G2, C2, D2)
-- **Indicateurs visuels multiples** :
+### Patterns UI zone rouleau
+- **Grille qualité fixe** : 12 lignes × 7 colonnes (G1, C1, D1, métrage, G2, C2, D2)
+- **Badges de validation** : Verts (OK), rouges (NOK/défauts) avec animations bounceIn
+- **Navigation optimisée** : Tab/Shift+Tab avec focus visible
+- **Sélecteur de défauts** : Positionnement dynamique selon la cellule active
+- **Indicateurs visuels** : Ciseaux animés pour lignes non conformes
+- **États multiples** : Cellule vide → épaisseur → défaut → combiné
   - Badge vert : épaisseur OK
   - Badge rouge à gauche : première épaisseur NOK
   - Badge rouge à droite : défaut visuel
@@ -633,4 +666,4 @@ Aucune configuration de tests n'est implémentée.
 7. **Navigation clavier optimisée** dans les formulaires complexes
 8. **Gestion d'état multi-niveaux** (badges, inputs, indicateurs)
 9. **CSS Custom Properties** pour animations séquentielles
-10. **Position dynamique des éléments UI** (sélecteurs, tooltips)
+10. **Positionnement dynamique** d'éléments UI (sélecteur défauts)

@@ -1,0 +1,134 @@
+/* ===== ANIMATIONS COMMUNES ===== */
+/* Animations réutilisables dans tout le projet */
+
+/* Animation de rebond générique */
+@keyframes bounceIn {
+    0% {
+        transform: scale(0);
+        opacity: 0;
+    }
+    20% {
+        transform: scale(1.1);
+        opacity: 1;
+    }
+    35% {
+        transform: scale(0.95);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+    65% {
+        transform: scale(0.98);
+    }
+    80% {
+        transform: scale(1.02);
+    }
+    90% {
+        transform: scale(0.99);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+/* Animation de glissement avec rebond */
+@keyframes slideAndBounce {
+    0% {
+        transform: translateX(-150%) scale(1.5);
+        opacity: 0.7;
+    }
+    20% {
+        transform: translateX(0) scale(1.1);
+        opacity: 1;
+    }
+    35% {
+        transform: scale(0.95);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+    65% {
+        transform: scale(0.98);
+    }
+    80% {
+        transform: scale(1.02);
+    }
+    90% {
+        transform: scale(0.99);
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+/* Animation de fondu simple */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+/* Animation de fondu sortant */
+@keyframes fadeOut {
+    from {
+        opacity: 1;
+        transform: scale(1);
+    }
+    to {
+        opacity: 0;
+        transform: scale(0.8);
+    }
+}
+
+/* Animation de pulsation pour validation */
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+    }
+    15% {
+        transform: scale(1.08);
+    }
+    30% {
+        transform: scale(0.96);
+    }
+    45% {
+        transform: scale(1.04);
+    }
+    60% {
+        transform: scale(0.98);
+    }
+    75% {
+        transform: scale(1.02);
+    }
+    90% {
+        transform: scale(0.99);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+/* Classes utilitaires pour les animations */
+.animate-bounce-in {
+    animation: bounceIn 1s ease-out;
+}
+
+.animate-slide-bounce {
+    animation: slideAndBounce 1s ease-out;
+}
+
+.animate-fade-in {
+    animation: fadeIn 0.8s ease-out;
+}
+
+.animate-fade-out {
+    animation: fadeOut 0.3s ease-out forwards;
+}
+
+.animate-pulse {
+    animation: pulse 0.8s ease-out;
+}

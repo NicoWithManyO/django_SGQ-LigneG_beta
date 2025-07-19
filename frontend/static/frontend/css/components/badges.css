@@ -1,0 +1,70 @@
+/* ===== BADGES ET INDICATEURS ===== */
+/* Styles communs pour les badges et indicateurs */
+
+/* Base commune pour tous les badges */
+.badge-base {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: white;
+    padding: 2px 5px;
+    border-radius: 3px;
+    line-height: 1.2;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    min-width: 25px;
+    text-align: center;
+}
+
+/* Badge de défaut */
+.defaut-indicator {
+    @extend .badge-base;
+    position: absolute;
+    top: 50%;
+    right: 1px;
+    transform: translateY(-50%);
+    background-color: #dc3545;
+    z-index: 25;
+    animation: popFromBehind 1s ease-out;
+}
+
+.defaut-indicator:hover {
+    background-color: #c82333;
+}
+
+/* Badge d'épaisseur NOK */
+.epaisseur-nok-indicator {
+    @extend .badge-base;
+    position: absolute;
+    top: 50%;
+    left: 1px;
+    transform: translateY(-50%);
+    background-color: #dc3545;
+    z-index: 1;
+    animation: slideFromInput 1s ease-out;
+}
+
+.epaisseur-nok-indicator:hover {
+    background-color: #c82333;
+}
+
+/* Input style badge vert */
+.epaisseur-input.has-value {
+    background: #28a745;
+    color: white;
+    border-radius: 3px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    animation: validatePulse 0.8s ease-out;
+    --bg-color: #28a745;
+}
+
+/* Input style badge rouge */
+.epaisseur-input.has-nok {
+    background: #dc3545;
+    color: white;
+    border-radius: 3px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    animation: validatePulse 0.8s ease-out;
+    --bg-color: #dc3545;
+}

@@ -31,7 +31,7 @@ function rouleau() {
             
             // Écouter la validation des épaisseurs (blur ou Enter)
             this.$el.addEventListener('blur', (e) => {
-                if (e.target.classList.contains('epaisseur-input')) {
+                if (e.target.classList.contains('epaisseur-input') && !e.target.dataset.processing) {
                     this.handleEpaisseurInput(e.target);
                 }
             }, true);
@@ -47,6 +47,11 @@ function rouleau() {
                     }
                 }
             });
+        },
+        
+        // Obtenir la liste des colonnes dans l'ordre
+        getColumns() {
+            return ['G1', 'C1', 'D1', 'metrage', 'G2', 'C2', 'D2'];
         },
         
         // Charger la longueur cible
@@ -73,7 +78,27 @@ function rouleau() {
         
         // Calculer la conformité
         get isConforme() {
-            return this.nbNok === 0 && this.nbDefauts === 0;
+            // Non conforme si on a des défauts
+            if (this.nbDefauts > 0) {
+                return false;
+            }
+            
+            // Vérifier si une cellule a 2 épaisseurs NOK (non rattrapée)
+            // Parcourir toutes les lignes et colonnes
+            for (let row = 1; row <= 12; row++) {
+                if (this.isEpaisseurRow(row)) {
+                    const cols = ['G1', 'C1', 'D1', 'G2', 'C2', 'D2'];
+                    for (const col of cols) {
+                        // Si on a un badge NOK ET un input NOK dans la même cellule = non conforme
+                        if (this.hasEpaisseurNok(row, col) && this.hasEpaisseurNokInInput(row, col)) {
+                            return false;
+                        }
+                    }
+                }
+            }
+            
+            // Conforme si pas de défauts et pas de cellule avec 2 NOK
+            return true;
         },
         
         // Vérifier si une ligne doit avoir des inputs d'épaisseur
@@ -223,7 +248,21 @@ function rouleau() {
         
         // Vérifier si une ligne a au moins un défaut
         hasDefautInRow(row) {
-            return this.defauts.some(d => d.row === row);
+            // Une ligne a un défaut si elle a un défaut visuel OU une cellule avec 2 épaisseurs NOK
+            if (this.defauts.some(d => d.row === row)) {
+                return true;
+            }
+            
+            // Vérifier si une cellule de cette ligne a 2 épaisseurs NOK
+            const cols = ['G1', 'C1', 'D1', 'G2', 'C2', 'D2'];
+            for (const col of cols) {
+                // Si on a un badge NOK ET un input NOK dans la même cellule
+                if (this.hasEpaisseurNok(row, col) && this.hasEpaisseurNokInInput(row, col)) {
+                    return true;
+                }
+            }
+            
+            return false;
         },
         
         // Gérer la saisie d'épaisseur
@@ -234,19 +273,55 @@ function rouleau() {
             const row = parseInt(input.dataset.row);
             const col = input.dataset.col;
             
-            if (!isNaN(value) && inputValue !== '') {
+            // Si l'input est vide, supprimer toute épaisseur (OK ou NOK)
+            if (inputValue === '') {
+                this.removeEpaisseur(row, col);
+                return;
+            }
+            
+            if (!isNaN(value)) {
                 // Vérifier si l'épaisseur est NOK (< 5 pour le test)
                 if (value < 5) {
-                    // Stocker l'épaisseur NOK
-                    this.epaisseursNok.push({
-                        row: row,
-                        col: col,
-                        value: value
-                    });
-                    this.nbNok++;
+                    // Vérifier si c'est la première NOK de la cellule
+                    const hasNokInCell = this.epaisseursNok.some(e => e.row === row && e.col === col);
                     
-                    // Vider l'input pour permettre la saisie de rattrapage
-                    input.value = '';
+                    // D'abord supprimer toute ancienne valeur
+                    this.removeEpaisseur(row, col);
+                    
+                    if (!hasNokInCell) {
+                        // Première NOK : badge rouge normal
+                        this.epaisseursNok.push({
+                            row: row,
+                            col: col,
+                            value: value
+                        });
+                        this.nbNok = this.epaisseursNok.length;
+                        
+                        // Marquer l'input comme en cours de traitement pour éviter le double traitement
+                        input.dataset.processing = 'true';
+                        
+                        // Vider l'input pour permettre la saisie de rattrapage
+                        input.value = '';
+                        
+                        // Retirer le marqueur après un court délai
+                        setTimeout(() => {
+                            delete input.dataset.processing;
+                        }, 100);
+                    } else {
+                        // Deuxième NOK dans la même cellule : garder dans l'input mais en rouge
+                        // ET marquer comme NON CONFORME car 2 NOK dans la même cellule
+                        this.epaisseurs.push({
+                            row: row,
+                            col: col,
+                            value: value,
+                            isNok: true  // Marquer comme NOK pour le style
+                        });
+                        this.nbEpaisseurs = this.epaisseurs.length;
+                        // Pas d'incrémentation de nbNok ici car c'est la 2e NOK de la même cellule
+                        
+                        // Garder la valeur dans l'input
+                        input.value = inputValue; // Garder la valeur originale avec virgule
+                    }
                     
                     // Mettre à jour l'affichage
                     this.updateEpaisseurDisplay();
@@ -300,32 +375,89 @@ function rouleau() {
         
         // Ajouter une épaisseur valide
         addEpaisseur(row, col, value) {
-            // Retirer l'épaisseur NOK si elle existe
-            const nokIndex = this.epaisseursNok.findIndex(e => e.row === row && e.col === col);
-            if (nokIndex > -1) {
-                this.epaisseursNok.splice(nokIndex, 1);
-                this.nbNok = this.epaisseursNok.length;
-            }
+            // NE PAS retirer l'épaisseur NOK si elle existe - elle reste en badge rouge
+            // La valeur OK va juste "rattraper" la NOK
             
-            // Ajouter l'épaisseur valide
-            this.epaisseurs.push({
-                row: row,
-                col: col,
-                value: value
-            });
-            this.nbEpaisseurs = this.epaisseurs.length;
+            // Vérifier si une épaisseur existe déjà pour cette cellule
+            const existingIndex = this.epaisseurs.findIndex(e => e.row === row && e.col === col);
+            if (existingIndex > -1) {
+                // Mettre à jour la valeur existante
+                this.epaisseurs[existingIndex].value = value;
+                this.epaisseurs[existingIndex].isNok = false; // Marquer comme OK
+            } else {
+                // Ajouter l'épaisseur valide
+                this.epaisseurs.push({
+                    row: row,
+                    col: col,
+                    value: value
+                });
+                this.nbEpaisseurs = this.epaisseurs.length;
+            }
             
             this.updateEpaisseurDisplay();
         },
         
         // Supprimer une épaisseur NOK
         removeEpaisseurNok(row, col) {
+            // On ne peut supprimer le badge NOK que si l'input est vide
+            const hasValueInInput = this.epaisseurs.some(e => e.row === row && e.col === col);
+            if (hasValueInInput) {
+                // L'input contient une valeur (OK ou NOK), on ne peut pas supprimer le badge
+                return;
+            }
+            
             const index = this.epaisseursNok.findIndex(e => e.row === row && e.col === col);
             if (index > -1) {
                 this.epaisseursNok.splice(index, 1);
                 this.nbNok = this.epaisseursNok.length;
                 this.updateEpaisseurDisplay();
             }
+        },
+        
+        // Supprimer toute épaisseur (OK ou NOK) d'une cellule
+        removeEpaisseur(row, col) {
+            // Supprimer l'épaisseur OK/NOK de l'input si elle existe
+            const okIndex = this.epaisseurs.findIndex(e => e.row === row && e.col === col);
+            if (okIndex > -1) {
+                this.epaisseurs.splice(okIndex, 1);
+                this.nbEpaisseurs = this.epaisseurs.length;
+            }
+            
+            // Si on vide l'input ET qu'il n'y a pas de NOK en badge, tout supprimer
+            // Si on vide l'input ET qu'il y a une NOK en badge, garder la NOK
+            const hasNokBadge = this.epaisseursNok.some(e => e.row === row && e.col === col);
+            if (!hasNokBadge) {
+                // Pas de badge NOK, on peut tout supprimer
+                const nokIndex = this.epaisseursNok.findIndex(e => e.row === row && e.col === col);
+                if (nokIndex > -1) {
+                    this.epaisseursNok.splice(nokIndex, 1);
+                    this.nbNok = this.epaisseursNok.length;
+                }
+            }
+            
+            this.updateEpaisseurDisplay();
+        },
+        
+        // Vérifier si une cellule a une épaisseur valide
+        hasEpaisseurOk(row, col) {
+            const ep = this.epaisseurs.find(e => e.row === row && e.col === col);
+            return ep && !ep.isNok;  // Vérifier que ce n'est pas une NOK
+        },
+        
+        // Vérifier si une cellule a une épaisseur NOK affichée dans l'input
+        hasEpaisseurNokInInput(row, col) {
+            const ep = this.epaisseurs.find(e => e.row === row && e.col === col);
+            return ep && ep.isNok;
+        },
+        
+        // Obtenir la valeur de l'épaisseur OK
+        getEpaisseurOk(row, col) {
+            const ep = this.epaisseurs.find(e => e.row === row && e.col === col);
+            if (ep) {
+                // Convertir en string avec virgule
+                return ep.value.toString().replace('.', ',');
+            }
+            return '';
         },
         
         // Naviguer vers la prochaine cellule d'épaisseur
