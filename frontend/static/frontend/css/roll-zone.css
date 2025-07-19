@@ -310,7 +310,9 @@ tr.has-defect td:nth-child(7) { --col-index: 6; }
     width: 20px;
     height: 20px;
     padding: 0;
-    padding-bottom: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     border: 1px solid transparent;
     background-color: transparent;
     color: #dc3545;

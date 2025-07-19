@@ -8,43 +8,18 @@ Système de gestion de production pour la ligne de fibrage, conforme aux normes 
 - **Suivi production** : Traçabilité complète des rouleaux et ordres de fabrication  
 - **Contrôle qualité** : Grille de contrôle 12x7 avec validation en temps réel et calcul automatique NOK
 - **WCM** : Gestion des temps perdus et check-lists de démarrage
-- **Interface moderne** : UI responsive avec animations CSS avancées et Alpine.js
-- **API REST** : Endpoints pour intégrations externes via Django REST Framework
-- **Session persistante** : Sauvegarde automatique de toutes les données saisies via API dédiée
+- **Interface moderne** : Navigation intuitive avec animations visuelles pour guider l'opérateur
+- **Intégrations** : Connecteurs disponibles pour systèmes externes (ERP, MES)
+- **Session persistante** : Sauvegarde automatique de toutes les données saisies
 - **Zone rouleau avancée** : Navigation clavier optimisée, indicateurs visuels OK/NOK et grille adaptative
 
-## 🛠 Technologies
+## 🛠 Environnement technique
 
-- Django 5.2.4
-- Django REST Framework 3.15.2
-- Bootstrap 5.3
-- Alpine.js 3.x
-- SQLite (dev) / PostgreSQL (prod recommandé)
-
-## 📐 Conventions de code
-
-### Python/Django
-- **PEP 8** : Respect des standards Python (indentation 4 espaces, ligne max 79 caractères)
-- **Conventions Django** : 
-  - Models au singulier (ex: `Operator`, `Roll`)
-  - Apps au pluriel ou fonctionnel (ex: `production`, `quality`)
-  - Vues basées sur les classes quand pertinent
-- **Commentaires en français** : Documentation claire pour l'équipe francophone
-- **Code en anglais** : Variables, fonctions et classes en anglais
-
-### JavaScript
-- **Code en anglais** : Variables, fonctions et méthodes en anglais uniquement
-- **camelCase** : Pour les fonctions et variables JS
-- **Composants Alpine.js** : Un fichier JS par composant
-
-### CSS
-- **kebab-case** : Pour les classes CSS
-- **Architecture modulaire** : Un fichier CSS par fonctionnalité
-- **Variables CSS** : Utilisation des custom properties
-
-### HTML/Templates
-- **kebab-case** : Pour les noms de fichiers template
-- **Includes Django** : Composants réutilisables dans `components/`
+Le système utilise des technologies web modernes pour garantir fiabilité et performance :
+- Interface web responsive accessible sur PC, tablette et mobile
+- Base de données robuste pour la traçabilité
+- Sauvegarde automatique pour éviter toute perte de données
+- Compatible avec les navigateurs récents (Chrome, Firefox, Edge)
 
 ## 📂 Structure du projet
 
@@ -63,11 +38,22 @@ django_SGQ-LigneG_beta/
 
 ## 🔧 Fonctionnalités avancées
 
+### Système de gestion des défauts
+- **Trois niveaux de sévérité** :
+  - **Bloquants** (rouge) : Arrêt immédiat de production avec animation ciseaux
+  - **Non bloquants** (orange) : Production continue, défaut tracé
+  - **Avec seuil** (orange) : Devient bloquant après X occurrences
+- **Indicateurs visuels** :
+  - Badges colorés selon la sévérité
+  - Compteurs d'occurrences sur les badges (apparaît si > 1)
+  - Seuils affichés dans le sélecteur (ex: "Tache (NOK 3)")
+- **Animations conditionnelles** : Ciseaux uniquement pour défauts bloquants
+
 ### Système de session persistante
 - **Sauvegarde automatique** : Toutes les modifications sont sauvegardées instantanément
-- **API REST dédiée** : `/api/session/` pour la gestion des données temporaires
 - **Récupération après rafraîchissement** : Les données saisies sont restaurées automatiquement
 - **Validation finale** : Transfert en base de données lors de la validation du poste
+- **Protection contre les pertes** : Aucune donnée perdue même en cas de coupure réseau
 
 ### Navigation optimisée (Zone rouleau)
 - **Navigation clavier** : Tab/Shift+Tab entre les champs d'épaisseur
@@ -78,7 +64,7 @@ django_SGQ-LigneG_beta/
 ### Gestion des profils
 Chaque profil de production définit :
 - **Spécifications produit** : Épaisseur, micronnaire, masse surfacique avec tolérances
-- **Paramètres machine** : Oxygène primaire, vitesse tapis, températures
+- **Paramètres machine** : Réglages optimaux pour chaque type de production
 - **Seuils d'alerte** : Valeurs min/max pour déclenchement d'alertes
 - **Blocages** : Certaines spécifications peuvent bloquer la production si hors tolérance
 
