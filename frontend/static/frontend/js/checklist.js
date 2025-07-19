@@ -82,7 +82,6 @@ function checklist() {
             // Charger depuis la session API
             if (window.sessionData?.checklist_responses) {
                 this.responses = window.sessionData.checklist_responses;
-                console.log('Réponses chargées depuis la session:', this.responses);
             } else {
                 // Si pas dans la session, initialiser vide
                 this.responses = {};
@@ -120,7 +119,6 @@ function checklist() {
                 await api.saveToSession({
                     checklist_responses: this.responses
                 });
-                console.log('Réponses sauvegardées dans la session:', this.responses);
             } catch (error) {
                 console.error('Erreur sauvegarde réponses:', error);
             }
@@ -177,7 +175,6 @@ function checklist() {
                     checklist_signature: this.signature,
                     checklist_signature_time: this.signatureTime
                 });
-                console.log('Signature enregistrée:', this.signature, this.signatureTime);
             } catch (error) {
                 console.error('Erreur sauvegarde signature:', error);
             }

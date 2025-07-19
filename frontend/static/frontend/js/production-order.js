@@ -20,7 +20,6 @@ function productionOrder() {
             
             // Watchers individuels pour chaque champ
             this.$watch('currentFO', (value) => {
-                console.log('currentFO changé:', value);
                 // Émettre un événement pour la sticky bar
                 window.dispatchEvent(new CustomEvent('of-changed', {
                     detail: { currentFO: value }
@@ -30,12 +29,10 @@ function productionOrder() {
             });
             
             this.$watch('targetLength', (value) => {
-                console.log('targetLength changé:', value);
                 this.saveToSession({ targetLength: value });
             });
             
             this.$watch('cuttingOrder', (value) => {
-                console.log('cuttingOrder changé:', value);
                 this.saveToSession({ cuttingOrder: value });
             });
         },
@@ -66,8 +63,6 @@ function productionOrder() {
                 };
             }
             
-            console.log('Production Order - Données à sauver:', data); // Debug
-            
             // Mapper les noms pour l'API
             const mappedData = {};
             const fieldMapping = {
@@ -81,11 +76,8 @@ function productionOrder() {
                 mappedData[mappedKey] = data[key];
             });
             
-            console.log('Production Order - Données mappées:', mappedData); // Debug
-            
             try {
                 await api.saveToSession(mappedData);
-                console.log('Production Order - Sauvegarde réussie'); // Debug
             } catch (error) {
                 console.error('Production Order - Erreur sauvegarde:', error);
             }

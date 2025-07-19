@@ -4,14 +4,14 @@ Système de gestion de production pour la ligne de fibrage, conforme aux normes 
 
 ## 📋 Fonctionnalités
 
-- **Gestion des postes** : Création et suivi des postes avec ID auto-généré
+- **Gestion des postes** : Création et suivi des postes avec ID auto-généré (format: JJMMAA_PrenomNom_Vacation)
 - **Suivi production** : Traçabilité complète des rouleaux et ordres de fabrication  
-- **Contrôle qualité** : Grille de contrôle 12x7 avec validation en temps réel
-- **WCM** : Gestion des temps perdus et check-lists
-- **Interface moderne** : UI responsive avec animations CSS avancées
-- **API REST** : Endpoints pour intégrations externes
-- **Session persistante** : Sauvegarde automatique des données saisies
-- **Zone rouleau avancée** : Navigation clavier optimisée et indicateurs visuels
+- **Contrôle qualité** : Grille de contrôle 12x7 avec validation en temps réel et calcul automatique NOK
+- **WCM** : Gestion des temps perdus et check-lists de démarrage
+- **Interface moderne** : UI responsive avec animations CSS avancées et Alpine.js
+- **API REST** : Endpoints pour intégrations externes via Django REST Framework
+- **Session persistante** : Sauvegarde automatique de toutes les données saisies via API dédiée
+- **Zone rouleau avancée** : Navigation clavier optimisée, indicateurs visuels OK/NOK et grille adaptative
 
 ## 🛠 Technologies
 
@@ -61,11 +61,17 @@ django_SGQ-LigneG_beta/
 
 ## 🔧 Fonctionnalités avancées
 
-### Navigation optimisée
+### Système de session persistante
+- **Sauvegarde automatique** : Toutes les modifications sont sauvegardées instantanément
+- **API REST dédiée** : `/api/session/` pour la gestion des données temporaires
+- **Récupération après rafraîchissement** : Les données saisies sont restaurées automatiquement
+- **Validation finale** : Transfert en base de données lors de la validation du poste
+
+### Navigation optimisée (Zone rouleau)
 - **Navigation clavier** : Tab/Shift+Tab entre les champs d'épaisseur
 - **Sélection automatique** : Le contenu est sélectionné au focus
-- **Validation au blur** : Les données sont validées quand on quitte le champ
-- **Sauvegarde automatique** : Toutes les données sont sauvegardées en temps réel
+- **Validation temps réel** : Indicateurs visuels OK/NOK selon les spécifications
+- **Grille dynamique** : Adaptation automatique à la longueur cible du rouleau
 
 ### Gestion des profils
 Chaque profil de production définit :
@@ -75,10 +81,10 @@ Chaque profil de production définit :
 - **Blocages** : Certaines spécifications peuvent bloquer la production si hors tolérance
 
 ### Check-lists de contrôle
-- Check-lists personnalisables par type de production
-- Validation obligatoire avant démarrage
-- Commentaire requis si élément non conforme
-- Historique conservé pour audit
+- **Templates réutilisables** : Check-lists standards par défaut
+- **Validation complète** : Tous les items doivent être cochés avant signature
+- **Signature électronique** : Identification de l'opérateur validant
+- **Persistance session** : Les réponses sont sauvegardées automatiquement
 
 ## 💡 Conseils d'utilisation
 
@@ -101,6 +107,17 @@ Chaque profil de production définit :
 3. **Données d'épaisseur** pour contrôle statistique
 4. **Conformité ISO** assurée par le système
 
+## 🚨 Points d'attention
+
+### IDs auto-générés (NE JAMAIS MODIFIER)
+- `Operator.employee_id` : Format `PrenomNOM`
+- `Shift.shift_id` : Format `JJMMAA_PrenomNom_Vacation`
+- `Roll.roll_id` : Format `OF_NumRouleau` ou `ROLL_YYYYMMDD_HHMMSS`
+
+### États machine
+- `machine_started_start` : Machine allumée en début de poste
+- `machine_started_end` : Machine reste allumée en fin de poste
+
 ## 🚀 Évolutions prévues
 
 - Interface de supervision temps réel multi-lignes
@@ -108,4 +125,5 @@ Chaque profil de production définit :
 - Intégration avec l'ERP pour synchronisation OF
 - Tableaux de bord personnalisables
 - Alertes automatiques sur dépassement de seuils
+- Export des données pour analyses statistiques
 
