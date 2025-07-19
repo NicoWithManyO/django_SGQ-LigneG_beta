@@ -9,6 +9,7 @@ function profile() {
         availableModes: [], // Modes disponibles depuis l'API
         loading: false,
         updatingMode: false, // Pour éviter les appels multiples
+        targetLength: window.sessionData?.target_length || 0,
         
         // Initialisation
         async init() {
@@ -40,6 +41,13 @@ function profile() {
                     this.saveToSession();
                     this.updateHeader();
                 }
+            });
+            
+            // Écouter les changements de longueur cible pour recalculer l'estimation
+            window.addEventListener('target-length-changed', (e) => {
+                this.targetLength = e.detail.length;
+                // Forcer le recalcul
+                this.$refresh();
             });
         },
         
@@ -338,21 +346,20 @@ function profile() {
         calculateProductionTime(param) {
             if (!param || !param.value || !this.isBeltSpeedParam(param)) return '';
             
-            // Récupérer la longueur cible depuis la session
-            const targetLength = window.sessionData?.target_length || 0;
-            if (!targetLength) return '';
+            // Utiliser la longueur cible stockée
+            if (!this.targetLength) return '';
             
             const mPerHour = parseFloat(param.value);
-            const hours = targetLength / mPerHour;
+            const hours = this.targetLength / mPerHour;
             const minutes = hours * 60;
             
             // Formater en heures et minutes
             if (minutes < 60) {
-                return `~00:${minutes.toFixed(0).padStart(2, '0')} pour ${targetLength}m`;
+                return `~00:${minutes.toFixed(0).padStart(2, '0')} pour ${this.targetLength}m`;
             } else {
                 const h = Math.floor(minutes / 60);
                 const m = Math.round(minutes % 60);
-                return `~${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')} pour ${targetLength}m`;
+                return `~${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')} pour ${this.targetLength}m`;
             }
         }
     }

@@ -51,6 +51,7 @@
                                                    :data-col="col"
                                                    maxlength="5"
                                                    placeholder="--"
+                                                   @keypress="$event.key !== ',' && $event.key !== '.' && isNaN($event.key) && $event.preventDefault()"
                                                    @click="$event.target.select()"
                                                    @focus="$event.target.select()">
                                         </div>
