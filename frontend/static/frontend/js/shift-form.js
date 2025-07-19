@@ -142,7 +142,6 @@ function shiftForm() {
                     const lastName = nameParts.slice(1).join('').toUpperCase() || '';
                     this.shiftId = `${day}${month}${year}_${firstName}${lastName}_${this.vacation}`;
                     this.isValid = true;
-                    console.log('ID généré:', this.shiftId); // Débogage
                 } else {
                     this.shiftId = null;
                     this.isValid = false;

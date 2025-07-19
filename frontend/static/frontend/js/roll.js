@@ -18,11 +18,8 @@ function roll() {
         
         // Initialisation
         init() {
-            // Charger la longueur cible depuis la session
+            // Charger la longueur cible depuis la session (qui va aussi charger les données)
             this.loadTargetLength();
-            
-            // Charger les données du rouleau depuis la session
-            this.loadRollData();
             
             // Charger les types de défauts
             this.loadDefectTypes();
@@ -120,8 +117,6 @@ function roll() {
             
             // Émettre un événement pour notifier du changement
             this.$dispatch('grid-updated', { rows: this.rowCount });
-            
-            console.log(`Grille mise à jour : ${this.rowCount} lignes pour ${this.targetLength}m`);
         },
         
         
@@ -163,7 +158,6 @@ function roll() {
         
         // Ouvrir le sélecteur de défauts
         openDefectSelector(event, row, col) {
-            console.log('openDefectSelector called:', row, col, event);
             
             // Si on clique sur l'input d'épaisseur, ne rien faire
             if (event.target.classList.contains('thickness-input')) {
@@ -189,8 +183,6 @@ function roll() {
                 left: buttonRect.left - 50 // Centrer le sélecteur
             };
             
-            console.log('Button rect:', buttonRect);
-            console.log('Selector position:', this.selectorPosition);
             
             this.showDefectSelector = true;
             
@@ -237,7 +229,6 @@ function roll() {
         // Mettre à jour l'affichage d'une cellule
         updateCellDisplay(row, col) {
             // L'affichage est géré automatiquement par Alpine.js via les bindings
-            console.log('Défaut ajouté:', row, col);
         },
         
         // Vérifier si une cellule a un défaut
