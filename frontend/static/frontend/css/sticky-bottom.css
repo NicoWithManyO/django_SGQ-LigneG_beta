@@ -92,8 +92,8 @@ input.info-value.editable-value[type=number] {
     -moz-appearance: textfield;
 }
 
-/* Input avec bouton adjacent - enlever border-radius à droite */
-.d-flex input.info-value.editable-value {
+/* Input avec bouton adjacent - enlever border-radius à droite UNIQUEMENT pour le champ avec crayon */
+.d-flex input.info-value.editable-value[x-model="rollNumber"] {
     border-top-right-radius: 0;
     border-bottom-right-radius: 0;
 }
