@@ -60,8 +60,8 @@ function roll() {
         
         // Charger la longueur cible
         loadTargetLength() {
-            if (window.sessionData?.longueur_cible) {
-                this.targetLength = parseInt(window.sessionData.longueur_cible);
+            if (window.sessionData?.target_length) {
+                this.targetLength = parseInt(window.sessionData.target_length);
                 this.updateGrid();
             }
         },

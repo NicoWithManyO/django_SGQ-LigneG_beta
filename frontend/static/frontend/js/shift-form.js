@@ -9,8 +9,8 @@ function shiftForm() {
         vacation: '',
         startTime: '',
         endTime: '',
-        machineStarted: false,
-        machineStopped: false,
+        machineStartedStart: false,
+        machineStartedEnd: false,
         lengthStart: '',
         lengthEnd: '',
         comment: '',
@@ -44,14 +44,14 @@ function shiftForm() {
             });
             
             // Watchers spécifiques pour la logique métier
-            this.$watch('machineStarted', () => {
-                if (!this.machineStarted) {
+            this.$watch('machineStartedStart', () => {
+                if (!this.machineStartedStart) {
                     this.lengthStart = '';
                 }
             });
             
-            this.$watch('machineStopped', () => {
-                if (!this.machineStopped) {
+            this.$watch('machineStartedEnd', () => {
+                if (!this.machineStartedEnd) {
                     this.lengthEnd = '';
                 }
             });
@@ -60,7 +60,7 @@ function shiftForm() {
             this.initAutoSave([
                 'operatorId', 'shiftDate', 'vacation',
                 'startTime', 'endTime',
-                'machineStarted', 'machineStopped',
+                'machineStartedStart', 'machineStartedEnd',
                 'lengthStart', 'lengthEnd', 'comment'
             ]);
         },
@@ -74,8 +74,8 @@ function shiftForm() {
                 this.vacation = String(window.sessionData.vacation || '');
                 this.startTime = String(window.sessionData.start_time || '');
                 this.endTime = String(window.sessionData.end_time || '');
-                this.machineStarted = window.sessionData.machine_started || false;
-                this.machineStopped = window.sessionData.machine_stopped || false;
+                this.machineStartedStart = window.sessionData.machine_started_start || false;
+                this.machineStartedEnd = window.sessionData.machine_started_end || false;
                 this.lengthStart = String(window.sessionData.length_start || '');
                 this.lengthEnd = String(window.sessionData.length_end || '');
                 this.comment = String(window.sessionData.comment || '');
@@ -92,8 +92,8 @@ function shiftForm() {
                     vacation: this.vacation,
                     startTime: this.startTime,
                     endTime: this.endTime,
-                    machineStarted: this.machineStarted,
-                    machineStopped: this.machineStopped,
+                    machineStartedStart: this.machineStartedStart,
+                    machineStartedEnd: this.machineStartedEnd,
                     lengthStart: this.lengthStart,
                     lengthEnd: this.lengthEnd,
                     comment: this.comment
@@ -107,8 +107,8 @@ function shiftForm() {
                 shiftDate: 'shift_date',
                 startTime: 'start_time',
                 endTime: 'end_time',
-                machineStarted: 'machine_started',
-                machineStopped: 'machine_stopped',
+                machineStartedStart: 'machine_started_start',
+                machineStartedEnd: 'machine_started_end',
                 lengthStart: 'length_start',
                 lengthEnd: 'length_end'
             };

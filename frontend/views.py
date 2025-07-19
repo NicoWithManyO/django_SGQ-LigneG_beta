@@ -21,14 +21,14 @@ def production(request):
         'vacation': request.session.get('vacation', ''),
         'start_time': request.session.get('start_time', ''),
         'end_time': request.session.get('end_time', ''),
-        'machine_started': request.session.get('machine_started', False),
-        'machine_stopped': request.session.get('machine_stopped', False),
+        'machine_started_start': request.session.get('machine_started_start', False),
+        'machine_started_end': request.session.get('machine_started_end', False),
         'length_start': request.session.get('length_start', ''),
         'length_end': request.session.get('length_end', ''),
         'comment': request.session.get('comment', ''),
         # Ordre de fabrication
         'of_en_cours': request.session.get('of_en_cours', ''),
-        'longueur_cible': request.session.get('longueur_cible', ''),
+        'target_length': request.session.get('target_length', ''),
         'of_decoupe': request.session.get('of_decoupe', ''),
         # Sticky bar
         'roll_number': request.session.get('roll_number', ''),
@@ -38,6 +38,10 @@ def production(request):
         'next_tube_mass': request.session.get('next_tube_mass', ''),
         # Données du rouleau
         'roll_data': request.session.get('roll_data', {}),
+        # Données checklist
+        'checklist_responses': request.session.get('checklist_responses', {}),
+        'checklist_signature': request.session.get('checklist_signature', ''),
+        'checklist_signature_time': request.session.get('checklist_signature_time', ''),
     }
     
     context = {

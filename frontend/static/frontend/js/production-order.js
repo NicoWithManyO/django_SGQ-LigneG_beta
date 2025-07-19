@@ -18,24 +18,25 @@ function productionOrder() {
             // Charger les données de session
             this.loadFromSession();
             
-            // Watchers pour les événements
-            this.$watch('currentFO', () => {
+            // Watchers individuels pour chaque champ
+            this.$watch('currentFO', (value) => {
+                console.log('currentFO changé:', value);
                 // Émettre un événement pour la sticky bar
                 window.dispatchEvent(new CustomEvent('of-changed', {
-                    detail: { currentFO: this.currentFO }
+                    detail: { currentFO: value }
                 }));
+                // Sauvegarder
+                this.saveToSession({ currentFO: value });
             });
             
-            // Initialiser la sauvegarde automatique avec condition
-            this.$watch(['currentFO', 'targetLength', 'cuttingOrder'], () => {
-                // Sauvegarder seulement si on est en mode édition
-                if (this.editingOF || this.editingLength || this.editingCuttingOrder) {
-                    const data = {};
-                    if (this.editingOF) data.currentFO = this.currentFO;
-                    if (this.editingLength) data.targetLength = this.targetLength;
-                    if (this.editingCuttingOrder) data.cuttingOrder = this.cuttingOrder;
-                    this.saveToSession(data);
-                }
+            this.$watch('targetLength', (value) => {
+                console.log('targetLength changé:', value);
+                this.saveToSession({ targetLength: value });
+            });
+            
+            this.$watch('cuttingOrder', (value) => {
+                console.log('cuttingOrder changé:', value);
+                this.saveToSession({ cuttingOrder: value });
             });
         },
         
@@ -43,7 +44,7 @@ function productionOrder() {
         loadFromSession() {
             if (window.sessionData) {
                 this.currentFO = window.sessionData.of_en_cours || '';
-                this.targetLength = window.sessionData.longueur_cible || '';
+                this.targetLength = window.sessionData.target_length || '';
                 this.cuttingOrder = window.sessionData.of_decoupe || '';
                 
                 // Émettre l'événement initial pour le rouleau
@@ -65,20 +66,29 @@ function productionOrder() {
                 };
             }
             
+            console.log('Production Order - Données à sauver:', data); // Debug
+            
             // Mapper les noms pour l'API
             const mappedData = {};
             const fieldMapping = {
                 currentFO: 'of_en_cours',
-                targetLength: 'longueur_cible',
+                targetLength: 'target_length',
                 cuttingOrder: 'of_decoupe'
             };
             
             Object.keys(data).forEach(key => {
                 const mappedKey = fieldMapping[key] || key;
-                mappedData[mappedKey] = data[key] || null;
+                mappedData[mappedKey] = data[key];
             });
             
-            await api.saveToSession(mappedData);
+            console.log('Production Order - Données mappées:', mappedData); // Debug
+            
+            try {
+                await api.saveToSession(mappedData);
+                console.log('Production Order - Sauvegarde réussie'); // Debug
+            } catch (error) {
+                console.error('Production Order - Erreur sauvegarde:', error);
+            }
         },
         
         // Toggle édition OF en cours

@@ -22,6 +22,8 @@ function checklist() {
             // Écouter les changements de session
             window.addEventListener('session-changed', () => {
                 this.loadTemplateFromSession();
+                this.loadSignatureFromSession();
+                this.loadResponses();
             });
         },
         
@@ -77,27 +79,13 @@ function checklist() {
         
         // Charger les réponses existantes
         async loadResponses() {
-            // D'abord charger depuis sessionStorage
-            const savedResponses = sessionStorage.getItem('checklistResponses');
-            if (savedResponses) {
-                this.responses = JSON.parse(savedResponses);
-                console.log('Réponses chargées depuis sessionStorage:', this.responses);
-            }
-            
-            // Puis essayer de charger depuis l'API
-            try {
-                if (this.shiftId) {
-                    const data = await api.getChecklistResponses(this.shiftId);
-                    // Convertir en objet pour accès rapide
-                    this.responses = {};
-                    data.forEach(resp => {
-                        this.responses[resp.item] = resp.response;
-                    });
-                    // Sauvegarder dans sessionStorage
-                    sessionStorage.setItem('checklistResponses', JSON.stringify(this.responses));
-                }
-            } catch (error) {
-                console.error('Erreur chargement réponses:', error);
+            // Charger depuis la session API
+            if (window.sessionData?.checklist_responses) {
+                this.responses = window.sessionData.checklist_responses;
+                console.log('Réponses chargées depuis la session:', this.responses);
+            } else {
+                // Si pas dans la session, initialiser vide
+                this.responses = {};
             }
         },
         
@@ -116,33 +104,27 @@ function checklist() {
                 this.responses[itemId] = value;
             }
             
-            // Sauvegarder localement
-            sessionStorage.setItem('checklistResponses', JSON.stringify(this.responses));
-            
             // Si on décoche un item et que la checklist était signée, effacer la signature
             if (!this.isAllItemsChecked && this.signature) {
                 this.signature = '';
                 this.signatureTime = null;
-                sessionStorage.removeItem('checklistSignature');
+                // Sauvegarder dans la session
+                await api.saveToSession({
+                    checklist_signature: null,
+                    checklist_signature_time: null
+                });
             }
             
-            // Si pas de shift, on s'arrête là (mode offline)
-            if (!this.shiftId) {
-                console.log('Mode offline - réponse sauvegardée localement');
-                return;
-            }
-            
+            // Sauvegarder dans la session API
             this.saving = true;
             
             try {
-                await api.saveChecklistResponse({
-                    shift: this.shiftId,
-                    item: itemId,
-                    response: this.responses[itemId] || null  // null si supprimé
+                await api.saveToSession({
+                    checklist_responses: this.responses
                 });
+                console.log('Réponses sauvegardées dans la session:', this.responses);
             } catch (error) {
-                console.error('Erreur sauvegarde réponse:', error);
-                // La sauvegarde locale a déjà été faite
+                console.error('Erreur sauvegarde réponses:', error);
             } finally {
                 this.saving = false;
             }
@@ -165,10 +147,9 @@ function checklist() {
         
         // Charger la signature depuis la session
         loadSignatureFromSession() {
-            const sessionData = JSON.parse(sessionStorage.getItem('checklistSignature') || '{}');
-            if (sessionData.signature) {
-                this.signature = sessionData.signature;
-                this.signatureTime = sessionData.time;
+            if (window.sessionData?.checklist_signature) {
+                this.signature = window.sessionData.checklist_signature;
+                this.signatureTime = window.sessionData.checklist_signature_time;
             }
         },
         
@@ -180,7 +161,10 @@ function checklist() {
             if (!this.signature) {
                 // Si on efface la signature, effacer aussi l'heure
                 this.signatureTime = null;
-                sessionStorage.removeItem('checklistSignature');
+                await api.saveToSession({
+                    checklist_signature: null,
+                    checklist_signature_time: null
+                });
                 return;
             }
             
@@ -192,20 +176,12 @@ function checklist() {
                     minute: '2-digit' 
                 });
                 
-                // Sauvegarder dans sessionStorage pour persistance
-                sessionStorage.setItem('checklistSignature', JSON.stringify({
-                    signature: this.signature,
-                    time: this.signatureTime
-                }));
-                
-                // Sauvegarder dans la session si shift existe
-                if (this.shiftId) {
-                    await api.saveToSession({
-                        checklist_signature: this.signature,
-                        checklist_signature_time: this.signatureTime
-                    });
-                    console.log('Signature enregistrée:', this.signature, this.signatureTime);
-                }
+                // Sauvegarder dans la session API
+                await api.saveToSession({
+                    checklist_signature: this.signature,
+                    checklist_signature_time: this.signatureTime
+                });
+                console.log('Signature enregistrée:', this.signature, this.signatureTime);
             } catch (error) {
                 console.error('Erreur sauvegarde signature:', error);
             }

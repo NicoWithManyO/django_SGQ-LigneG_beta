@@ -15,8 +15,8 @@ class SessionSerializer(serializers.Serializer):
     end_time = serializers.TimeField(required=False, allow_null=True)
     
     # États machine
-    machine_started = serializers.BooleanField(required=False)
-    machine_stopped = serializers.BooleanField(required=False)
+    machine_started_start = serializers.BooleanField(required=False, allow_null=True, default=False)
+    machine_started_end = serializers.BooleanField(required=False, allow_null=True, default=False)
     length_start = serializers.CharField(required=False, allow_null=True, allow_blank=True)
     length_end = serializers.CharField(required=False, allow_null=True, allow_blank=True)
     
@@ -25,7 +25,7 @@ class SessionSerializer(serializers.Serializer):
     
     # Ordre de fabrication
     of_en_cours = serializers.CharField(required=False, allow_null=True, allow_blank=True)
-    longueur_cible = serializers.CharField(required=False, allow_null=True, allow_blank=True)
+    target_length = serializers.CharField(required=False, allow_null=True, allow_blank=True)
     of_decoupe = serializers.CharField(required=False, allow_null=True, allow_blank=True)
     
     # Sticky bar - Données du rouleau
@@ -37,6 +37,11 @@ class SessionSerializer(serializers.Serializer):
     
     # Données du rouleau (épaisseurs et défauts)
     roll_data = serializers.JSONField(required=False, allow_null=True)
+    
+    # Données checklist
+    checklist_responses = serializers.JSONField(required=False, allow_null=True)
+    checklist_signature = serializers.CharField(required=False, allow_null=True, allow_blank=True)
+    checklist_signature_time = serializers.CharField(required=False, allow_null=True, allow_blank=True)
     
     def update(self, instance, validated_data):
         """Met à jour la session avec les données validées."""

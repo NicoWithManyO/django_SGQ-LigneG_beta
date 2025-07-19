@@ -53,14 +53,14 @@
         </div>
         <div class="col-6">
             <div class="form-check mb-1 text-start">
-                <input type="checkbox" class="form-check-input" id="machine-started" name="machine_started" x-model="machineStarted">
-                <label class="form-check-label text-secondary small" for="machine-started">
+                <input type="checkbox" class="form-check-input" id="machine-started-start" name="machine_started_start" x-model="machineStartedStart">
+                <label class="form-check-label text-secondary small" for="machine-started-start">
                     Machine démarrée
                 </label>
             </div>
             <div class="d-flex justify-content-center align-items-center meters-container">
                 <div class="w-50">
-                    <input type="number" class="form-control form-control-sm meters-input border-0" id="length-start" name="length_start" placeholder="m." x-model="lengthStart" x-show="machineStarted">
+                    <input type="number" class="form-control form-control-sm meters-input border-0" id="length-start" name="length_start" placeholder="m." x-model="lengthStart" x-show="machineStartedStart">
                 </div>
             </div>
         </div>
@@ -70,13 +70,13 @@
     <div class="row form-row">
         <div class="col-6">
             <div class="form-check mb-1">
-                <input type="checkbox" class="form-check-input" id="machine-stopped" name="machine_stopped" x-model="machineStopped">
-                <label class="form-check-label text-secondary small" for="machine-stopped">
-                    Machine arrêtée
+                <input type="checkbox" class="form-check-input" id="machine-started-end" name="machine_started_end" x-model="machineStartedEnd">
+                <label class="form-check-label text-secondary small" for="machine-started-end">
+                    Machine démarrée
                 </label>
             </div>
             <div class="d-flex justify-content-center">
-                <input type="number" class="form-control form-control-sm w-50 meters-input border-0" id="length-end" name="length_end" placeholder="m." x-model="lengthEnd" x-show="machineStopped">
+                <input type="number" class="form-control form-control-sm w-50 meters-input border-0" id="length-end" name="length_end" placeholder="m." x-model="lengthEnd" x-show="machineStartedEnd">
             </div>
         </div>
         <div class="col-6">
