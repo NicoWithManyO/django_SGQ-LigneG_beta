@@ -174,8 +174,8 @@ function checklist() {
         
         // Sauvegarder la signature
         async saveSignature() {
-            // Convertir en majuscules
-            this.signature = this.signature.toUpperCase();
+            // S'assurer que signature est une chaîne avant toUpperCase
+            this.signature = String(this.signature || '').toUpperCase();
             
             if (!this.signature) {
                 // Si on efface la signature, effacer aussi l'heure

@@ -27,8 +27,16 @@ function shiftForm() {
                 this.generateShiftId();
             });
             
-            // Watcher groupé pour les champs qui affectent shiftId
-            this.$watch(['operatorId', 'shiftDate', 'vacation'], () => {
+            // Watchers individuels pour les champs qui affectent shiftId
+            this.$watch('operatorId', () => {
+                this.generateShiftId();
+            });
+            
+            this.$watch('shiftDate', () => {
+                this.generateShiftId();
+            });
+            
+            this.$watch('vacation', () => {
                 this.generateShiftId();
                 if (this.vacation) {
                     this.setDefaultHours();
@@ -60,16 +68,17 @@ function shiftForm() {
         // Charger depuis la session
         loadFromSession() {
             if (window.sessionData) {
-                this.operatorId = window.sessionData.operator_id || '';
-                this.shiftDate = window.sessionData.shift_date || '';
-                this.vacation = window.sessionData.vacation || '';
-                this.startTime = window.sessionData.start_time || '';
-                this.endTime = window.sessionData.end_time || '';
+                // S'assurer que les valeurs sont des chaînes pour éviter l'erreur trim()
+                this.operatorId = String(window.sessionData.operator_id || '');
+                this.shiftDate = String(window.sessionData.shift_date || '');
+                this.vacation = String(window.sessionData.vacation || '');
+                this.startTime = String(window.sessionData.start_time || '');
+                this.endTime = String(window.sessionData.end_time || '');
                 this.machineStarted = window.sessionData.machine_started || false;
                 this.machineStopped = window.sessionData.machine_stopped || false;
-                this.lengthStart = window.sessionData.length_start || '';
-                this.lengthEnd = window.sessionData.length_end || '';
-                this.comment = window.sessionData.comment || '';
+                this.lengthStart = String(window.sessionData.length_start || '');
+                this.lengthEnd = String(window.sessionData.length_end || '');
+                this.comment = String(window.sessionData.comment || '');
             }
         },
         

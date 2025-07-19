@@ -54,7 +54,7 @@
                                         </div>
                                         <button x-show="!hasDefect(row, col)" 
                                                 class="add-defect-btn" 
-                                                :class="{'active': showDefautSelector && currentCell && currentCell.row === row && currentCell.col === col}"
+                                                :class="{'active': showDefectSelector && currentCell && currentCell.row === row && currentCell.col === col}"
                                                 @click.stop="openDefectSelector($event, row, col)">+</button>
                                     </div>
                                 </template>

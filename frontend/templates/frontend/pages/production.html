@@ -264,14 +264,14 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+{% load static %}
 <script>
 // Passer les données de session au JS
 window.sessionData = {{ session_data|safe }};
 </script>
-{% load static %}
 <script src="{% static 'frontend/js/common.js' %}"></script>
 <script src="{% static 'frontend/js/api.js' %}"></script>
+<script src="{% static 'frontend/js/data-loader.js' %}"></script>
 <script src="{% static 'frontend/js/shared-mixins.js' %}"></script>
 <script src="{% static 'frontend/js/roll-calculations.js' %}"></script>
 <script src="{% static 'frontend/js/roll-business-logic.js' %}"></script>
@@ -281,4 +281,17 @@ window.sessionData = {{ session_data|safe }};
 <script src="{% static 'frontend/js/sticky-bottom.js' %}"></script>
 <script src="{% static 'frontend/js/checklist.js' %}"></script>
 <script src="{% static 'frontend/js/roll.js' %}"></script>
+<script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+<script>
+// Attendre que Alpine soit prêt
+document.addEventListener('alpine:init', () => {
+    // Le store devrait être créé par data-loader.js
+    setTimeout(() => {
+        const appData = Alpine.store('appData');
+        if (appData && typeof appData.init === 'function') {
+            appData.init();
+        }
+    }, 100);
+});
+</script>
 {% endblock %}

@@ -143,27 +143,17 @@ function roll() {
             return rollBusinessLogic.isThicknessRow(row, this.targetLength);
         },
         
-        // Charger les types de défauts depuis l'API
-        async loadDefectTypes() {
-            try {
-                const response = await fetch('/api/defect-types/');
-                if (response.ok) {
-                    this.defectTypes = await response.json();
-                } else {
-                    throw new Error('API non disponible');
-                }
-            } catch (error) {
-                console.error('Erreur chargement types de défauts:', error);
-                // Types de défauts de test
-                this.defectTypes = [
-                    { id: 1, name: "Trou" },
-                    { id: 2, name: "Déchirure" },
-                    { id: 3, name: "Tache" },
-                    { id: 4, name: "Pli" },
-                    { id: 5, name: "Corps étranger" },
-                    { id: 6, name: "Surépaisseur" },
-                    { id: 7, name: "Manque matière" }
-                ];
+        // Charger les types de défauts depuis le store global
+        loadDefectTypes() {
+            // Utiliser le store Alpine global au lieu d'un appel API
+            const appData = Alpine.store('appData');
+            if (appData && appData.defectTypes.length > 0) {
+                this.defectTypes = appData.defectTypes;
+            } else {
+                // Écouter l'événement si les données ne sont pas encore chargées
+                window.addEventListener('app-data-loaded', (e) => {
+                    this.defectTypes = e.detail.defectTypes;
+                }, { once: true });
             }
         },
         

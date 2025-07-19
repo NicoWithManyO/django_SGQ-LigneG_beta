@@ -17,22 +17,25 @@ const sharedMixins = {
             // Grouper les watchers pour éviter les appels multiples
             let saveTimeout = null;
             
-            this.$watch(fields, () => {
-                // Annuler la sauvegarde précédente si elle n'a pas encore eu lieu
-                if (saveTimeout) {
-                    clearTimeout(saveTimeout);
-                }
-                
-                // Sauvegarder après un délai pour grouper les changements
-                saveTimeout = setTimeout(() => {
-                    const dataToSave = {};
-                    fields.forEach(field => {
-                        if (this[field] !== undefined) {
-                            dataToSave[field] = this[field];
-                        }
-                    });
-                    this.saveToSession(dataToSave);
-                }, 300); // 300ms de délai
+            // Créer un watcher pour chaque champ individuellement
+            fields.forEach(field => {
+                this.$watch(field, () => {
+                    // Annuler la sauvegarde précédente si elle n'a pas encore eu lieu
+                    if (saveTimeout) {
+                        clearTimeout(saveTimeout);
+                    }
+                    
+                    // Sauvegarder après un délai pour grouper les changements
+                    saveTimeout = setTimeout(() => {
+                        const dataToSave = {};
+                        fields.forEach(f => {
+                            if (this[f] !== undefined) {
+                                dataToSave[f] = this[f];
+                            }
+                        });
+                        this.saveToSession(dataToSave);
+                    }, 300); // 300ms de délai
+                });
             });
         }
     },
