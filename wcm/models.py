@@ -213,7 +213,7 @@ class ChecklistResponse(models.Model):
     class Meta:
         verbose_name = "Réponse check-list"
         verbose_name_plural = "Réponses check-list"
-        ordering = ['shift', 'item__order']
+        ordering = ['shift', 'item']
         unique_together = [['shift', 'item']]
         indexes = [
             models.Index(fields=['shift', 'response']),

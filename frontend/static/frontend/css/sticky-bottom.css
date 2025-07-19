@@ -7,7 +7,7 @@
     left: 0;
     right: 0;
     height: 80px;
-    background-color: #215c98;
+    background-color: #0e4e95;
     color: white;
     z-index: 1040;
     box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
@@ -54,7 +54,7 @@
 /* Inputs éditables style épuré */
 input.info-value.editable-value {
     background-color: #dae9f8;
-    color: #215c98;
+    color: #0e4e95;
     padding: 2px 8px;
     border: none;
     border-radius: 4px;
@@ -92,11 +92,14 @@ input.info-value.editable-value[type=number] {
     -moz-appearance: textfield;
 }
 
-
-/* Ajustement du padding bottom de la page pour la sticky bar */
-.page-wrapper {
-    padding-bottom: 100px; /* 80px de la barre + 20px de marge */
+/* Input avec bouton adjacent - enlever border-radius à droite */
+.d-flex input.info-value.editable-value {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
 }
+
+
+/* Note: Le padding-bottom de .page-wrapper est déjà défini dans layout.css */
 
 /* Boutons dans la sticky bar */
 .sticky-bottom-bar .btn-outline-light {

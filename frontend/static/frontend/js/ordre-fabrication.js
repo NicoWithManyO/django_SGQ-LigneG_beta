@@ -57,22 +57,7 @@ function ordreFabrication() {
                 of_decoupe: this.ofDecoupe || null,
             };
             
-            try {
-                const response = await fetch('/api/session/', {
-                    method: 'PATCH',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': this.getCsrfToken()
-                    },
-                    body: JSON.stringify(data)
-                });
-                
-                if (!response.ok) {
-                    console.error('Erreur lors de la sauvegarde en session');
-                }
-            } catch (error) {
-                console.error('Erreur réseau:', error);
-            }
+            await api.saveToSession(data);
         },
         
         // Toggle édition OF en cours
@@ -92,7 +77,10 @@ function ordreFabrication() {
             if (this.editingLongueur) {
                 this.$nextTick(() => {
                     const input = document.querySelector('input[x-model="longueurCible"]');
-                    if (input) input.focus();
+                    if (input) {
+                        input.focus();
+                        input.select(); // Sélectionner tout le contenu
+                    }
                 });
             }
         },
@@ -109,10 +97,5 @@ function ordreFabrication() {
         },
         
         
-        // Récupérer le token CSRF
-        getCsrfToken() {
-            const csrfInput = document.querySelector('[name=csrfmiddlewaretoken]');
-            return csrfInput ? csrfInput.value : '';
-        }
     };
 }

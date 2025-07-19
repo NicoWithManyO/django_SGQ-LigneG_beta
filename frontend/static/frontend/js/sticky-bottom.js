@@ -84,29 +84,9 @@ function stickyBottom() {
                 next_tube_mass: this.nextTubeMass || null,
             };
             
-            try {
-                const response = await fetch('/api/session/', {
-                    method: 'PATCH',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': this.getCsrfToken()
-                    },
-                    body: JSON.stringify(data)
-                });
-                
-                if (!response.ok) {
-                    console.error('Erreur lors de la sauvegarde en session');
-                }
-            } catch (error) {
-                console.error('Erreur réseau:', error);
-            }
+            await api.saveToSession(data);
         },
         
-        // Récupérer le token CSRF
-        getCsrfToken() {
-            const csrfInput = document.querySelector('[name=csrfmiddlewaretoken]');
-            return csrfInput ? csrfInput.value : '';
-        },
         
         // Mettre à jour les données du rouleau
         updateRollData(data) {

@@ -1,0 +1,66 @@
+<!-- Composant Checklist -->
+<div class="accordion-body bg-light" x-data="checklist()" x-init="init()">
+    <!-- Loading -->
+    <div x-show="loading" class="text-center py-3">
+        <div class="spinner-border spinner-border-sm text-primary" role="status">
+            <span class="visually-hidden">Chargement...</span>
+        </div>
+    </div>
+    
+    <!-- Liste des items -->
+    <div x-show="!loading && items.length > 0">
+        <template x-for="item in items" :key="item.id">
+            <div class="checklist-item mb-2">
+                <div class="d-flex align-items-center justify-content-between">
+                    <span class="checklist-text" x-text="item.text"></span>
+                    <div class="btn-group btn-group-sm" role="group">
+                        <button type="button" 
+                                class="btn btn-outline-success"
+                                :class="{ 'active': getResponse(item.id) === 'ok' }"
+                                @click="updateResponse(item.id, 'ok')"
+                                :disabled="saving">
+                            OK
+                        </button>
+                        <button type="button" 
+                                class="btn btn-outline-secondary"
+                                :class="{ 'active': getResponse(item.id) === 'na' }"
+                                @click="updateResponse(item.id, 'na')"
+                                :disabled="saving">
+                            N/A
+                        </button>
+                        <button type="button" 
+                                class="btn btn-outline-danger"
+                                :class="{ 'active': getResponse(item.id) === 'nok' }"
+                                @click="updateResponse(item.id, 'nok')"
+                                :disabled="saving">
+                            NOK
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </template>
+    </div>
+    
+    <!-- Message si pas d'items -->
+    <div x-show="!loading && items.length === 0" class="text-center text-muted py-3">
+        <i class="bi bi-info-circle me-2"></i>
+        Aucun item de checklist pour ce template
+    </div>
+    
+    <!-- Zone de signature -->
+    <div x-show="!loading && items.length > 0" class="signature-zone mt-3">
+        <div class="d-flex align-items-center justify-content-end">
+            <span class="text-muted me-2" x-text="signatureTime || (isAllItemsChecked ? 'Merci de signer la check-list' : 'Merci de remplir la check-list')"></span>
+            <i class="me-2" 
+               :class="signatureTime ? 'bi-check-circle-fill text-success' : (isAllItemsChecked ? 'bi-arrow-right text-primary' : 'bi-arrow-up text-warning')"
+               style="font-size: 1.2rem; width: 1.2rem; display: inline-block;"></i>
+            <input type="text" 
+                   class="form-control form-control-sm text-center" 
+                   placeholder="✍"
+                   x-model="signature"
+                   @blur="saveSignature()"
+                   :disabled="!isAllItemsChecked"
+                   style="width: 80px;">
+        </div>
+    </div>
+</div>

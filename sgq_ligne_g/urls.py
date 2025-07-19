@@ -22,4 +22,5 @@ urlpatterns = [
     path('', include('frontend.urls')),
     path('', include('livesession.urls')),
     path('', include('catalog.urls')),
+    path('', include('wcm.urls')),
 ]

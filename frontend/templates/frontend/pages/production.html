@@ -47,24 +47,14 @@
                 <div class="accordion" id="accordionTemps">
                     <div class="accordion-item">
                         <h2 class="accordion-header">
-                            <button class="accordion-button bg-primary text-white" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTemps" aria-expanded="true">
-                                <i class="bi bi-clock me-2"></i> Déclaration de Temps : 2h05
+                            <button class="accordion-button bg-primary text-white" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTemps" aria-expanded="true"
+                                    x-data="{ tempsTotal: window.sessionData?.temps_total || '0h00' }"
+                                    x-init="window.addEventListener('lost-time-updated', (e) => { tempsTotal = e.detail.tempsTotal; })">
+                                <i class="bi bi-clock me-2"></i> Déclaration de Temps :&nbsp;<span x-text="tempsTotal">0h00</span>
                             </button>
                         </h2>
                         <div id="collapseTemps" class="accordion-collapse collapse show">
-                            <div class="accordion-body bg-light">
-                                <p>Lorem ipsum dolor sit amet, consectetur adipiscing.</p>
-                                <div class="row">
-                                    <div class="col-6">
-                                        <small class="text-muted">Lorem ipsum</small>
-                                        <h5>2h05</h5>
-                                    </div>
-                                    <div class="col-6">
-                                        <small class="text-muted">Lorem dolor</small>
-                                        <h5>Lorem</h5>
-                                    </div>
-                                </div>
-                            </div>
+                            {% include 'frontend/components/declaration-temps.html' %}
                         </div>
                     </div>
                 </div>
@@ -155,6 +145,36 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- Bloc Zone Rouleau -->
+                <div class="accordion mt-3" id="accordionRouleau">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button bg-primary text-white" type="button" data-bs-toggle="collapse" data-bs-target="#collapseRouleau" aria-expanded="true">
+                                <i class="bi bi-circle-fill me-2"></i> Zone Rouleau
+                            </button>
+                        </h2>
+                        <div id="collapseRouleau" class="accordion-collapse collapse show">
+                            <div class="accordion-body bg-light">
+                                <!-- Container Zone Rouleau -->
+                                <div class="zone-rouleau-container" x-data="{ 
+                                    status: 'standard',
+                                    nbEpaisseurs: 0,
+                                    nbNok: 0,
+                                    nbDefauts: 0
+                                }">
+                                    <!-- Badge de conformité avec compteurs -->
+                                    <div>
+                                        {% include 'frontend/components/badge-conformite.html' %}
+                                    </div>
+                                    
+                                    <!-- Rouleau -->
+                                    {% include 'frontend/components/rouleau.html' %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <!-- Colonne droite -->
@@ -168,26 +188,7 @@
                             </button>
                         </h2>
                         <div id="collapseChecklist" class="accordion-collapse collapse show">
-                            <div class="accordion-body bg-light">
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" id="check1">
-                                    <label class="form-check-label" for="check1">
-                                        Lorem ipsum dolor sit
-                                    </label>
-                                </div>
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" id="check2">
-                                    <label class="form-check-label" for="check2">
-                                        Consectetur adipiscing elit
-                                    </label>
-                                </div>
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" id="check3">
-                                    <label class="form-check-label" for="check3">
-                                        Sed do eiusmod tempor
-                                    </label>
-                                </div>
-                            </div>
+                            {% include 'frontend/components/checklist.html' %}
                         </div>
                     </div>
                 </div>
@@ -269,8 +270,13 @@
 window.sessionData = {{ session_data|safe }};
 </script>
 {% load static %}
+<script src="{% static 'frontend/js/common.js' %}"></script>
+<script src="{% static 'frontend/js/api.js' %}"></script>
 <script src="{% static 'frontend/js/roll-calculations.js' %}"></script>
 <script src="{% static 'frontend/js/fiche-poste.js' %}"></script>
 <script src="{% static 'frontend/js/ordre-fabrication.js' %}"></script>
+<script src="{% static 'frontend/js/declaration-temps.js' %}"></script>
 <script src="{% static 'frontend/js/sticky-bottom.js' %}"></script>
+<script src="{% static 'frontend/js/checklist.js' %}"></script>
+<script src="{% static 'frontend/js/rouleau.js' %}"></script>
 {% endblock %}

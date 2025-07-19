@@ -1,0 +1,232 @@
+/* ===== ZONE ROULEAU CSS ===== */
+/* Styles pour la zone rouleau et ses composants */
+
+/* Container principal de la zone rouleau */
+.zone-rouleau-container {
+    padding: 1rem;
+}
+
+/* Badge de conformité */
+.badge-conformite {
+    transition: all 0.3s ease;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+/* Container du rouleau */
+.rouleau-container {
+    margin-top: 1rem;
+    position: relative;
+}
+
+/* Grille du rouleau */
+.rouleau-grid {
+    background-color: white;
+    border: 1px solid #dee2e6;
+    padding: 0;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Container du badge de conformité */
+.badge-conformite-container {
+    padding: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+/* Table du rouleau */
+.rouleau-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0;
+}
+
+.rouleau-table thead {
+    background-color: #f8f9fa;
+}
+
+.rouleau-table th {
+    padding: 0.5rem;
+    text-align: center;
+    font-weight: 600;
+    color: #6c757d;
+    border: none;
+    font-size: 0.875rem;
+}
+
+.rouleau-table td {
+    border: none;
+    height: 2.5rem;
+    padding: 1px;
+    position: relative;
+    overflow: visible;
+}
+
+/* Colonnes métrage */
+.col-metrage {
+    width: 2rem;
+    background-color: #f8f9fa;
+    text-align: center;
+    min-width: 2rem;
+}
+
+.metrage-label {
+    font-size: 0.75rem;
+    color: #6c757d;
+    opacity: 0.8;
+}
+
+/* Colonnes défauts */
+.col-defaut {
+    width: auto;
+    transition: background-color 0.2s;
+    min-width: 3rem;
+    position: relative;
+}
+
+
+
+/* États des cellules */
+.col-defaut.col-epaisseur {
+    cursor: pointer;
+}
+
+.col-defaut.defaut:not(.col-epaisseur) {
+}
+
+/* Cellule avec épaisseur ET défaut */
+.col-defaut.col-epaisseur.defaut {
+    position: relative;
+}
+
+.col-defaut.empty {
+    background-color: #e3f2fd;
+}
+
+/* Ligne avec défaut - bordure de découpe */
+tr.has-defaut td {
+    border-bottom: 2px dashed #dc3545;
+    position: relative;
+}
+
+/* Icône ciseaux sur chaque cellule de la ligne de découpe */
+tr.has-defaut td::after {
+    content: "✂";
+    position: absolute;
+    bottom: -1px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: #dc3545;
+    font-size: 0.875rem;
+    z-index: 10;
+}
+
+/* Pas de ciseaux sur la colonne métrage */
+tr.has-defaut td.col-metrage::after {
+    content: none;
+}
+
+/* Indicateur de défaut dans la cellule */
+.defaut-indicator {
+    position: absolute;
+    top: 1px;
+    right: 1px;
+    font-size: 0.625rem;
+    font-weight: 700;
+    color: white;
+    background-color: #dc3545;
+    padding: 1px 3px;
+    border-radius: 2px;
+    line-height: 1;
+    z-index: 10;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.defaut-indicator:hover {
+    background-color: #c82333;
+}
+
+/* Bouton pour ajouter un défaut */
+.add-defaut-btn {
+    position: absolute;
+    top: 1px;
+    right: 1px;
+    width: 16px;
+    height: 16px;
+    padding: 0;
+    border: none;
+    background-color: #dc3545;
+    color: white;
+    font-size: 0.75rem;
+    line-height: 1;
+    border-radius: 2px;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.2s, background-color 0.2s;
+}
+
+.col-defaut:hover .add-defaut-btn {
+    opacity: 1;
+}
+
+.add-defaut-btn:hover {
+    background-color: #c82333;
+}
+
+
+/* Cellule épaisseur */
+.cellule-epaisseur {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Input d'épaisseur */
+.epaisseur-input {
+    width: 2.8rem;
+    height: 2.8rem;
+    border: none;
+    background: #dae9f8;
+    text-align: center;
+    font-size: 1.1rem;
+    font-weight: 600;
+    padding: 0;
+    border-radius: 50%;
+    cursor: pointer;
+    position: relative;
+    z-index: 5;
+}
+
+
+.epaisseur-input:focus {
+    outline: none;
+    box-shadow: 0 0 0 0.125rem rgba(33, 92, 152, 0.25);
+    background: white;
+}
+
+/* Sélecteur de défauts */
+.defaut-selector {
+    z-index: 1000;
+    font-size: 0.875rem;
+    padding: 0.5rem;
+    border: 1px solid #dc3545;
+    background-color: #fee;
+    color: #dc3545;
+    cursor: pointer;
+    width: auto !important;
+    min-width: 150px;
+    max-width: 250px;
+}
+
+.defaut-selector option {
+    background-color: #fee;
+    color: #dc3545;
+}
+
+.defaut-selector option:hover {
+    background-color: #dc3545;
+    color: white;
+}

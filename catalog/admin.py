@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.utils.html import format_html
 from .models import (
     QualityDefectType,
-    WcmChecklistTemplate, WcmChecklistItem, WcmLostTimeReason,
+    WcmChecklistTemplate, WcmChecklistItem, WcmChecklistTemplateItem, WcmLostTimeReason,
     SpecItem, ParamItem, ProfileTemplate, ProfileSpecValue, ProfileParamValue
 )
 
@@ -40,6 +40,15 @@ class QualityDefectTypeAdmin(admin.ModelAdmin):
 
 
 # WCM - Admin
+class WcmChecklistTemplateItemInline(admin.TabularInline):
+    """Inline pour gérer les items d'un template."""
+    model = WcmChecklistTemplateItem
+    extra = 1
+    fields = ['item', 'order', 'is_required']
+    ordering = ['order']
+    autocomplete_fields = ['item']
+
+
 @admin.register(WcmChecklistTemplate)
 class WcmChecklistTemplateAdmin(admin.ModelAdmin):
     """Administration des templates de check-list."""
@@ -48,6 +57,7 @@ class WcmChecklistTemplateAdmin(admin.ModelAdmin):
     list_filter = ['is_active', 'is_default']
     search_fields = ['name', 'description']
     ordering = ['name']
+    inlines = [WcmChecklistTemplateItemInline]
     
     fieldsets = (
         ('Identification', {
@@ -68,19 +78,24 @@ class WcmChecklistTemplateAdmin(admin.ModelAdmin):
 class WcmChecklistItemAdmin(admin.ModelAdmin):
     """Administration des items de check-list."""
     
-    list_display = ['template', 'order', 'text', 'is_required', 'is_active']
-    list_filter = ['template', 'is_required', 'is_active']
+    list_display = ['text', 'category', 'is_active', 'template_count']
+    list_filter = ['category', 'is_active']
     search_fields = ['text']
-    ordering = ['template', 'order']
+    ordering = ['category', 'text']
     
     fieldsets = (
         ('Identification', {
-            'fields': ('template', 'text')
+            'fields': ('text', 'category')
         }),
         ('Configuration', {
-            'fields': ('order', 'is_required', 'is_active')
+            'fields': ('is_active',)
         }),
     )
+    
+    def template_count(self, obj):
+        """Nombre de templates utilisant cet item."""
+        return obj.templates.count()
+    template_count.short_description = "Utilisé dans"
 
 
 @admin.register(WcmLostTimeReason)

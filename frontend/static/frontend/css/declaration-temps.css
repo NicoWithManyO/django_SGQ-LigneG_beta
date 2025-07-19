@@ -1,0 +1,54 @@
+/* ===== DECLARATION TEMPS CSS ===== */
+/* Styles spécifiques au composant de déclaration de temps */
+
+/* Style des inputs */
+.accordion-body input[type="number"] {
+    text-align: center;
+}
+
+/* Liste des arrêts */
+.list-group-item {
+    background-color: transparent;
+    border: none;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.list-group-item:last-child {
+    border-bottom: none;
+}
+
+.list-group-item .badge {
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.list-group-item .btn-link {
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Statistiques */
+.accordion-body h5 {
+    color: var(--primary-blue);
+    font-weight: 600;
+}
+
+/* Bouton avec icône centrée */
+.btn-sm i.bi {
+    display: inline-flex;
+    align-items: center;
+    line-height: 1;
+}
+
+/* Alignement vertical des éléments de la liste */
+.list-group-item .d-flex {
+    align-items: center !important;
+}
+
+.list-group-item span {
+    line-height: 1;
+    vertical-align: middle;
+}

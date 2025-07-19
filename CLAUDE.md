@@ -152,6 +152,108 @@ L'admin Django utilise des inlines pour gérer les valeurs dans ProfileTemplate 
 - README de référence : `/home/nico/claude/django_SGQ-LigneG_beta/AIDE/README.md`
 - Requirements : Django==5.2.4, djangorestframework==3.15.2, django-htmx==1.23.2
 
+## Configuration Django
+
+### Settings principaux
+- **Langue** : `fr-fr` (français)
+- **Timezone** : `Europe/Paris`
+- **Static files** : `/static/` (URL) et `/staticfiles/` (root)
+- **Media files** : `/media/` (URL et root)
+- **Base de données** : SQLite en développement
+- **Apps installées** : catalog, planification, wcm, production, quality, livesession, frontend, rest_framework
+
+## API REST Endpoints
+
+### Session API
+- **GET/PATCH** `/api/session/` - Gestion de l'état de session actuel
+  - Stocke : profile_id, shift_id, operator_id, shift_date, vacation, times, OF, etc.
+  - Synchronise avec CurrentProfile et Django sessions
+
+### WCM API  
+- **GET** `/api/lost-time-reasons/` - Liste des motifs de temps perdu actifs
+- **GET/POST/DELETE** `/api/lost-time-entries/` - Gestion des entrées de temps perdu
+- **GET** `/api/lost-time-entries/stats/` - Statistiques de temps perdu
+
+### Catalog API
+- Endpoints configurables pour les autres ressources catalogue
+
+## Modèles WCM détaillés
+
+### Mode
+- Modes de fonctionnement machine (Permissif, Dégradé, Maintenance)
+- Champs : name, description, is_enabled, is_active
+
+### MoodCounter
+- Compteur d'humeur anonyme
+- Types : no_response, happy, unhappy, neutral
+- Incrémente un compteur à chaque sélection
+
+### LostTimeEntry
+- Entrées de temps d'arrêt liées à un shift ou session_key
+- Relations : shift, reason (WcmLostTimeReason), created_by
+- Champs : duration (minutes), comment
+
+### ChecklistResponse
+- Réponses aux items de check-list
+- Choix : ok, na, nok
+- Contrainte unique : [shift, item]
+- Commentaire obligatoire si NOK
+
+## Architecture des composants frontend
+
+### Déclaration de temps (nouveau composant)
+```
+frontend/
+├── static/frontend/
+│   ├── css/declaration-temps.css    # Styles spécifiques
+│   └── js/declaration-temps.js      # Logique Alpine.js
+└── templates/frontend/
+    └── components/
+        └── declaration-temps.html   # Template du composant
+```
+
+### Pattern Alpine.js pour déclaration temps
+- Chargement automatique des motifs d'arrêt via API
+- Calcul en temps réel des statistiques (total, nombre)
+- Gestion CRUD complète des arrêts
+- Émission d'événements pour synchronisation (`lost-time-updated`)
+- Liste déroulante de durées pré-définies (5min à 8h par pas de 5min)
+
+## Tests
+
+Actuellement, aucun test n'est implémenté. Les fichiers `tests.py` existent mais sont vides dans toutes les applications.
+
+## Absence notable
+
+- **Pas de requirements.txt** : Les dépendances sont documentées mais pas dans un fichier requirements
+- **Pas de configuration de linter** : Aucun outil de lint configuré (ruff, flake8, pylint)
+- **Pas de Makefile** : Aucun script d'automatisation
+- **Pas de commandes de management personnalisées** : Uniquement les commandes Django par défaut
+- **Pas de fichiers de configuration CI/CD**
+
+## Sécurité et déploiement
+
+- **DEBUG = True** en développement (à désactiver en production)
+- **SECRET_KEY** hardcodé dans settings.py (à externaliser en production)
+- **ALLOWED_HOSTS = []** (à configurer pour production)
+- Utilise les sessions Django pour la persistance
+- Token CSRF requis pour toutes les requêtes POST/PATCH/DELETE
+
+## Pattern de développement récents
+
+### Nouvelle API WCM pour temps perdus
+- ViewSets DRF complets avec serializers
+- Filtrage automatique par session courante
+- Statistiques agrégées disponibles
+- Intégration avec le catalogue de motifs
+
+### Architecture modulaire CSS/JS
+Le projet suit une architecture strictement modulaire :
+- Un fichier CSS par fonctionnalité
+- Un fichier JS par composant Alpine.js
+- Templates isolés et réutilisables
+- Pas de logique dans les templates HTML
+
 ## Gestion des sessions et profils actuels
 
 ### Architecture LiveSession
@@ -355,3 +457,107 @@ def save(self):
 - **Pas de styles inline dans le HTML final**
 - **Commentaires en français dans le code**
 - **Ne jamais créer de fichiers de documentation non demandés**
+
+## Configuration Django
+
+### Settings principaux
+- **Language** : `fr-fr` (français)
+- **Timezone** : `Europe/Paris`
+- **Static files** : `/static/` (collectstatic non configuré)
+- **Media files** : `/media/` (stockage fichiers uploadés)
+- **Apps installées** : catalog, production, quality, planification, wcm, livesession, frontend
+
+### Sécurité et déploiement
+- **ATTENTION** : DEBUG=True et SECRET_KEY hardcodée (dev uniquement)
+- **ALLOWED_HOSTS** : Vide (accepte tout en dev)
+- **CSRF** : Activé - utiliser `{% csrf_token %}` dans les formulaires
+
+## API REST Endpoints
+
+### Session API (`/api/session/`)
+- **PATCH** : Met à jour la session courante
+  - Champs : operator_id, shift_date, vacation, profile_id, fabrication_order_id
+  - Synchronise avec CurrentProfile et session Django
+  - Retourne l'état complet de la session
+
+### WCM API (`/wcm/api/`)
+- **`/wcm/api/lost-time-reasons/`** : Liste des motifs de temps perdu
+- **`/wcm/api/lost-time-entries/`** : CRUD des entrées de temps perdu
+  - GET : Liste filtrée par shift_id
+  - POST/PUT/DELETE : Gestion complète
+  - Calculs automatiques de durée
+
+### Stats API (`/api/stats/<date>/<vacation>/`)
+- Agrégation des données de production
+- Inclut TRS, grammage moyen, temps perdus
+
+## Modèles WCM détaillés
+
+### Mode (wcm/models.py)
+- Modes de fonctionnement machine : ARRET, MARCHE, CHANGEMENT_BOBINE_MERE
+- Tracking automatique avec timestamps
+
+### MoodCounter (wcm/models.py)
+- Compteurs d'humeur anonymes (GOOD, NEUTRAL, BAD)
+- Reset automatique à minuit
+
+### LostTimeEntry (wcm/models.py)
+- Entrées de temps perdu avec motif, début, fin
+- Calcul automatique de la durée
+- Lié à un poste (Shift)
+
+### ChecklistResponse (wcm/models.py)
+- Réponses aux items de checklist
+- Booléen checked + commentaire optionnel
+- Lié à shift_id et checklist_item_id
+
+## Architecture des composants frontend récents
+
+### Composant declaration-temps (nouveau)
+```
+frontend/static/frontend/
+├── css/declaration-temps.css    # Styles spécifiques
+├── js/declaration-temps.js      # Logique Alpine.js
+└── templates/frontend/components/
+    └── declaration-temps.html   # Template isolé
+```
+
+**Fonctionnalités du composant** :
+- Auto-save des temps perdus
+- Calcul automatique des durées
+- Validation en temps réel
+- Gestion des chevauchements
+- Mode édition/suppression inline
+
+**Pattern Alpine.js utilisé** :
+- Store global pour partage d'état
+- Watchers pour auto-save
+- Computed properties pour calculs
+- Event bus pour communication
+
+## Tests
+
+Les fichiers de tests existent mais sont vides :
+- `catalog/tests.py`
+- `production/tests.py`
+- `quality/tests.py`
+- `wcm/tests.py`
+- `planification/tests.py`
+
+Aucune configuration de tests n'est implémentée.
+
+## Absences notables
+
+- **Pas de requirements.txt** (dépendances non documentées)
+- **Pas de configuration de linter** (ruff, flake8, black)
+- **Pas de Makefile** ou scripts d'automatisation
+- **Pas de commandes de gestion personnalisées**
+- **Pas de configuration CI/CD**
+
+## Patterns de développement récents
+
+1. **Nouvelle API WCM** avec DRF ViewSets complets
+2. **Architecture CSS/JS strictement modulaire**
+3. **Composants frontend isolés** (HTML/CSS/JS séparés)
+4. **Auto-save systématique** via Alpine.js watchers
+5. **Validation temps réel** côté frontend

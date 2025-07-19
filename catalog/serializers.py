@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import ProfileTemplate, ProfileSpecValue, ProfileParamValue, SpecItem, ParamItem
+from .models import ProfileTemplate, ProfileSpecValue, ProfileParamValue, SpecItem, ParamItem, QualityDefectType
 
 
 class SpecItemSerializer(serializers.ModelSerializer):
@@ -60,3 +60,11 @@ class ProfileTemplateListSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProfileTemplate
         fields = ['id', 'name', 'description', 'is_active', 'is_default']
+
+
+class QualityDefectTypeSerializer(serializers.ModelSerializer):
+    """Serializer pour les types de défauts qualité."""
+    
+    class Meta:
+        model = QualityDefectType
+        fields = ['id', 'name', 'description', 'severity', 'is_active']

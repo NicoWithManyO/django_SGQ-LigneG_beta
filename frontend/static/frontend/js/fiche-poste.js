@@ -89,22 +89,7 @@ function fichePoste() {
                 comment: this.comment || null,
             };
             
-            try {
-                const response = await fetch('/api/session/', {
-                    method: 'PATCH',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': this.getCsrfToken()
-                    },
-                    body: JSON.stringify(data)
-                });
-                
-                if (!response.ok) {
-                    console.error('Erreur lors de la sauvegarde en session');
-                }
-            } catch (error) {
-                console.error('Erreur réseau:', error);
-            }
+            await api.saveToSession(data);
         },
         
         // Générer l'ID du poste
@@ -160,12 +145,6 @@ function fichePoste() {
                     // Ne pas changer si vacation vide
                     break;
             }
-        },
-        
-        // Récupérer le token CSRF
-        getCsrfToken() {
-            const csrfInput = document.querySelector('[name=csrfmiddlewaretoken]');
-            return csrfInput ? csrfInput.value : '';
         },
         
         // Sauvegarder le poste

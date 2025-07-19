@@ -1,8 +1,8 @@
 from django.shortcuts import render
 from rest_framework import viewsets
 from rest_framework.permissions import AllowAny
-from .models import ProfileTemplate
-from .serializers import ProfileTemplateSerializer, ProfileTemplateListSerializer
+from .models import ProfileTemplate, QualityDefectType
+from .serializers import ProfileTemplateSerializer, ProfileTemplateListSerializer, QualityDefectTypeSerializer
 
 
 class ProfileTemplateViewSet(viewsets.ReadOnlyModelViewSet):
@@ -15,3 +15,10 @@ class ProfileTemplateViewSet(viewsets.ReadOnlyModelViewSet):
         if self.action == 'list':
             return ProfileTemplateListSerializer
         return ProfileTemplateSerializer
+
+
+class QualityDefectTypeViewSet(viewsets.ReadOnlyModelViewSet):
+    """ViewSet pour les types de défauts qualité."""
+    queryset = QualityDefectType.objects.filter(is_active=True).order_by('name')
+    serializer_class = QualityDefectTypeSerializer
+    permission_classes = [AllowAny]

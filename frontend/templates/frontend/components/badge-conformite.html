@@ -1,0 +1,26 @@
+<!-- Composant Badge Conformité -->
+<div class="badge-conformite-container pb-3">
+    <div class="row align-items-center">
+        <!-- Colonne gauche : Épaisseurs -->
+        <div class="col-4 text-end">
+            <span class="text-muted small">
+                Épaisseurs : <span x-text="nbEpaisseurs || 0"></span>/12 | <span x-text="nbNok || 0"></span> NOK
+            </span>
+        </div>
+        
+        <!-- Colonne centre : Badge -->
+        <div class="col-4 text-center">
+            <span class="badge-conformite badge fs-5 px-3 py-2 border" 
+                  :class="status === 'conforme' ? 'border-success bg-success text-white' : 'border-secondary bg-transparent text-secondary'">
+                <span x-text="status === 'conforme' ? 'CONFORME' : 'CONFORME'"></span>
+            </span>
+        </div>
+        
+        <!-- Colonne droite : Défauts -->
+        <div class="col-4 text-start">
+            <span class="text-muted small">
+                Défauts : <span x-text="nbDefauts || 0"></span> |
+            </span>
+        </div>
+    </div>
+</div>

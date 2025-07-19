@@ -79,6 +79,14 @@ class WcmChecklistTemplate(models.Model):
         help_text="Description du template et de son usage"
     )
     
+    # Items sélectionnés pour ce template
+    items = models.ManyToManyField(
+        'WcmChecklistItem',
+        through='WcmChecklistTemplateItem',
+        related_name='templates',
+        verbose_name="Items de la checklist"
+    )
+    
     # Configuration
     is_active = models.BooleanField(
         default=True,
@@ -108,35 +116,25 @@ class WcmChecklistTemplate(models.Model):
 
 
 class WcmChecklistItem(models.Model):
-    """Items d'une check-list."""
-    
-    # Relations
-    template = models.ForeignKey(
-        WcmChecklistTemplate,
-        on_delete=models.CASCADE,
-        related_name='items',
-        verbose_name="Template"
-    )
+    """Items de check-list réutilisables (catalogue)."""
     
     # Contenu
     text = models.CharField(
         max_length=200,
+        unique=True,
         verbose_name="Texte de l'item",
         help_text="Question ou point à vérifier"
     )
     
+    # Catégorie optionnelle
+    category = models.CharField(
+        max_length=50,
+        blank=True,
+        verbose_name="Catégorie",
+        help_text="Ex: Sécurité, Production, Qualité"
+    )
+    
     # Configuration
-    order = models.IntegerField(
-        default=0,
-        verbose_name="Ordre d'affichage"
-    )
-    
-    is_required = models.BooleanField(
-        default=True,
-        verbose_name="Obligatoire",
-        help_text="Cet item doit-il obligatoirement être complété?"
-    )
-    
     is_active = models.BooleanField(
         default=True,
         verbose_name="Actif"
@@ -149,14 +147,49 @@ class WcmChecklistItem(models.Model):
     class Meta:
         verbose_name = "Item de check-list WCM"
         verbose_name_plural = "Items de check-list WCM"
-        ordering = ['template', 'order', 'text']
-        unique_together = [['template', 'order']]
+        ordering = ['category', 'text']
         indexes = [
-            models.Index(fields=['template', 'is_active']),
+            models.Index(fields=['is_active', 'category']),
         ]
     
     def __str__(self):
-        return f"{self.template.name} - {self.order}. {self.text}"
+        return self.text
+
+
+class WcmChecklistTemplateItem(models.Model):
+    """Table intermédiaire pour gérer l'ordre des items dans un template."""
+    
+    template = models.ForeignKey(
+        WcmChecklistTemplate,
+        on_delete=models.CASCADE,
+        verbose_name="Template"
+    )
+    
+    item = models.ForeignKey(
+        WcmChecklistItem,
+        on_delete=models.CASCADE,
+        verbose_name="Item"
+    )
+    
+    order = models.IntegerField(
+        default=0,
+        verbose_name="Ordre d'affichage"
+    )
+    
+    is_required = models.BooleanField(
+        default=True,
+        verbose_name="Obligatoire",
+        help_text="Cet item doit-il obligatoirement être complété?"
+    )
+    
+    class Meta:
+        verbose_name = "Item de template"
+        verbose_name_plural = "Items de template"
+        ordering = ['template', 'order']
+        unique_together = [['template', 'item'], ['template', 'order']]
+    
+    def __str__(self):
+        return f"{self.template.name} - {self.order}. {self.item.text}"
 
 
 class WcmLostTimeReason(models.Model):

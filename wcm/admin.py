@@ -128,10 +128,10 @@ class ChecklistResponseAdmin(admin.ModelAdmin):
     """Administration des réponses aux check-lists."""
     
     list_display = ['shift', 'item', 'response_display', 'responded_by', 'created_at']
-    list_filter = ['response', 'created_at', 'item__template']
+    list_filter = ['response', 'created_at']
     search_fields = ['shift__shift_id', 'item__text', 'comment']
     date_hierarchy = 'created_at'
-    ordering = ['shift', 'item__order']
+    ordering = ['shift', 'item']
     autocomplete_fields = ['shift']
     
     fieldsets = (

@@ -42,3 +42,18 @@ table {
 .bg-light {
     background-color: #f8f9fa !important;
 }
+
+/* Checkboxes cochées - Couleur bleue comme les boutons */
+input[type="checkbox"]:checked {
+    background-color: #215c98;
+    border-color: #215c98;
+}
+
+/* Pour Bootstrap 5 custom checkboxes */
+.form-check-input:checked {
+    background-color: #215c98;
+    border-color: #215c98;
+}
+
+/* Tous les éléments désactivés - Curseur sens interdit */
+/* Retiré car trop global - géré au cas par cas dans components.css */
