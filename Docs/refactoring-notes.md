@@ -108,6 +108,22 @@ export class ThicknessValidator {
 }
 ```
 
+## 🆕 À faire prochainement
+
+### Gestion du statut du rouleau en temps réel
+**Problème** : Le statut du rouleau doit être calculé dynamiquement selon tous les paramètres
+**Solution** : 
+- Centraliser la logique de calcul du statut
+- Écouter les changements de profil, épaisseurs, défauts
+- Mettre à jour le badge de conformité en temps réel
+
+### Validation des épaisseurs selon le profil
+**État actuel** : La comparaison avec les seuils du profil est implémentée
+**À améliorer** :
+- Gérer les cas où les specs d'épaisseur ne sont pas définies
+- Afficher visuellement les seuils quelque part
+- Historiser les changements de statut
+
 ## 📝 Notes additionnelles
 
 ### Patterns à conserver

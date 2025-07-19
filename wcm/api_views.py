@@ -3,8 +3,8 @@ from rest_framework.decorators import action, api_view
 from rest_framework.response import Response
 from django.db.models import Sum
 from catalog.models import WcmLostTimeReason, WcmChecklistTemplate
-from .models import LostTimeEntry
-from .serializers import WcmLostTimeReasonSerializer, LostTimeEntrySerializer
+from .models import LostTimeEntry, Mode
+from .serializers import WcmLostTimeReasonSerializer, LostTimeEntrySerializer, ModeSerializer
 
 
 class WcmLostTimeReasonViewSet(viewsets.ReadOnlyModelViewSet):
@@ -111,4 +111,28 @@ def checklist_template_default(request):
             'id': None,
             'name': 'Erreur',
             'items': []
+        })
+
+
+class ModeViewSet(viewsets.ReadOnlyModelViewSet):
+    """ViewSet pour les modes de fonctionnement (lecture seule)"""
+    queryset = Mode.objects.filter(is_active=True)
+    serializer_class = ModeSerializer
+    permission_classes = [permissions.AllowAny]
+    
+    def get_queryset(self):
+        """Retourner les modes actifs"""
+        return super().get_queryset().order_by('name')
+    
+    @action(detail=True, methods=['post'])
+    def toggle(self, request, pk=None):
+        """Activer/désactiver un mode."""
+        mode = self.get_object()
+        mode.is_enabled = not mode.is_enabled
+        mode.save()
+        
+        return Response({
+            'id': mode.id,
+            'name': mode.name,
+            'is_enabled': mode.is_enabled
         })

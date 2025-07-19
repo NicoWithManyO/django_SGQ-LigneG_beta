@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from catalog.models import WcmLostTimeReason
-from .models import LostTimeEntry
+from .models import LostTimeEntry, Mode
 
 
 class WcmLostTimeReasonSerializer(serializers.ModelSerializer):
@@ -43,3 +43,12 @@ class LostTimeEntrySerializer(serializers.ModelSerializer):
         # TODO: Récupérer depuis la session si un shift est actif
         
         return super().create(validated_data)
+
+
+class ModeSerializer(serializers.ModelSerializer):
+    """Serializer pour les modes de fonctionnement"""
+    
+    class Meta:
+        model = Mode
+        fields = ['id', 'name', 'description', 'is_enabled', 'is_active']
+        read_only_fields = ['id']

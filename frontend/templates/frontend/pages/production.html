@@ -68,110 +68,28 @@
                             </button>
                         </h2>
                         <div id="collapseProfil" class="accordion-collapse collapse show">
-                            <div class="accordion-body bg-light">
-                                <!-- Profil de production -->
-                                <h6>Profil de production</h6>
-                                <select class="form-select mb-3">
-                                    <option>80g/m²</option>
-                                    <option>Lorem ipsum</option>
-                                </select>
-
-                                <!-- Modes -->
-                                <h6>Modes</h6>
-                                <div class="form-check form-check-inline">
-                                    <input class="form-check-input" type="radio" name="mode" id="permissif" checked>
-                                    <label class="form-check-label" for="permissif">Permissif</label>
-                                </div>
-                                <div class="form-check form-check-inline">
-                                    <input class="form-check-input" type="radio" name="mode" id="controles">
-                                    <label class="form-check-label" for="controles">Contrôles++</label>
-                                </div>
-
-                                <!-- Paramètres machine -->
-                                <h6 class="mt-3">Paramètres machine</h6>
-                                <table class="table table-sm">
-                                    <thead>
-                                        <tr>
-                                            <th></th>
-                                            <th>Oxygène</th>
-                                            <th>Propane</th>
-                                            <th>Vitesse</th>
-                                            <th>Vitesse tapis</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr>
-                                            <td>PRIMAIRE</td>
-                                            <td>--</td>
-                                            <td>--</td>
-                                            <td>31 m/h</td>
-                                            <td>17.40 m/h</td>
-                                        </tr>
-                                        <tr>
-                                            <td>SECONDAIRE</td>
-                                            <td>--</td>
-                                            <td>--</td>
-                                            <td>37 m/h</td>
-                                            <td>0.29 m/min</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-
-                                <!-- Spécifications qualité -->
-                                <h6 class="mt-3">Spécifications qualité</h6>
-                                <table class="table table-sm">
-                                    <tbody>
-                                        <tr>
-                                            <td>Épaisseur (mm)</td>
-                                            <td>3.2</td>
-                                            <td><span class="badge bg-success">6.5</span></td>
-                                            <td>--</td>
-                                        </tr>
-                                        <tr>
-                                            <td>Extrait sec (%)</td>
-                                            <td>0.14</td>
-                                            <td><span class="badge bg-success">0.24</span></td>
-                                            <td>0.34</td>
-                                        </tr>
-                                        <tr>
-                                            <td>Micronnaire (μm)</td>
-                                            <td>25</td>
-                                            <td><span class="badge bg-success">32</span></td>
-                                            <td>42</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
+                            {% include "frontend/components/profile.html" %}
                         </div>
                     </div>
                 </div>
 
                 <!-- Bloc Zone Rouleau -->
-                <div class="accordion mt-3" id="accordionRouleau">
-                    <div class="accordion-item">
-                        <h2 class="accordion-header">
-                            <button class="accordion-button bg-primary text-white" type="button" data-bs-toggle="collapse" data-bs-target="#collapseRouleau" aria-expanded="true">
-                                <i class="bi bi-circle-fill me-2"></i> Zone Rouleau
-                            </button>
-                        </h2>
-                        <div id="collapseRouleau" class="accordion-collapse collapse show">
-                            <div class="accordion-body bg-light">
-                                <!-- Container Zone Rouleau -->
-                                <div class="zone-rouleau-container" x-data="{ 
-                                    status: 'standard',
-                                    nbEpaisseurs: 0,
-                                    nbNok: 0,
-                                    nbDefauts: 0
-                                }">
-                                    <!-- Badge de conformité avec compteurs -->
-                                    <div>
-                                        {% include 'frontend/components/badge-conformite.html' %}
-                                    </div>
-                                    
-                                    <!-- Rouleau -->
-                                    {% include 'frontend/components/roll.html' %}
-                                </div>
+                <div class="mt-3">
+                    <div class="bg-light p-3 rounded">
+                        <!-- Container Zone Rouleau -->
+                        <div class="zone-rouleau-container" x-data="{ 
+                            status: 'standard',
+                            nbEpaisseurs: 0,
+                            nbNok: 0,
+                            nbDefauts: 0
+                        }">
+                            <!-- Badge de conformité avec compteurs -->
+                            <div>
+                                {% include 'frontend/components/badge-conformite.html' %}
                             </div>
+                            
+                            <!-- Rouleau -->
+                            {% include 'frontend/components/roll.html' %}
                         </div>
                     </div>
                 </div>
@@ -195,70 +113,6 @@
             </div>
         </div>
 
-        <!-- Bloc Contrôles Qualité -->
-        <div class="row mt-3">
-            <div class="col-12">
-                <div class="accordion" id="accordionQualite">
-                    <div class="accordion-item">
-                        <h2 class="accordion-header">
-                            <button class="accordion-button bg-primary text-white" type="button" data-bs-toggle="collapse" data-bs-target="#collapseQualite" aria-expanded="true">
-                                <i class="bi bi-clipboard-check me-2"></i> Contrôles Qualité
-                            </button>
-                        </h2>
-                        <div id="collapseQualite" class="accordion-collapse collapse show">
-                            <div class="accordion-body bg-light">
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <h5 class="text-center text-success">CONFORME</h5>
-                                        <p class="text-center">Lorem ipsum dolor sit amet</p>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <button class="btn btn-warning">Renseigner les données du rouleau</button>
-                                    </div>
-                                </div>
-                                <div class="row mt-3">
-                                    <div class="col">
-                                        <div class="text-center">
-                                            <small class="text-muted">N° Rouleau</small>
-                                            <h5>3</h5>
-                                        </div>
-                                    </div>
-                                    <div class="col">
-                                        <div class="text-center">
-                                            <small class="text-muted">ID Rouleau</small>
-                                            <h5>3165_005</h5>
-                                        </div>
-                                    </div>
-                                    <div class="col">
-                                        <div class="text-center">
-                                            <small class="text-muted">Masse tube (g)</small>
-                                            <h5>6</h5>
-                                        </div>
-                                    </div>
-                                    <div class="col">
-                                        <div class="text-center">
-                                            <small class="text-muted">Lg (m)</small>
-                                            <h5>6</h5>
-                                        </div>
-                                    </div>
-                                    <div class="col">
-                                        <div class="text-center">
-                                            <small class="text-muted">Masse totale (g)</small>
-                                            <h5>506g</h5>
-                                        </div>
-                                    </div>
-                                    <div class="col">
-                                        <div class="text-center text-warning">
-                                            <h4>84.3g/m²</h4>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
     </div>
 </div>
 {% endblock %}
@@ -278,6 +132,7 @@ window.operatorsData = {{ operators_json|safe }};
 <script src="{% static 'frontend/js/roll-calculations.js' %}"></script>
 <script src="{% static 'frontend/js/roll-business-logic.js' %}"></script>
 <script src="{% static 'frontend/js/shift-form.js' %}"></script>
+<script src="{% static 'frontend/js/profile.js' %}"></script>
 <script src="{% static 'frontend/js/production-order.js' %}"></script>
 <script src="{% static 'frontend/js/time-declaration.js' %}"></script>
 <script src="{% static 'frontend/js/sticky-bottom.js' %}"></script>

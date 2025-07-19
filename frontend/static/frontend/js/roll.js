@@ -15,6 +15,8 @@ function roll() {
         showDefectSelector: false,
         currentCell: null,
         selectorPosition: { top: 0, left: 0 },
+        currentProfile: null,
+        thicknessSpec: null,
         
         // Initialisation
         init() {
@@ -28,6 +30,15 @@ function roll() {
             window.addEventListener('target-length-changed', (e) => {
                 this.targetLength = e.detail.length;
                 this.updateGrid();
+            });
+            
+            // Écouter les changements de profil
+            window.addEventListener('profile-changed', (e) => {
+                this.currentProfile = e.detail.profile;
+                this.thicknessSpec = this.currentProfile?.profilespecvalue_set?.find(spec => 
+                    spec.spec_item.name === 'thickness' || 
+                    spec.spec_item.display_name.toLowerCase().includes('épaisseur')
+                );
             });
             
             // Écouter la validation des épaisseurs (blur ou Enter)
@@ -87,6 +98,16 @@ function roll() {
                 const input = this.$el.querySelector(`input[data-row="${thickness.row}"][data-col="${thickness.col}"]`);
                 if (input) {
                     input.value = thickness.value.toString().replace('.', ',');
+                    
+                    // Appliquer l'orange seulement si pas de badge NOK
+                    const hasNokBadge = this.nokThicknesses.some(e => e.row === thickness.row && e.col === thickness.col);
+                    if (!hasNokBadge && this.checkThicknessStatus(thickness.value) === 'alert') {
+                        input.classList.add('text-warning');
+                    } else if (thickness.isNok) {
+                        input.classList.add('text-danger');
+                    } else {
+                        input.classList.remove('text-warning', 'text-danger');
+                    }
                 }
             });
         },
@@ -323,8 +344,10 @@ function roll() {
             }
             
             if (!isNaN(value)) {
-                // Vérifier si l'épaisseur est NOK (< 5 pour le test)
-                if (value < 5) {
+                // Vérifier si l'épaisseur est NOK selon le profil
+                const thicknessStatus = this.checkThicknessStatus(value);
+                
+                if (thicknessStatus === 'nok') {
                     // Vérifier si c'est la première NOK de la cellule
                     const hasNokInCell = this.nokThicknesses.some(e => e.row === row && e.col === col);
                     
@@ -380,8 +403,9 @@ function roll() {
                     // Mettre à jour l'affichage
                     this.updateEpaisseurDisplay();
                 } else {
-                    // Épaisseur OK
+                    // Épaisseur OK ou en alerte
                     this.addThickness(row, col, value);
+                    input.classList.remove('text-danger');
                 }
             }
         },
@@ -440,7 +464,7 @@ function roll() {
             if (existingIndex > -1) {
                 // Mettre à jour la valeur existante
                 this.thicknesses[existingIndex].value = value;
-                this.thicknesses[existingIndex].isNok = false; // Marquer comme OK
+                this.thicknesses[existingIndex].isNok = false;
             } else {
                 // Ajouter l'épaisseur valide
                 this.thicknesses.push({
@@ -452,6 +476,21 @@ function roll() {
             }
             
             this.updateEpaisseurDisplay();
+            
+            // Appliquer la couleur orange si alerte et pas de badge NOK
+            const input = this.$el.querySelector(`input[data-row="${row}"][data-col="${col}"]`);
+            if (input) {
+                const hasNokBadge = this.nokThicknesses.some(e => e.row === row && e.col === col);
+                const status = this.checkThicknessStatus(value);
+                
+                console.log(`Thickness ${value}: status=${status}, hasNokBadge=${hasNokBadge}, spec=`, this.thicknessSpec);
+                
+                if (!hasNokBadge && status === 'alert') {
+                    input.classList.add('text-warning');
+                } else {
+                    input.classList.remove('text-warning');
+                }
+            }
         },
         
         // Supprimer une épaisseur NOK
@@ -505,6 +544,34 @@ function roll() {
         hasThicknessNokInInput(row, col) {
             const ep = this.thicknesses.find(e => e.row === row && e.col === col);
             return ep && ep.isNok;
+        },
+        
+        // Vérifier le statut d'une épaisseur par rapport au profil
+        checkThicknessStatus(value) {
+            if (!this.currentProfile || !this.thicknessSpec) {
+                return value < 5 ? 'nok' : 'ok';
+            }
+            
+            const spec = this.thicknessSpec;
+            const val = parseFloat(value);
+            
+            // D'abord vérifier les limites critiques
+            if (spec.value_min !== null && val < parseFloat(spec.value_min)) {
+                return 'nok';
+            }
+            if (spec.value_max !== null && val > parseFloat(spec.value_max)) {
+                return 'nok';
+            }
+            
+            // Ensuite vérifier les alertes
+            if (spec.value_min_alert !== null && val < parseFloat(spec.value_min_alert)) {
+                return 'alert';
+            }
+            if (spec.value_max_alert !== null && val > parseFloat(spec.value_max_alert)) {
+                return 'alert';
+            }
+            
+            return 'ok';
         },
         
         // Obtenir la valeur de l'épaisseur OK

@@ -1,0 +1,116 @@
+<!-- Composant Profil -->
+<div class="accordion-body bg-light" x-data="profile()" x-init="init()">
+    <!-- Ligne avec sélecteur de profil et mode -->
+    <div class="row mb-3">
+        <div class="col-6">
+            <label class="form-label">Profil de production</label>
+            <select class="form-select" x-model="selectedProfileId">
+                <option value="">--</option>
+                <template x-for="profile in profiles" :key="profile.id">
+                    <option :value="profile.id" x-text="profile.name"></option>
+                </template>
+            </select>
+        </div>
+        <div class="col-6">
+            <label class="form-label">Mode</label>
+            <div class="d-flex align-items-center" style="height: 38px;">
+                <template x-for="mode in availableModes" :key="mode.id">
+                    <div class="form-check form-check-inline mb-0">
+                        <input class="form-check-input" type="checkbox" 
+                               x-model="modes" 
+                               :value="mode.name" 
+                               :id="'mode-' + mode.id"
+                               @change="toggleMode(mode.name)">
+                        <label class="form-check-label" :for="'mode-' + mode.id" x-text="mode.name"></label>
+                    </div>
+                </template>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading -->
+    <div x-show="loading" class="text-center my-4">
+        <div class="spinner-border spinner-border-sm text-primary" role="status">
+            <span class="visually-hidden">Chargement...</span>
+        </div>
+    </div>
+
+    <!-- Contenu du profil -->
+    <div x-show="!loading && selectedProfile">
+        <!-- Paramètres machine -->
+        <h6 class="mt-3">Paramètres machine</h6>
+        <div class="row">
+            <div class="col-8">
+                <div x-show="selectedProfile?.profileparamvalue_set">
+                    <template x-for="(category, index) in getParamCategories()" :key="category">
+                        <div>
+                            <h6 class="text-muted small mt-2" x-text="category.toUpperCase()"></h6>
+                            <table class="table table-sm">
+                                <tbody>
+                                    <template x-for="param in getParamsForCategory(category)" :key="param.param_item.id">
+                                        <tr>
+                                            <td class="text-end align-middle" x-text="formatParamLabel(param)"></td>
+                                            <td class="align-middle">
+                                                <span class="text-primary" x-text="formatParamValue(param)"></span>
+                                                <span x-show="isSpeedParam(param)" class="text-muted small ms-2" x-text="convertToMPerMin(param)"></span>
+                                            </td>
+                                        </tr>
+                                    </template>
+                                </tbody>
+                            </table>
+                        </div>
+                    </template>
+                </div>
+            </div>
+            <div class="col-4">
+                <div x-show="selectedProfile?.profileparamvalue_set">
+                    <div>
+                        <h6 class="text-muted small mt-2">ESTIMATION</h6>
+                        <table class="table table-sm table-borderless" style="background-color: transparent;">
+                            <tbody>
+                                <tr style="background-color: transparent;">
+                                    <td class="text-secondary align-middle" style="font-size: 0.8rem; background-color: transparent;">
+                                        <span x-show="getBeltSpeedParam()" x-text="calculateProductionTime(getBeltSpeedParam())"></span>
+                                    </td>
+                                </tr>
+                                <tr style="background-color: transparent;">
+                                    <td style="background-color: transparent;">&nbsp;</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Spécifications qualité -->
+        <h6 class="mt-3">Spécifications qualité</h6>
+        <table class="table table-sm" x-show="selectedProfile && selectedProfile.profilespecvalue_set">
+            <thead>
+                <tr>
+                    <th>Spécification</th>
+                    <th>Min</th>
+                    <th class="text-secondary" style="font-size: 0.8rem;">Alerte Min</th>
+                    <th>Nominal</th>
+                    <th class="text-secondary" style="font-size: 0.8rem;">Alerte Max</th>
+                    <th>Max</th>
+                </tr>
+            </thead>
+            <tbody>
+                <template x-for="spec in (selectedProfile?.profilespecvalue_set || [])" :key="spec.id">
+                    <tr>
+                        <td class="text-end" x-text="formatSpecLabel(spec)"></td>
+                        <td class="text-primary" x-text="formatSpecValue(spec, 'min')"></td>
+                        <td class="text-secondary" style="font-size: 0.8rem;" x-text="formatSpecValue(spec, 'min_alert')"></td>
+                        <td>
+                            <span :class="spec.value_nominal ? 'badge bg-success' : 'text-primary'" 
+                                  x-text="formatSpecValue(spec, 'nominal')"></span>
+                        </td>
+                        <td class="text-secondary" style="font-size: 0.8rem;" x-text="formatSpecValue(spec, 'max_alert')"></td>
+                        <td class="text-primary" x-text="formatSpecValue(spec, 'max')"></td>
+                    </tr>
+                </template>
+            </tbody>
+        </table>
+    </div>
+</div>
