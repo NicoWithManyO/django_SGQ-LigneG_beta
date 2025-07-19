@@ -116,8 +116,6 @@ function checklist() {
             }
             
             // Sauvegarder dans la session API
-            this.saving = true;
-            
             try {
                 await api.saveToSession({
                     checklist_responses: this.responses
@@ -125,8 +123,6 @@ function checklist() {
                 console.log('Réponses sauvegardées dans la session:', this.responses);
             } catch (error) {
                 console.error('Erreur sauvegarde réponses:', error);
-            } finally {
-                this.saving = false;
             }
         },
         
