@@ -378,8 +378,18 @@ Toute logique complexe doit être dans les serializers, pas dans les modèles :
 - Responsive design
 - Espacements standards
 
+/* animations.css - Bibliothèque d'animations (nouveau) */
+- Animations réutilisables (@keyframes)
+- Classes utilitaires (.animate-*)
+- Patterns : bounce, slide, fade, pulse
+
+/* components/[component].css - Styles de composants isolés */
+- Ex: components/badges.css pour badges réutilisables
+- Pattern @extend pour héritage CSS (non standard, à convertir)
+
 /* [feature].css - Styles spécifiques */
-- Ex: fiche-poste.css pour la fiche de poste
+- Ex: fiche-poste.css, zone-rouleau.css
+- Import des dépendances avec @import
 ```
 
 **Pattern de composant réutilisable** :
@@ -449,6 +459,24 @@ def save(self):
 - Colonnes s'empilent sur mobile (`col-lg-*`)
 - Scrollbar toujours visible : `body { overflow-y: scroll; }`
 
+### Patterns UI du composant rouleau
+- **Grille fixe** : 12 lignes × 7 colonnes (G1, C1, D1, métrage, G2, C2, D2)
+- **Indicateurs visuels multiples** :
+  - Badge vert : épaisseur OK
+  - Badge rouge à gauche : première épaisseur NOK
+  - Badge rouge à droite : défaut visuel
+  - Input rouge : deuxième épaisseur NOK (non rattrapée)
+  - Ligne pointillée + ciseaux : ligne à découper
+- **Interactions utilisateur** :
+  - Click sur cellule : ouvre sélecteur de défaut
+  - Click sur badge : supprime le défaut/NOK
+  - Tab/Shift+Tab : navigation entre épaisseurs
+  - Enter : valide la saisie d'épaisseur
+- **Feedback immédiat** :
+  - Animations de validation (pulse, bounce)
+  - Changement de couleur du badge conformité
+  - Apparition progressive des indicateurs
+
 ## Mémoires de développement
 
 - **Un champ vide doit afficher --**
@@ -513,7 +541,7 @@ def save(self):
 
 ## Architecture des composants frontend récents
 
-### Composant declaration-temps (nouveau)
+### Composant declaration-temps
 ```
 frontend/static/frontend/
 ├── css/declaration-temps.css    # Styles spécifiques
@@ -534,6 +562,46 @@ frontend/static/frontend/
 - Watchers pour auto-save
 - Computed properties pour calculs
 - Event bus pour communication
+
+### Composant rouleau (nouveau)
+```
+frontend/static/frontend/
+├── css/
+│   ├── zone-rouleau.css      # Styles spécifiques du rouleau
+│   ├── animations.css        # Animations communes réutilisables
+│   └── components/
+│       └── badges.css        # Styles des badges et indicateurs
+├── js/rouleau.js             # Logique Alpine.js complète
+└── templates/frontend/components/
+    └── rouleau.html          # Template du composant
+```
+
+**Fonctionnalités du composant** :
+- Grille de contrôle qualité 12 lignes x 7 colonnes
+- Saisie d'épaisseurs avec validation temps réel
+- Gestion des défauts avec sélecteur dynamique
+- Calcul automatique de conformité
+- Navigation clavier optimisée (Tab/Shift+Tab)
+- Animations sophistiquées pour feedback visuel
+
+**Architecture CSS modulaire avancée** :
+- `animations.css` : Bibliothèque d'animations réutilisables
+  - bounceIn, slideAndBounce, fadeIn/Out, pulse
+  - Classes utilitaires : `.animate-bounce-in`, `.animate-pulse`, etc.
+- `zone-rouleau.css` : Styles spécifiques avec @import animations
+- `components/badges.css` : Styles communs pour badges (pattern @extend)
+
+**Patterns d'animation** :
+- Animations séquentielles avec `--col-index` et animation-delay
+- Feedback visuel immédiat (validatePulse, popFromBehind)
+- Transitions d'état avec transformations 3D
+- Icônes animées (ciseaux) pour lignes non conformes
+
+**Gestion d'état complexe** :
+- Double système d'épaisseurs (OK/NOK avec rattrapage)
+- États de cellules multiples (vide, épaisseur, défaut, combiné)
+- Événements custom pour synchronisation (`rouleau-updated`)
+- Position dynamique du sélecteur de défauts
 
 ## Tests
 
@@ -561,3 +629,8 @@ Aucune configuration de tests n'est implémentée.
 3. **Composants frontend isolés** (HTML/CSS/JS séparés)
 4. **Auto-save systématique** via Alpine.js watchers
 5. **Validation temps réel** côté frontend
+6. **Animations CSS avancées** avec bibliothèque réutilisable
+7. **Navigation clavier optimisée** dans les formulaires complexes
+8. **Gestion d'état multi-niveaux** (badges, inputs, indicateurs)
+9. **CSS Custom Properties** pour animations séquentielles
+10. **Position dynamique des éléments UI** (sélecteurs, tooltips)
