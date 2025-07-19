@@ -1,5 +1,5 @@
 // Composant Alpine.js pour la fiche de poste
-function fichePoste() {
+function shiftForm() {
     return {
         // État
         operatorId: '',

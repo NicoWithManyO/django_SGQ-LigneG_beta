@@ -1,5 +1,5 @@
 // Composant Alpine.js pour la déclaration de temps
-function declarationTemps() {
+function timeDeclaration() {
     return {
         // État
         motifId: '',

@@ -8,9 +8,9 @@ function stickyBottom() {
         length: '',
         totalMass: '',
         netMass: '',
-        grammage: '',
+        weight: '',
         nextTubeMass: '',
-        ofEnCours: '',
+        currentFO: '',
         editingRollNumber: false,
         feltWidth: 1, // Largeur du feutre en mètres (par défaut 1m, à récupérer du profil)
         
@@ -26,7 +26,7 @@ function stickyBottom() {
             
             // Écouter les changements d'OF depuis le composant ordre-fabrication
             window.addEventListener('of-changed', (event) => {
-                this.ofEnCours = event.detail.ofEnCours || '';
+                this.currentFO = event.detail.currentFO || '';
                 this.calculateRollId();
             });
             
@@ -42,7 +42,7 @@ function stickyBottom() {
                 this.saveToSession();
             });
             this.$watch('length', () => {
-                this.calculateGrammage();
+                this.calculateWeight();
                 this.saveToSession();
             });
             this.$watch('totalMass', () => {
@@ -54,14 +54,14 @@ function stickyBottom() {
         
         // Calculer l'ID du rouleau
         calculateRollId() {
-            this.rollId = RollCalculations.generateRollId(this.ofEnCours, this.rollNumber) || '';
+            this.rollId = RollCalculations.generateRollId(this.currentFO, this.rollNumber) || '';
         },
         
         // Charger les données du rouleau en cours
         loadCurrentRollData() {
             // Récupérer les données depuis la session
             if (window.sessionData) {
-                this.ofEnCours = window.sessionData.of_en_cours || '';
+                this.currentFO = window.sessionData.of_en_cours || '';
                 this.rollNumber = window.sessionData.roll_number || '';
                 this.tubeMass = window.sessionData.tube_mass || '';
                 this.length = window.sessionData.roll_length || '';
@@ -95,7 +95,7 @@ function stickyBottom() {
             if (data.tubeMass !== undefined) this.tubeMass = data.tubeMass;
             if (data.length !== undefined) this.length = data.length;
             if (data.totalMass !== undefined) this.totalMass = data.totalMass;
-            if (data.grammage !== undefined) this.grammage = data.grammage;
+            if (data.grammage !== undefined) this.weight = data.grammage;
         },
         
         // Ouvrir la modal de données
@@ -140,15 +140,15 @@ function stickyBottom() {
             
             if (netMassValue !== null) {
                 this.netMass = netMassValue.toString();
-                this.calculateGrammage();
+                this.calculateWeight();
             } else {
                 this.netMass = '';
-                this.grammage = '';
+                this.weight = '';
             }
         },
         
         // Calculer le grammage
-        calculateGrammage() {
+        calculateWeight() {
             // D'abord calculer la masse nette si nécessaire
             let netMassValue = this.netMass ? parseFloat(this.netMass) : null;
             
@@ -157,9 +157,9 @@ function stickyBottom() {
             }
             
             if (netMassValue) {
-                this.grammage = RollCalculations.calculateGrammage(netMassValue, this.length, this.feltWidth) || '';
+                this.weight = RollCalculations.calculateGrammage(netMassValue, this.length, this.feltWidth) || '';
             } else {
-                this.grammage = '';
+                this.weight = '';
             }
         }
     };

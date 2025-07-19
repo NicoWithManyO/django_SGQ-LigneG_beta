@@ -1,46 +1,46 @@
 // Composant Alpine.js pour le rouleau
-function rouleau() {
+function roll() {
     return {
         // État
-        longueurCible: 0,
-        nbRows: 12, // Nombre de lignes à afficher (basé sur longueur cible)
-        nbEpaisseurs: 0,
-        nbNok: 0,
-        nbDefauts: 0,
-        epaisseurs: [],
-        epaisseursNok: [], // Épaisseurs rejetées
-        defauts: [],
-        defautTypes: [], // Types de défauts depuis Django
-        selectedDefautType: null,
-        showDefautSelector: false,
+        targetLength: 0,
+        rowCount: 12, // Nombre de lignes à afficher (basé sur longueur cible)
+        thicknessCount: 0,
+        nokCount: 0,
+        defectCount: 0,
+        thicknesses: [],
+        nokThicknesses: [], // Épaisseurs rejetées
+        defects: [],
+        defectTypes: [], // Types de défauts depuis Django
+        selectedDefectType: null,
+        showDefectSelector: false,
         currentCell: null,
         selectorPosition: { top: 0, left: 0 },
         
         // Initialisation
         init() {
             // Charger la longueur cible depuis la session
-            this.loadLongueurCible();
+            this.loadTargetLength();
             
             // Charger les types de défauts
-            this.loadDefautTypes();
+            this.loadDefectTypes();
             
             // Écouter les changements
-            window.addEventListener('longueur-cible-changed', (e) => {
-                this.longueurCible = e.detail.longueur;
+            window.addEventListener('target-length-changed', (e) => {
+                this.targetLength = e.detail.length;
                 this.updateGrid();
             });
             
             // Écouter la validation des épaisseurs (blur ou Enter)
             this.$el.addEventListener('blur', (e) => {
-                if (e.target.classList.contains('epaisseur-input') && !e.target.dataset.processing) {
-                    this.handleEpaisseurInput(e.target);
+                if (e.target.classList.contains('thickness-input') && !e.target.dataset.processing) {
+                    this.handleThicknessInput(e.target);
                 }
             }, true);
             
             this.$el.addEventListener('keydown', (e) => {
-                if (e.target.classList.contains('epaisseur-input')) {
+                if (e.target.classList.contains('thickness-input')) {
                     if (e.key === 'Enter') {
-                        this.handleEpaisseurInput(e.target);
+                        this.handleThicknessInput(e.target);
                         e.target.blur();
                     } else if (e.key === 'Tab') {
                         e.preventDefault();
@@ -52,13 +52,13 @@ function rouleau() {
         
         // Obtenir la liste des colonnes dans l'ordre
         getColumns() {
-            return ['G1', 'C1', 'D1', 'metrage', 'G2', 'C2', 'D2'];
+            return ['G1', 'C1', 'D1', 'length', 'G2', 'C2', 'D2'];
         },
         
         // Charger la longueur cible
-        loadLongueurCible() {
+        loadTargetLength() {
             if (window.sessionData?.longueur_cible) {
-                this.longueurCible = parseInt(window.sessionData.longueur_cible);
+                this.targetLength = parseInt(window.sessionData.longueur_cible);
                 this.updateGrid();
             }
         },
@@ -67,40 +67,40 @@ function rouleau() {
         updateGrid() {
             // Adapter le nombre de lignes à la longueur cible
             // Par défaut, on affiche minimum 3 lignes et maximum 100
-            if (this.longueurCible > 0) {
-                this.nbRows = Math.max(3, Math.min(100, this.longueurCible));
+            if (this.targetLength > 0) {
+                this.rowCount = Math.max(3, Math.min(100, this.targetLength));
             } else {
-                this.nbRows = 12; // Valeur par défaut
+                this.rowCount = 12; // Valeur par défaut
             }
             
             // Émettre un événement pour notifier du changement
-            this.$dispatch('grid-updated', { rows: this.nbRows });
+            this.$dispatch('grid-updated', { rows: this.rowCount });
             
-            console.log(`Grille mise à jour : ${this.nbRows} lignes pour ${this.longueurCible}m`);
+            console.log(`Grille mise à jour : ${this.rowCount} lignes pour ${this.targetLength}m`);
         },
         
         
         // Ajouter un défaut
-        addDefaut(position, type) {
-            this.defauts.push({ position, type });
-            this.nbDefauts = this.defauts.length;
+        addDefect(position, type) {
+            this.defects.push({ position, type });
+            this.defectCount = this.defects.length;
         },
         
         // Calculer la conformité
-        get isConforme() {
+        get isConform() {
             // Non conforme si on a des défauts
-            if (this.nbDefauts > 0) {
+            if (this.defectCount > 0) {
                 return false;
             }
             
             // Vérifier si une cellule a 2 épaisseurs NOK (non rattrapée)
             // Parcourir toutes les lignes et colonnes
-            for (let row = 1; row <= this.nbRows; row++) {
-                if (this.isEpaisseurRow(row)) {
+            for (let row = 1; row <= this.rowCount; row++) {
+                if (this.isThicknessRow(row)) {
                     const cols = ['G1', 'C1', 'D1', 'G2', 'C2', 'D2'];
                     for (const col of cols) {
                         // Si on a un badge NOK ET un input NOK dans la même cellule = non conforme
-                        if (this.hasEpaisseurNok(row, col) && this.hasEpaisseurNokInInput(row, col)) {
+                        if (this.hasThicknessNok(row, col) && this.hasThicknessNokInInput(row, col)) {
                             return false;
                         }
                     }
@@ -112,10 +112,10 @@ function rouleau() {
         },
         
         // Vérifier si une ligne doit avoir des inputs d'épaisseur
-        isEpaisseurRow(row) {
+        isThicknessRow(row) {
             // Épaisseurs tous les 5m à partir de 3m
             // Si longueur < 3m, on met à la ligne 1
-            if (this.longueurCible < 3) {
+            if (this.targetLength < 3) {
                 return row === 1;
             }
             
@@ -130,18 +130,18 @@ function rouleau() {
         },
         
         // Charger les types de défauts depuis l'API
-        async loadDefautTypes() {
+        async loadDefectTypes() {
             try {
                 const response = await fetch('/api/defect-types/');
                 if (response.ok) {
-                    this.defautTypes = await response.json();
+                    this.defectTypes = await response.json();
                 } else {
                     throw new Error('API non disponible');
                 }
             } catch (error) {
                 console.error('Erreur chargement types de défauts:', error);
                 // Types de défauts de test
-                this.defautTypes = [
+                this.defectTypes = [
                     { id: 1, name: "Trou" },
                     { id: 2, name: "Déchirure" },
                     { id: 3, name: "Tache" },
@@ -154,11 +154,11 @@ function rouleau() {
         },
         
         // Ouvrir le sélecteur de défauts
-        openDefautSelector(event, row, col) {
-            console.log('openDefautSelector called:', row, col, event);
+        openDefectSelector(event, row, col) {
+            console.log('openDefectSelector called:', row, col, event);
             
             // Si on clique sur l'input d'épaisseur, ne rien faire
-            if (event.target.classList.contains('epaisseur-input')) {
+            if (event.target.classList.contains('thickness-input')) {
                 return;
             }
             
@@ -168,8 +168,8 @@ function rouleau() {
             this.currentCell = { row, col };
             
             // Si la cellule a déjà un défaut, on pré-sélectionne le défaut existant
-            const existingDefaut = this.defauts.find(d => d.row === row && d.col === col);
-            this.selectedDefautType = existingDefaut ? existingDefaut.typeId : '';
+            const existingDefect = this.defects.find(d => d.row === row && d.col === col);
+            this.selectedDefectType = existingDefect ? existingDefect.typeId : '';
             
             // Obtenir le bouton cliqué
             const button = event.target;
@@ -184,11 +184,11 @@ function rouleau() {
             console.log('Button rect:', buttonRect);
             console.log('Selector position:', this.selectorPosition);
             
-            this.showDefautSelector = true;
+            this.showDefectSelector = true;
             
             // Focus sur le select après le rendu
             this.$nextTick(() => {
-                const selector = document.querySelector('.defaut-selector');
+                const selector = document.querySelector('.defect-selector');
                 if (selector) {
                     selector.focus();
                 }
@@ -196,19 +196,19 @@ function rouleau() {
         },
         
         // Ajouter un défaut
-        addDefaut() {
-            if (!this.selectedDefautType || !this.currentCell) return;
+        addDefect() {
+            if (!this.selectedDefectType || !this.currentCell) return;
             
-            const defaut = {
+            const defect = {
                 row: this.currentCell.row,
                 col: this.currentCell.col,
-                typeId: this.selectedDefautType,
-                typeName: this.defautTypes.find(d => d.id == this.selectedDefautType)?.name
+                typeId: this.selectedDefectType,
+                typeName: this.defectTypes.find(d => d.id == this.selectedDefectType)?.name
             };
             
-            this.defauts.push(defaut);
-            this.nbDefauts = this.defauts.length;
-            this.showDefautSelector = false;
+            this.defects.push(defect);
+            this.defectCount = this.defects.length;
+            this.showDefectSelector = false;
             
             // Mettre à jour l'affichage
             this.updateCellDisplay(this.currentCell.row, this.currentCell.col);
@@ -216,9 +216,9 @@ function rouleau() {
             // Émettre un événement pour mettre à jour le badge
             window.dispatchEvent(new CustomEvent('rouleau-updated', {
                 detail: { 
-                    nbEpaisseurs: this.nbEpaisseurs,
-                    nbNok: this.nbNok,
-                    nbDefauts: this.nbDefauts
+                    thicknessCount: this.thicknessCount,
+                    nokCount: this.nokCount,
+                    defectCount: this.defectCount
                 }
             }));
         },
@@ -230,43 +230,43 @@ function rouleau() {
         },
         
         // Vérifier si une cellule a un défaut
-        hasDefaut(row, col) {
-            return this.defauts.some(d => d.row === row && d.col === col);
+        hasDefect(row, col) {
+            return this.defects.some(d => d.row === row && d.col === col);
         },
         
         // Obtenir le code du défaut pour affichage
-        getDefautCode(row, col) {
-            const defaut = this.defauts.find(d => d.row === row && d.col === col);
-            if (defaut && defaut.typeName) {
+        getDefectCode(row, col) {
+            const defect = this.defects.find(d => d.row === row && d.col === col);
+            if (defect && defect.typeName) {
                 // Prendre les 3 premières lettres du nom
-                return defaut.typeName.substring(0, 3).toUpperCase();
+                return defect.typeName.substring(0, 3).toUpperCase();
             }
             return '';
         },
         
         // Supprimer un défaut
-        removeDefaut(row, col) {
+        removeDefect(row, col) {
             // Pour l'instant, supprimer directement sans animation
-            const index = this.defauts.findIndex(d => d.row === row && d.col === col);
+            const index = this.defects.findIndex(d => d.row === row && d.col === col);
             if (index > -1) {
-                this.defauts.splice(index, 1);
-                this.nbDefauts = this.defauts.length;
+                this.defects.splice(index, 1);
+                this.defectCount = this.defects.length;
                 
                 // Émettre un événement pour mettre à jour le badge
                 window.dispatchEvent(new CustomEvent('rouleau-updated', {
                     detail: { 
-                        nbEpaisseurs: this.nbEpaisseurs,
-                        nbNok: this.nbNok,
-                        nbDefauts: this.nbDefauts
+                        thicknessCount: this.thicknessCount,
+                        nokCount: this.nokCount,
+                        defectCount: this.defectCount
                     }
                 }));
             }
         },
         
         // Vérifier si une ligne a au moins un défaut
-        hasDefautInRow(row) {
+        hasDefectInRow(row) {
             // Une ligne a un défaut si elle a un défaut visuel OU une cellule avec 2 épaisseurs NOK
-            if (this.defauts.some(d => d.row === row)) {
+            if (this.defects.some(d => d.row === row)) {
                 return true;
             }
             
@@ -274,7 +274,7 @@ function rouleau() {
             const cols = ['G1', 'C1', 'D1', 'G2', 'C2', 'D2'];
             for (const col of cols) {
                 // Si on a un badge NOK ET un input NOK dans la même cellule
-                if (this.hasEpaisseurNok(row, col) && this.hasEpaisseurNokInInput(row, col)) {
+                if (this.hasThicknessNok(row, col) && this.hasThicknessNokInInput(row, col)) {
                     return true;
                 }
             }
@@ -283,7 +283,7 @@ function rouleau() {
         },
         
         // Gérer la saisie d'épaisseur
-        handleEpaisseurInput(input) {
+        handleThicknessInput(input) {
             // Remplacer la virgule par un point pour parseFloat
             const inputValue = input.value.trim().replace(',', '.');
             const value = parseFloat(inputValue);
@@ -292,7 +292,7 @@ function rouleau() {
             
             // Si l'input est vide, supprimer toute épaisseur (OK ou NOK)
             if (inputValue === '') {
-                this.removeEpaisseur(row, col);
+                this.removeThickness(row, col);
                 return;
             }
             
@@ -300,19 +300,19 @@ function rouleau() {
                 // Vérifier si l'épaisseur est NOK (< 5 pour le test)
                 if (value < 5) {
                     // Vérifier si c'est la première NOK de la cellule
-                    const hasNokInCell = this.epaisseursNok.some(e => e.row === row && e.col === col);
+                    const hasNokInCell = this.nokThicknesses.some(e => e.row === row && e.col === col);
                     
                     // D'abord supprimer toute ancienne valeur
-                    this.removeEpaisseur(row, col);
+                    this.removeThickness(row, col);
                     
                     if (!hasNokInCell) {
                         // Première NOK : badge rouge normal
-                        this.epaisseursNok.push({
+                        this.nokThicknesses.push({
                             row: row,
                             col: col,
                             value: value
                         });
-                        this.nbNok = this.epaisseursNok.length;
+                        this.nokCount = this.nokThicknesses.length;
                         
                         // Marquer l'input comme en cours de traitement pour éviter le double traitement
                         input.dataset.processing = 'true';
@@ -327,13 +327,13 @@ function rouleau() {
                     } else {
                         // Deuxième NOK dans la même cellule : garder dans l'input mais en rouge
                         // ET marquer comme NON CONFORME car 2 NOK dans la même cellule
-                        this.epaisseurs.push({
+                        this.thicknesses.push({
                             row: row,
                             col: col,
                             value: value,
                             isNok: true  // Marquer comme NOK pour le style
                         });
-                        this.nbEpaisseurs = this.epaisseurs.length;
+                        this.thicknessCount = this.thicknesses.length;
                         // Pas d'incrémentation de nbNok ici car c'est la 2e NOK de la même cellule
                         
                         // Garder la valeur dans l'input
@@ -344,19 +344,19 @@ function rouleau() {
                     this.updateEpaisseurDisplay();
                 } else {
                     // Épaisseur OK
-                    this.addEpaisseur(row, col, value);
+                    this.addThickness(row, col, value);
                 }
             }
         },
         
         // Vérifier si une cellule a une épaisseur NOK
-        hasEpaisseurNok(row, col) {
-            return this.epaisseursNok.some(e => e.row === row && e.col === col);
+        hasThicknessNok(row, col) {
+            return this.nokThicknesses.some(e => e.row === row && e.col === col);
         },
         
         // Obtenir la valeur de l'épaisseur NOK
-        getEpaisseurNok(row, col) {
-            const ep = this.epaisseursNok.find(e => e.row === row && e.col === col);
+        getThicknessNok(row, col) {
+            const ep = this.nokThicknesses.find(e => e.row === row && e.col === col);
             if (ep) {
                 // Convertir en string et remplacer le point par une virgule
                 const valueStr = ep.value.toString().replace('.', ',');
@@ -383,72 +383,72 @@ function rouleau() {
             // Émettre un événement pour mettre à jour le badge
             window.dispatchEvent(new CustomEvent('rouleau-updated', {
                 detail: { 
-                    nbEpaisseurs: this.nbEpaisseurs,
-                    nbNok: this.nbNok,
-                    nbDefauts: this.nbDefauts
+                    thicknessCount: this.thicknessCount,
+                    nokCount: this.nokCount,
+                    defectCount: this.defectCount
                 }
             }));
         },
         
         // Ajouter une épaisseur valide
-        addEpaisseur(row, col, value) {
+        addThickness(row, col, value) {
             // NE PAS retirer l'épaisseur NOK si elle existe - elle reste en badge rouge
             // La valeur OK va juste "rattraper" la NOK
             
             // Vérifier si une épaisseur existe déjà pour cette cellule
-            const existingIndex = this.epaisseurs.findIndex(e => e.row === row && e.col === col);
+            const existingIndex = this.thicknesses.findIndex(e => e.row === row && e.col === col);
             if (existingIndex > -1) {
                 // Mettre à jour la valeur existante
-                this.epaisseurs[existingIndex].value = value;
-                this.epaisseurs[existingIndex].isNok = false; // Marquer comme OK
+                this.thicknesses[existingIndex].value = value;
+                this.thicknesses[existingIndex].isNok = false; // Marquer comme OK
             } else {
                 // Ajouter l'épaisseur valide
-                this.epaisseurs.push({
+                this.thicknesses.push({
                     row: row,
                     col: col,
                     value: value
                 });
-                this.nbEpaisseurs = this.epaisseurs.length;
+                this.thicknessCount = this.thicknesses.length;
             }
             
             this.updateEpaisseurDisplay();
         },
         
         // Supprimer une épaisseur NOK
-        removeEpaisseurNok(row, col) {
+        removeThicknessNok(row, col) {
             // On ne peut supprimer le badge NOK que si l'input est vide
-            const hasValueInInput = this.epaisseurs.some(e => e.row === row && e.col === col);
+            const hasValueInInput = this.thicknesses.some(e => e.row === row && e.col === col);
             if (hasValueInInput) {
                 // L'input contient une valeur (OK ou NOK), on ne peut pas supprimer le badge
                 return;
             }
             
-            const index = this.epaisseursNok.findIndex(e => e.row === row && e.col === col);
+            const index = this.nokThicknesses.findIndex(e => e.row === row && e.col === col);
             if (index > -1) {
-                this.epaisseursNok.splice(index, 1);
-                this.nbNok = this.epaisseursNok.length;
+                this.nokThicknesses.splice(index, 1);
+                this.nokCount = this.nokThicknesses.length;
                 this.updateEpaisseurDisplay();
             }
         },
         
         // Supprimer toute épaisseur (OK ou NOK) d'une cellule
-        removeEpaisseur(row, col) {
+        removeThickness(row, col) {
             // Supprimer l'épaisseur OK/NOK de l'input si elle existe
-            const okIndex = this.epaisseurs.findIndex(e => e.row === row && e.col === col);
+            const okIndex = this.thicknesses.findIndex(e => e.row === row && e.col === col);
             if (okIndex > -1) {
-                this.epaisseurs.splice(okIndex, 1);
-                this.nbEpaisseurs = this.epaisseurs.length;
+                this.thicknesses.splice(okIndex, 1);
+                this.thicknessCount = this.thicknesses.length;
             }
             
             // Si on vide l'input ET qu'il n'y a pas de NOK en badge, tout supprimer
             // Si on vide l'input ET qu'il y a une NOK en badge, garder la NOK
-            const hasNokBadge = this.epaisseursNok.some(e => e.row === row && e.col === col);
+            const hasNokBadge = this.nokThicknesses.some(e => e.row === row && e.col === col);
             if (!hasNokBadge) {
                 // Pas de badge NOK, on peut tout supprimer
-                const nokIndex = this.epaisseursNok.findIndex(e => e.row === row && e.col === col);
+                const nokIndex = this.nokThicknesses.findIndex(e => e.row === row && e.col === col);
                 if (nokIndex > -1) {
-                    this.epaisseursNok.splice(nokIndex, 1);
-                    this.nbNok = this.epaisseursNok.length;
+                    this.nokThicknesses.splice(nokIndex, 1);
+                    this.nokCount = this.nokThicknesses.length;
                 }
             }
             
@@ -456,20 +456,20 @@ function rouleau() {
         },
         
         // Vérifier si une cellule a une épaisseur valide
-        hasEpaisseurOk(row, col) {
-            const ep = this.epaisseurs.find(e => e.row === row && e.col === col);
+        hasThicknessOk(row, col) {
+            const ep = this.thicknesses.find(e => e.row === row && e.col === col);
             return ep && !ep.isNok;  // Vérifier que ce n'est pas une NOK
         },
         
         // Vérifier si une cellule a une épaisseur NOK affichée dans l'input
-        hasEpaisseurNokInInput(row, col) {
-            const ep = this.epaisseurs.find(e => e.row === row && e.col === col);
+        hasThicknessNokInInput(row, col) {
+            const ep = this.thicknesses.find(e => e.row === row && e.col === col);
             return ep && ep.isNok;
         },
         
         // Obtenir la valeur de l'épaisseur OK
-        getEpaisseurOk(row, col) {
-            const ep = this.epaisseurs.find(e => e.row === row && e.col === col);
+        getThicknessOk(row, col) {
+            const ep = this.thicknesses.find(e => e.row === row && e.col === col);
             if (ep) {
                 // Convertir en string avec virgule
                 return ep.value.toString().replace('.', ',');

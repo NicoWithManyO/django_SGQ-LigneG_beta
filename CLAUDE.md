@@ -208,15 +208,15 @@ L'admin Django utilise des inlines pour gérer les valeurs dans ProfileTemplate 
 
 ### Composants frontend récents
 
-#### Déclaration de temps
+#### Déclaration de temps (refactoré)
 ```
 frontend/
 ├── static/frontend/
-│   ├── css/declaration-temps.css    # Styles spécifiques
-│   └── js/declaration-temps.js      # Logique Alpine.js
+│   ├── css/time-declaration.css    # Styles spécifiques
+│   └── js/time-declaration.js      # Logique Alpine.js
 └── templates/frontend/
     └── components/
-        └── declaration-temps.html   # Template du composant
+        └── time-declaration.html   # Template du composant
 ```
 
 **Pattern Alpine.js** :

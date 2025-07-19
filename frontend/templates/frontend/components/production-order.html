@@ -1,11 +1,11 @@
 <!-- Composant Ordre de Fabrication -->
-<div class="accordion-body bg-light" x-data="ordreFabrication()" x-init="init()">
+<div class="accordion-body bg-light" x-data="productionOrder()" x-init="init()">
     <!-- OF en cours -->
     <div class="row form-row">
         <div class="col-6">
             <label class="form-label">OF en cours</label>
             <div class="input-group">
-                <select class="form-select" :disabled="!editingOF" x-model="ofEnCours" @blur="editingOF = false">
+                <select class="form-select" :disabled="!editingOF" x-model="currentFO" @blur="editingOF = false">
                     <option value="">--</option>
                     {% for of in fabrication_orders %}
                     <option value="{{ of.order_number }}">{{ of.order_number }} {% if of.required_length %}({{ of.required_length }}m){% endif %}</option>
@@ -26,10 +26,10 @@
         <div class="col-6">
             <label class="form-label">Longueur cible</label>
             <div class="input-group">
-                <input type="text" class="form-control" :readonly="!editingLongueur" x-model="longueurCible" placeholder="m." 
-                       @blur="if(editingLongueur) { editingLongueur = false; handleLongueurBlur(); }"
-                       @keyup.enter="if(editingLongueur) { editingLongueur = false; handleLongueurBlur(); }">
-                <button class="btn btn-outline-secondary btn-edit-field" type="button" @click="toggleEditLongueur()">
+                <input type="text" class="form-control" :readonly="!editingLength" x-model="targetLength" placeholder="m." 
+                       @blur="if(editingLength) { editingLength = false; handleLengthBlur(); }"
+                       @keyup.enter="if(editingLength) { editingLength = false; handleLengthBlur(); }">
+                <button class="btn btn-outline-secondary btn-edit-field" type="button" @click="toggleEditLength()">
                     <i class="bi bi-pencil"></i>
                 </button>
             </div>
@@ -44,13 +44,13 @@
         <div class="col-6">
             <label class="form-label">OF de découpe</label>
             <div class="input-group">
-                <select class="form-select" :disabled="!editingOFDecoupe" x-model="ofDecoupe" @blur="editingOFDecoupe = false">
+                <select class="form-select" :disabled="!editingCuttingOrder" x-model="cuttingOrder" @blur="editingCuttingOrder = false">
                     <option value="">--</option>
                     {% for of in cutting_orders %}
                     <option value="{{ of.order_number }}">{{ of.order_number }} {% if of.required_length %}({{ of.required_length }}m){% endif %}</option>
                     {% endfor %}
                 </select>
-                <button class="btn btn-outline-secondary btn-edit-field" type="button" @click="toggleEditOFDecoupe()">
+                <button class="btn btn-outline-secondary btn-edit-field" type="button" @click="toggleEditCuttingOrder()">
                     <i class="bi bi-pencil"></i>
                 </button>
             </div>

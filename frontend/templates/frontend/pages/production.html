@@ -21,7 +21,7 @@
                             </button>
                         </h2>
                         <div id="collapsePoste" class="accordion-collapse collapse show">
-                            {% include 'frontend/components/fiche-poste.html' %}
+                            {% include 'frontend/components/shift-form.html' %}
                         </div>
                     </div>
                 </div>
@@ -35,7 +35,7 @@
                             </button>
                         </h2>
                         <div id="collapseOF" class="accordion-collapse collapse show">
-                            {% include 'frontend/components/ordre-fabrication.html' %}
+                            {% include 'frontend/components/production-order.html' %}
                         </div>
                     </div>
                 </div>
@@ -54,7 +54,7 @@
                             </button>
                         </h2>
                         <div id="collapseTemps" class="accordion-collapse collapse show">
-                            {% include 'frontend/components/declaration-temps.html' %}
+                            {% include 'frontend/components/time-declaration.html' %}
                         </div>
                     </div>
                 </div>
@@ -169,7 +169,7 @@
                                     </div>
                                     
                                     <!-- Rouleau -->
-                                    {% include 'frontend/components/rouleau.html' %}
+                                    {% include 'frontend/components/roll.html' %}
                                 </div>
                             </div>
                         </div>
@@ -273,10 +273,10 @@ window.sessionData = {{ session_data|safe }};
 <script src="{% static 'frontend/js/common.js' %}"></script>
 <script src="{% static 'frontend/js/api.js' %}"></script>
 <script src="{% static 'frontend/js/roll-calculations.js' %}"></script>
-<script src="{% static 'frontend/js/fiche-poste.js' %}"></script>
-<script src="{% static 'frontend/js/ordre-fabrication.js' %}"></script>
-<script src="{% static 'frontend/js/declaration-temps.js' %}"></script>
+<script src="{% static 'frontend/js/shift-form.js' %}"></script>
+<script src="{% static 'frontend/js/production-order.js' %}"></script>
+<script src="{% static 'frontend/js/time-declaration.js' %}"></script>
 <script src="{% static 'frontend/js/sticky-bottom.js' %}"></script>
 <script src="{% static 'frontend/js/checklist.js' %}"></script>
-<script src="{% static 'frontend/js/rouleau.js' %}"></script>
+<script src="{% static 'frontend/js/roll.js' %}"></script>
 {% endblock %}

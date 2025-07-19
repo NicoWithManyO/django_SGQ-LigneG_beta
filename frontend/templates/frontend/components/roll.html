@@ -1,0 +1,68 @@
+<!-- Composant Rouleau -->
+<div class="roll-container" x-data="roll()" x-init="init()">
+    <!-- Grille du rouleau -->
+    <div class="roll-grid">
+        <!-- Sélecteur de défauts (position fixed pour ne pas déformer) -->
+        <select x-show="showDefectSelector" 
+                x-model="selectedDefectType"
+                @change="addDefect()"
+                @blur="showDefectSelector = false"
+                class="defect-selector position-fixed form-select form-select-sm"
+                :style="`top: ${selectorPosition.top}px; left: ${selectorPosition.left}px;`"
+                :size="defectTypes.length">
+            <template x-for="defect in defectTypes" :key="defect.id">
+                <option :value="defect.id" x-text="defect.name"></option>
+            </template>
+        </select>
+        <table class="roll-table">
+            <!-- Corps du tableau -->
+            <tbody>
+                <template x-for="row in rowCount" :key="row">
+                    <tr :class="{'has-defect': hasDefectInRow(row)}">
+                        <!-- Boucle pour les colonnes -->
+                        <template x-for="(col, index) in getColumns()" :key="col">
+                            <!-- Cellule selon le type -->
+                            <td :class="col === 'length' ? 'col-length' : 'col-defect ' + (isThicknessRow(row) ? 'col-thickness' : '') + (hasDefect(row, col) ? ' defect' : '')">
+                                <!-- Contenu pour colonne métrage -->
+                                <template x-if="col === 'length'">
+                                    <span class="length-label" x-text="row"></span>
+                                </template>
+                                
+                                <!-- Contenu pour colonnes défaut/épaisseur -->
+                                <template x-if="col !== 'length'">
+                                    <div>
+                                        <div x-show="isThicknessRow(row)" class="thickness-cell">
+                                            <div x-show="hasThicknessNok(row, col)" 
+                                                 class="thickness-nok-indicator" 
+                                                 @click.stop="removeThicknessNok(row, col)">
+                                                <span x-text="getThicknessNok(row, col)"></span>
+                                            </div>
+                                            <input type="text" 
+                                                   class="thickness-input" 
+                                                   :class="{'has-value': hasThicknessOk(row, col), 'has-nok': hasThicknessNokInInput(row, col)}"
+                                                   :data-row="row" 
+                                                   :data-col="col"
+                                                   maxlength="5"
+                                                   placeholder="--"
+                                                   @click="$event.target.select()"
+                                                   @focus="$event.target.select()">
+                                        </div>
+                                        <div x-show="hasDefect(row, col)" 
+                                             class="defect-indicator" 
+                                             @click.stop="removeDefect(row, col)">
+                                            <span x-text="getDefectCode(row, col)"></span>
+                                        </div>
+                                        <button x-show="!hasDefect(row, col)" 
+                                                class="add-defect-btn" 
+                                                :class="{'active': showDefautSelector && currentCell && currentCell.row === row && currentCell.col === col}"
+                                                @click.stop="openDefectSelector($event, row, col)">+</button>
+                                    </div>
+                                </template>
+                            </td>
+                        </template>
+                    </tr>
+                </template>
+            </tbody>
+        </table>
+    </div>
+</div>

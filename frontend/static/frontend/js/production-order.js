@@ -1,15 +1,15 @@
 // Composant Alpine.js pour ordre de fabrication
-function ordreFabrication() {
+function productionOrder() {
     return {
         // État
-        ofEnCours: '',
-        longueurCible: '',
-        ofDecoupe: '',
+        currentFO: '',
+        targetLength: '',
+        cuttingOrder: '',
         
         // États d'édition
         editingOF: false,
-        editingLongueur: false,
-        editingOFDecoupe: false,
+        editingLength: false,
+        editingCuttingOrder: false,
         
         // Initialisation
         init() {
@@ -17,25 +17,25 @@ function ordreFabrication() {
             this.loadFromSession();
             
             // Watchers pour sauvegarder automatiquement
-            this.$watch('ofEnCours', () => {
+            this.$watch('currentFO', () => {
                 if (this.editingOF) {
                     this.saveToSession();
                 }
                 // Émettre un événement pour la sticky bar
                 window.dispatchEvent(new CustomEvent('of-changed', {
-                    detail: { ofEnCours: this.ofEnCours }
+                    detail: { currentFO: this.currentFO }
                 }));
             });
             
-            this.$watch('longueurCible', () => {
-                if (this.editingLongueur) {
+            this.$watch('targetLength', () => {
+                if (this.editingLength) {
                     this.saveToSession();
                 }
                 // Ne plus émettre l'événement ici - on le fera au blur
             });
             
-            this.$watch('ofDecoupe', () => {
-                if (this.editingOFDecoupe) {
+            this.$watch('cuttingOrder', () => {
+                if (this.editingCuttingOrder) {
                     this.saveToSession();
                 }
             });
@@ -44,14 +44,14 @@ function ordreFabrication() {
         // Charger depuis la session
         loadFromSession() {
             if (window.sessionData) {
-                this.ofEnCours = window.sessionData.of_en_cours || '';
-                this.longueurCible = window.sessionData.longueur_cible || '';
-                this.ofDecoupe = window.sessionData.of_decoupe || '';
+                this.currentFO = window.sessionData.of_en_cours || '';
+                this.targetLength = window.sessionData.longueur_cible || '';
+                this.cuttingOrder = window.sessionData.of_decoupe || '';
                 
                 // Émettre l'événement initial pour le rouleau
-                if (this.longueurCible) {
-                    window.dispatchEvent(new CustomEvent('longueur-cible-changed', {
-                        detail: { longueur: parseInt(this.longueurCible) || 0 }
+                if (this.targetLength) {
+                    window.dispatchEvent(new CustomEvent('target-length-changed', {
+                        detail: { length: parseInt(this.targetLength) || 0 }
                     }));
                 }
             }
@@ -60,9 +60,9 @@ function ordreFabrication() {
         // Sauvegarder en session via API
         async saveToSession() {
             const data = {
-                of_en_cours: this.ofEnCours || null,
-                longueur_cible: this.longueurCible || null,
-                of_decoupe: this.ofDecoupe || null,
+                of_en_cours: this.currentFO || null,
+                longueur_cible: this.targetLength || null,
+                of_decoupe: this.cuttingOrder || null,
             };
             
             await api.saveToSession(data);
@@ -73,18 +73,18 @@ function ordreFabrication() {
             this.editingOF = !this.editingOF;
             if (this.editingOF) {
                 this.$nextTick(() => {
-                    const select = document.querySelector('select[x-model="ofEnCours"]');
+                    const select = document.querySelector('select[x-model="currentFO"]');
                     if (select) select.focus();
                 });
             }
         },
         
         // Toggle édition Longueur cible
-        toggleEditLongueur() {
-            this.editingLongueur = !this.editingLongueur;
-            if (this.editingLongueur) {
+        toggleEditLength() {
+            this.editingLength = !this.editingLength;
+            if (this.editingLength) {
                 this.$nextTick(() => {
-                    const input = document.querySelector('input[x-model="longueurCible"]');
+                    const input = document.querySelector('input[x-model="targetLength"]');
                     if (input) {
                         input.focus();
                         input.select(); // Sélectionner tout le contenu
@@ -94,21 +94,21 @@ function ordreFabrication() {
         },
         
         // Toggle édition OF de découpe
-        toggleEditOFDecoupe() {
-            this.editingOFDecoupe = !this.editingOFDecoupe;
-            if (this.editingOFDecoupe) {
+        toggleEditCuttingOrder() {
+            this.editingCuttingOrder = !this.editingCuttingOrder;
+            if (this.editingCuttingOrder) {
                 this.$nextTick(() => {
-                    const select = document.querySelector('select[x-model="ofDecoupe"]');
+                    const select = document.querySelector('select[x-model="cuttingOrder"]');
                     if (select) select.focus();
                 });
             }
         },
         
         // Gérer la fin d'édition de la longueur cible
-        handleLongueurBlur() {
+        handleLengthBlur() {
             // Émettre l'événement pour mettre à jour le rouleau
-            window.dispatchEvent(new CustomEvent('longueur-cible-changed', {
-                detail: { longueur: parseInt(this.longueurCible) || 0 }
+            window.dispatchEvent(new CustomEvent('target-length-changed', {
+                detail: { length: parseInt(this.targetLength) || 0 }
             }));
         }
         
