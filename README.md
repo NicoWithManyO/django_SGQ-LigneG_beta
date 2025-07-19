@@ -52,7 +52,9 @@ Système de gestion de production pour la ligne de fibrage, conforme aux normes 
 django_SGQ-LigneG_beta/
 ├── catalog/        # Modèles de référence (profils, spécifications, défauts)
 ├── production/     # Gestion des postes et rouleaux
+│   └── models/     # Modèles séparés : shift.py, roll.py, current.py
 ├── quality/        # Contrôles qualité et enregistrements
+│   └── models/     # Modèles séparés : defect.py, thickness.py, control.py
 ├── wcm/           # World Class Manufacturing (temps perdus, check-lists)
 ├── planification/ # Gestion des opérateurs et ordres de fabrication
 ├── livesession/   # API de gestion des sessions

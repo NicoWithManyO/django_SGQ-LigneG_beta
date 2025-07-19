@@ -312,10 +312,9 @@ function roll() {
                     // Vérifier si c'est la première NOK de la cellule
                     const hasNokInCell = this.nokThicknesses.some(e => e.row === row && e.col === col);
                     
-                    // D'abord supprimer toute ancienne valeur
-                    this.removeThickness(row, col);
-                    
                     if (!hasNokInCell) {
+                        // D'abord supprimer toute ancienne valeur seulement si c'est la première NOK
+                        this.removeThickness(row, col);
                         // Première NOK : badge rouge normal
                         this.nokThicknesses.push({
                             row: row,
@@ -337,13 +336,25 @@ function roll() {
                     } else {
                         // Deuxième NOK dans la même cellule : garder dans l'input mais en rouge
                         // ET marquer comme NON CONFORME car 2 NOK dans la même cellule
-                        this.thicknesses.push({
-                            row: row,
-                            col: col,
-                            value: value,
-                            isNok: true  // Marquer comme NOK pour le style
-                        });
-                        this.thicknessCount = this.thicknesses.length;
+                        
+                        // Chercher si on a déjà une épaisseur NOK dans l'input
+                        const existingIndex = this.thicknesses.findIndex(e => e.row === row && e.col === col && e.isNok);
+                        
+                        if (existingIndex !== -1) {
+                            // Mettre à jour directement la valeur NOK existante
+                            this.thicknesses[existingIndex].value = value;
+                        } else {
+                            // Supprimer toute ancienne valeur OK avant d'ajouter la NOK
+                            this.removeThickness(row, col);
+                            
+                            this.thicknesses.push({
+                                row: row,
+                                col: col,
+                                value: value,
+                                isNok: true  // Marquer comme NOK pour le style
+                            });
+                            this.thicknessCount = this.thicknesses.length;
+                        }
                         // Pas d'incrémentation de nbNok ici car c'est la 2e NOK de la même cellule
                         
                         // Garder la valeur dans l'input
