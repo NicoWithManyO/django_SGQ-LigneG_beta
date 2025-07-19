@@ -22,11 +22,15 @@ const rollBusinessLogic = {
     // Calculer le nombre de lignes à afficher selon la longueur cible
     calculateRowCount(targetLength) {
         // Adapter le nombre de lignes à la longueur cible
-        // Minimum 3 lignes, maximum 100
-        if (targetLength > 0) {
-            return Math.max(3, Math.min(100, targetLength));
+        targetLength = parseInt(targetLength) || 0;
+        
+        // Si pas de longueur cible, ne pas afficher de rouleau
+        if (targetLength === 0) {
+            return 0;
         }
-        return 12; // Valeur par défaut
+        
+        // Afficher exactement le nombre de lignes correspondant à la longueur (max 100)
+        return Math.min(100, targetLength);
     },
     
     // Calculer la conformité du rouleau

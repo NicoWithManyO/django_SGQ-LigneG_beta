@@ -1,7 +1,12 @@
 <!-- Composant Rouleau -->
 <div class="roll-container" x-data="roll()" x-init="init()">
+    <!-- Message si pas de longueur cible -->
+    <div x-show="rowCount === 0" class="alert alert-info">
+        <i class="bi bi-info-circle"></i> Veuillez définir une longueur cible pour afficher le rouleau
+    </div>
+    
     <!-- Grille du rouleau -->
-    <div class="roll-grid">
+    <div class="roll-grid" x-show="rowCount > 0">
         <!-- Sélecteur de défauts (position fixed pour ne pas déformer) -->
         <select x-show="showDefectSelector" 
                 x-model="selectedDefectType"

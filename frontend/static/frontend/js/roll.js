@@ -3,7 +3,7 @@ function roll() {
     return {
         // État
         targetLength: 0,
-        rowCount: 12, // Nombre de lignes à afficher (basé sur longueur cible)
+        rowCount: 0, // Nombre de lignes à afficher (basé sur longueur cible)
         thicknessCount: 0,
         nokCount: 0,
         defectCount: 0,
@@ -113,6 +113,10 @@ function roll() {
         updateGrid() {
             // Utiliser la logique métier pour calculer le nombre de lignes
             this.rowCount = rollBusinessLogic.calculateRowCount(this.targetLength);
+            
+            // Recharger les données du rouleau pour réafficher les épaisseurs/défauts existants
+            // Important quand on agrandit le rouleau (ex: 12m → 32m)
+            this.loadRollData();
             
             // Émettre un événement pour notifier du changement
             this.$dispatch('grid-updated', { rows: this.rowCount });
