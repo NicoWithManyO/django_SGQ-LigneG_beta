@@ -1,6 +1,8 @@
 // Composant Alpine.js pour ordre de fabrication
 function productionOrder() {
     return {
+        // Inclure les mixins partagés
+        ...sharedMixins.sessionSaver,
         // État
         currentFO: '',
         targetLength: '',
@@ -16,27 +18,23 @@ function productionOrder() {
             // Charger les données de session
             this.loadFromSession();
             
-            // Watchers pour sauvegarder automatiquement
+            // Watchers pour les événements
             this.$watch('currentFO', () => {
-                if (this.editingOF) {
-                    this.saveToSession();
-                }
                 // Émettre un événement pour la sticky bar
                 window.dispatchEvent(new CustomEvent('of-changed', {
                     detail: { currentFO: this.currentFO }
                 }));
             });
             
-            this.$watch('targetLength', () => {
-                if (this.editingLength) {
-                    this.saveToSession();
-                }
-                // Ne plus émettre l'événement ici - on le fera au blur
-            });
-            
-            this.$watch('cuttingOrder', () => {
-                if (this.editingCuttingOrder) {
-                    this.saveToSession();
+            // Initialiser la sauvegarde automatique avec condition
+            this.$watch(['currentFO', 'targetLength', 'cuttingOrder'], () => {
+                // Sauvegarder seulement si on est en mode édition
+                if (this.editingOF || this.editingLength || this.editingCuttingOrder) {
+                    const data = {};
+                    if (this.editingOF) data.currentFO = this.currentFO;
+                    if (this.editingLength) data.targetLength = this.targetLength;
+                    if (this.editingCuttingOrder) data.cuttingOrder = this.cuttingOrder;
+                    this.saveToSession(data);
                 }
             });
         },
@@ -57,15 +55,30 @@ function productionOrder() {
             }
         },
         
-        // Sauvegarder en session via API
-        async saveToSession() {
-            const data = {
-                of_en_cours: this.currentFO || null,
-                longueur_cible: this.targetLength || null,
-                of_decoupe: this.cuttingOrder || null,
+        // Override pour mapper les noms de champs
+        async saveToSession(data) {
+            if (!data) {
+                data = {
+                    currentFO: this.currentFO,
+                    targetLength: this.targetLength,
+                    cuttingOrder: this.cuttingOrder
+                };
+            }
+            
+            // Mapper les noms pour l'API
+            const mappedData = {};
+            const fieldMapping = {
+                currentFO: 'of_en_cours',
+                targetLength: 'longueur_cible',
+                cuttingOrder: 'of_decoupe'
             };
             
-            await api.saveToSession(data);
+            Object.keys(data).forEach(key => {
+                const mappedKey = fieldMapping[key] || key;
+                mappedData[mappedKey] = data[key] || null;
+            });
+            
+            await api.saveToSession(mappedData);
         },
         
         // Toggle édition OF en cours

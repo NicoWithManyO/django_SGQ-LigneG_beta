@@ -1,4 +1,4 @@
-// ===== COMMON UTILITIES =====
+// ===== UTILITAIRES COMMUNS =====
 // Fonctions utilitaires partagées entre les composants
 
 const utils = {

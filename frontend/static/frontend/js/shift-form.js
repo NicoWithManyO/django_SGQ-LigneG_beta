@@ -1,6 +1,8 @@
 // Composant Alpine.js pour la fiche de poste
 function shiftForm() {
     return {
+        // Inclure les mixins partagés
+        ...sharedMixins.sessionSaver,
         // État
         operatorId: '',
         shiftDate: '',
@@ -25,37 +27,34 @@ function shiftForm() {
                 this.generateShiftId();
             });
             
-            // Watchers pour générer l'ID du poste et sauvegarder
-            this.$watch('operatorId', () => {
+            // Watcher groupé pour les champs qui affectent shiftId
+            this.$watch(['operatorId', 'shiftDate', 'vacation'], () => {
                 this.generateShiftId();
-                this.saveToSession();
+                if (this.vacation) {
+                    this.setDefaultHours();
+                }
             });
-            this.$watch('shiftDate', () => {
-                this.generateShiftId();
-                this.saveToSession();
-            });
-            this.$watch('vacation', () => {
-                this.generateShiftId();
-                this.setDefaultHours();
-                this.saveToSession();
-            });
-            this.$watch('startTime', () => this.saveToSession());
-            this.$watch('endTime', () => this.saveToSession());
+            
+            // Watchers spécifiques pour la logique métier
             this.$watch('machineStarted', () => {
                 if (!this.machineStarted) {
                     this.lengthStart = '';
                 }
-                this.saveToSession();
             });
+            
             this.$watch('machineStopped', () => {
                 if (!this.machineStopped) {
                     this.lengthEnd = '';
                 }
-                this.saveToSession();
             });
-            this.$watch('lengthStart', () => this.saveToSession());
-            this.$watch('lengthEnd', () => this.saveToSession());
-            this.$watch('comment', () => this.saveToSession());
+            
+            // Initialiser la sauvegarde automatique pour tous les champs
+            this.initAutoSave([
+                'operatorId', 'shiftDate', 'vacation',
+                'startTime', 'endTime',
+                'machineStarted', 'machineStopped',
+                'lengthStart', 'lengthEnd', 'comment'
+            ]);
         },
         
         // Charger depuis la session
@@ -74,22 +73,43 @@ function shiftForm() {
             }
         },
         
-        // Sauvegarder en session via API
-        async saveToSession() {
-            const data = {
-                operator_id: this.operatorId || null,
-                shift_date: this.shiftDate || null,
-                vacation: this.vacation || null,
-                start_time: this.startTime || null,
-                end_time: this.endTime || null,
-                machine_started: this.machineStarted,
-                machine_stopped: this.machineStopped,
-                length_start: this.lengthStart || null,
-                length_end: this.lengthEnd || null,
-                comment: this.comment || null,
+        // Override pour mapper les noms de champs
+        async saveToSession(data) {
+            // Si pas de data fournie, utiliser tous les champs
+            if (!data) {
+                data = {
+                    operatorId: this.operatorId,
+                    shiftDate: this.shiftDate,
+                    vacation: this.vacation,
+                    startTime: this.startTime,
+                    endTime: this.endTime,
+                    machineStarted: this.machineStarted,
+                    machineStopped: this.machineStopped,
+                    lengthStart: this.lengthStart,
+                    lengthEnd: this.lengthEnd,
+                    comment: this.comment
+                };
+            }
+            
+            // Mapper camelCase vers snake_case pour l'API
+            const mappedData = {};
+            const fieldMapping = {
+                operatorId: 'operator_id',
+                shiftDate: 'shift_date',
+                startTime: 'start_time',
+                endTime: 'end_time',
+                machineStarted: 'machine_started',
+                machineStopped: 'machine_stopped',
+                lengthStart: 'length_start',
+                lengthEnd: 'length_end'
             };
             
-            await api.saveToSession(data);
+            Object.keys(data).forEach(key => {
+                const mappedKey = fieldMapping[key] || key;
+                mappedData[mappedKey] = data[key] || null;
+            });
+            
+            await api.saveToSession(mappedData);
         },
         
         // Générer l'ID du poste
@@ -111,7 +131,7 @@ function shiftForm() {
                     const lastName = nameParts.slice(1).join('').toUpperCase() || '';
                     this.shiftId = `${day}${month}${year}_${firstName}${lastName}_${this.vacation}`;
                     this.isValid = true;
-                    console.log('ID généré:', this.shiftId); // Debug
+                    console.log('ID généré:', this.shiftId); // Débogage
                 } else {
                     this.shiftId = null;
                     this.isValid = false;
@@ -151,7 +171,7 @@ function shiftForm() {
         async saveShift() {
             if (!this.isValid) return;
             
-            // TODO: Implémenter la sauvegarde du poste
+            // À FAIRE: Implémenter la sauvegarde du poste
             console.log('Sauvegarde du poste avec ID:', this.shiftId);
             alert('Fonctionnalité à implémenter : Sauvegarde du poste');
         }

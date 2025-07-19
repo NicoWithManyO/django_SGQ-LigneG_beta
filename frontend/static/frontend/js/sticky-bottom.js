@@ -100,14 +100,14 @@ function stickyBottom() {
         
         // Ouvrir la modal de données
         openDataModal() {
-            // TODO: Implémenter l'ouverture de la modal
+            // À FAIRE: Implémenter l'ouverture de la modal
             console.log('Ouvrir modal données incomplètes');
         },
         
         // Annuler le rouleau
         cancelRoll() {
             if (confirm('Êtes-vous sûr de vouloir annuler ce rouleau ?')) {
-                // TODO: Implémenter l'annulation
+                // À FAIRE: Implémenter l'annulation
                 console.log('Annuler le rouleau');
             }
         },
@@ -115,7 +115,7 @@ function stickyBottom() {
         // Supprimer le rouleau
         deleteRoll() {
             if (confirm('Êtes-vous sûr de vouloir supprimer ce rouleau ?')) {
-                // TODO: Implémenter la suppression
+                // À FAIRE: Implémenter la suppression
                 console.log('Supprimer le rouleau');
             }
         },

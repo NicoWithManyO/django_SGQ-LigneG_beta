@@ -35,6 +35,9 @@ class SessionSerializer(serializers.Serializer):
     total_mass = serializers.CharField(required=False, allow_null=True, allow_blank=True)
     next_tube_mass = serializers.CharField(required=False, allow_null=True, allow_blank=True)
     
+    # Données du rouleau (épaisseurs et défauts)
+    roll_data = serializers.JSONField(required=False, allow_null=True)
+    
     def update(self, instance, validated_data):
         """Met à jour la session avec les données validées."""
         # instance = request.session

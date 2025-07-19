@@ -38,7 +38,7 @@ const RollCalculations = {
     
     // Calculer le temps de fibrage
     calculateFibrageTime(startTime, currentTime = null) {
-        // TODO: Implémenter le calcul du temps de fibrage
+        // À FAIRE: Implémenter le calcul du temps de fibrage
         return '--:--';
     }
 };

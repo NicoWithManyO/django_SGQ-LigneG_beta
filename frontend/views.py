@@ -36,6 +36,8 @@ def production(request):
         'roll_length': request.session.get('roll_length', ''),
         'total_mass': request.session.get('total_mass', ''),
         'next_tube_mass': request.session.get('next_tube_mass', ''),
+        # Données du rouleau
+        'roll_data': request.session.get('roll_data', {}),
     }
     
     context = {

@@ -21,6 +21,9 @@ function roll() {
             // Charger la longueur cible depuis la session
             this.loadTargetLength();
             
+            // Charger les données du rouleau depuis la session
+            this.loadRollData();
+            
             // Charger les types de défauts
             this.loadDefectTypes();
             
@@ -63,15 +66,53 @@ function roll() {
             }
         },
         
+        // Charger les données du rouleau depuis la session
+        loadRollData() {
+            if (window.sessionData?.roll_data) {
+                const rollData = window.sessionData.roll_data;
+                this.thicknesses = rollData.thicknesses || [];
+                this.nokThicknesses = rollData.nokThicknesses || [];
+                this.defects = rollData.defects || [];
+                this.thicknessCount = this.thicknesses.length;
+                this.nokCount = this.nokThicknesses.length;
+                this.defectCount = this.defects.length;
+                
+                // Restaurer les valeurs dans les inputs
+                this.$nextTick(() => {
+                    this.restoreInputValues();
+                });
+            }
+        },
+        
+        // Restaurer les valeurs dans les inputs d'épaisseur
+        restoreInputValues() {
+            this.thicknesses.forEach(thickness => {
+                const input = this.$el.querySelector(`input[data-row="${thickness.row}"][data-col="${thickness.col}"]`);
+                if (input) {
+                    input.value = thickness.value.toString().replace('.', ',');
+                }
+            });
+        },
+        
+        // Sauvegarder les données du rouleau dans la session
+        async saveRollData() {
+            const rollData = {
+                thicknesses: this.thicknesses,
+                nokThicknesses: this.nokThicknesses,
+                defects: this.defects
+            };
+            
+            try {
+                await api.saveToSession({ roll_data: rollData });
+            } catch (error) {
+                console.error('Erreur sauvegarde données rouleau:', error);
+            }
+        },
+        
         // Mettre à jour la grille
         updateGrid() {
-            // Adapter le nombre de lignes à la longueur cible
-            // Par défaut, on affiche minimum 3 lignes et maximum 100
-            if (this.targetLength > 0) {
-                this.rowCount = Math.max(3, Math.min(100, this.targetLength));
-            } else {
-                this.rowCount = 12; // Valeur par défaut
-            }
+            // Utiliser la logique métier pour calculer le nombre de lignes
+            this.rowCount = rollBusinessLogic.calculateRowCount(this.targetLength);
             
             // Émettre un événement pour notifier du changement
             this.$dispatch('grid-updated', { rows: this.rowCount });
@@ -88,45 +129,18 @@ function roll() {
         
         // Calculer la conformité
         get isConform() {
-            // Non conforme si on a des défauts
-            if (this.defectCount > 0) {
-                return false;
-            }
-            
-            // Vérifier si une cellule a 2 épaisseurs NOK (non rattrapée)
-            // Parcourir toutes les lignes et colonnes
-            for (let row = 1; row <= this.rowCount; row++) {
-                if (this.isThicknessRow(row)) {
-                    const cols = ['G1', 'C1', 'D1', 'G2', 'C2', 'D2'];
-                    for (const col of cols) {
-                        // Si on a un badge NOK ET un input NOK dans la même cellule = non conforme
-                        if (this.hasThicknessNok(row, col) && this.hasThicknessNokInInput(row, col)) {
-                            return false;
-                        }
-                    }
-                }
-            }
-            
-            // Conforme si pas de défauts et pas de cellule avec 2 NOK
-            return true;
+            // Utiliser la logique métier pour calculer la conformité
+            return rollBusinessLogic.calculateConformity(
+                this.defectCount,
+                this.thicknesses,
+                this.nokThicknesses
+            );
         },
         
         // Vérifier si une ligne doit avoir des inputs d'épaisseur
         isThicknessRow(row) {
-            // Épaisseurs tous les 5m à partir de 3m
-            // Si longueur < 3m, on met à la ligne 1
-            if (this.targetLength < 3) {
-                return row === 1;
-            }
-            
-            // Pour les rouleaux >= 3m :
-            // Première épaisseur à 3m (ligne 3)
-            // Puis tous les 5m : 8m, 13m, 18m, etc.
-            if (row === 3) return true;
-            
-            // Vérifier si c'est un multiple de 5m après 3m
-            // (row - 3) doit être divisible par 5
-            return row > 3 && (row - 3) % 5 === 0;
+            // Utiliser la logique métier
+            return rollBusinessLogic.isThicknessRow(row, this.targetLength);
         },
         
         // Charger les types de défauts depuis l'API
@@ -213,6 +227,9 @@ function roll() {
             // Mettre à jour l'affichage
             this.updateCellDisplay(this.currentCell.row, this.currentCell.col);
             
+            // Sauvegarder dans la session
+            this.saveRollData();
+            
             // Émettre un événement pour mettre à jour le badge
             window.dispatchEvent(new CustomEvent('rouleau-updated', {
                 detail: { 
@@ -238,8 +255,8 @@ function roll() {
         getDefectCode(row, col) {
             const defect = this.defects.find(d => d.row === row && d.col === col);
             if (defect && defect.typeName) {
-                // Prendre les 3 premières lettres du nom
-                return defect.typeName.substring(0, 3).toUpperCase();
+                // Utiliser la logique métier pour formater le code
+                return rollBusinessLogic.formatDefectCode(defect.typeName);
             }
             return '';
         },
@@ -251,6 +268,9 @@ function roll() {
             if (index > -1) {
                 this.defects.splice(index, 1);
                 this.defectCount = this.defects.length;
+                
+                // Sauvegarder dans la session
+                this.saveRollData();
                 
                 // Émettre un événement pour mettre à jour le badge
                 window.dispatchEvent(new CustomEvent('rouleau-updated', {
@@ -380,6 +400,9 @@ function roll() {
         
         // Mettre à jour l'affichage des épaisseurs
         updateEpaisseurDisplay() {
+            // Sauvegarder dans la session
+            this.saveRollData();
+            
             // Émettre un événement pour mettre à jour le badge
             window.dispatchEvent(new CustomEvent('rouleau-updated', {
                 detail: { 
@@ -488,8 +511,8 @@ function roll() {
             
             // Trouver toutes les lignes avec épaisseur
             const epaisseurRows = [];
-            for (let row = 1; row <= this.nbRows; row++) {
-                if (this.isEpaisseurRow(row)) {
+            for (let row = 1; row <= this.rowCount; row++) {
+                if (this.isThicknessRow(row)) {
                     epaisseurRows.push(row);
                 }
             }
