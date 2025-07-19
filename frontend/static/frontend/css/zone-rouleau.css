@@ -4,6 +4,7 @@
 /* Container principal de la zone rouleau */
 .zone-rouleau-container {
     padding: 1rem;
+    overflow: hidden;
 }
 
 /* Badge de conformité */
@@ -17,12 +18,14 @@
 .rouleau-container {
     margin-top: 1rem;
     position: relative;
+    margin-left: -1rem;
+    margin-right: -1rem;
 }
 
 /* Grille du rouleau */
 .rouleau-grid {
     background-color: white;
-    border: 1px solid #dee2e6;
+    border: 1px solid #215c98;
     padding: 0;
     position: relative;
     overflow: hidden;
@@ -39,6 +42,7 @@
     width: 100%;
     border-collapse: collapse;
     margin: 0;
+    table-layout: fixed;
 }
 
 .rouleau-table thead {
@@ -65,15 +69,18 @@
 /* Colonnes métrage */
 .col-metrage {
     width: 2rem;
-    background-color: #f8f9fa;
     text-align: center;
     min-width: 2rem;
+    position: relative;
+    vertical-align: middle;
 }
 
 .metrage-label {
     font-size: 0.75rem;
-    color: #6c757d;
-    opacity: 0.8;
+    color: #215c98;
+    opacity: 1;
+    display: inline-block;
+    font-weight: 600;
 }
 
 /* Colonnes défauts */
@@ -103,22 +110,67 @@
     background-color: #e3f2fd;
 }
 
-/* Ligne avec défaut - bordure de découpe */
-tr.has-defaut td {
-    border-bottom: 2px dashed #dc3545;
-    position: relative;
+
+/* Ligne pointillée invisible par défaut */
+.rouleau-table td::before {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    border-bottom: 2px dashed transparent;
 }
 
-/* Icône ciseaux sur chaque cellule de la ligne de découpe */
+/* Bordure de repère au hover */
+.rouleau-table tr:hover td {
+    border-bottom: 1px solid #dee2e6;
+}
+
+/* Pas de bordure de hover sur les lignes avec défaut (qui ont déjà la ligne de découpe) */
+.rouleau-table tr.has-defaut:hover td {
+    border-bottom: none;
+}
+
+
+/* Ligne avec défaut - animation de la bordure */
+tr.has-defaut td::before {
+    border-color: #dc3545;
+    opacity: 0;
+    animation: fadeInLine 0.8s ease-out forwards;
+    animation-delay: calc(var(--col-index, 0) * 0.1s);
+}
+
+/* Icône ciseaux sur chaque cellule */
 tr.has-defaut td::after {
     content: "✂";
     position: absolute;
-    bottom: -1px;
+    bottom: 0;
     left: 50%;
-    transform: translateX(-50%);
-    color: #dc3545;
-    font-size: 0.875rem;
+    transform: translateX(-50%) translateY(40%);
+    color: black;
+    font-size: 1.25rem;
     z-index: 10;
+    opacity: 0;
+    animation: fadeInScissors 0.5s ease-out forwards;
+    animation-delay: calc(var(--col-index, 0) * 0.1s + 0.3s);
+}
+
+@keyframes fadeInLine {
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes fadeInScissors {
+    from {
+        opacity: 0;
+        transform: translateX(-150%) translateY(40%);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(-50%) translateY(40%);
+    }
 }
 
 /* Pas de ciseaux sur la colonne métrage */
@@ -126,25 +178,82 @@ tr.has-defaut td.col-metrage::after {
     content: none;
 }
 
+/* Pas de bordure sur la colonne métrage */
+tr.has-defaut td.col-metrage::before {
+    content: none;
+}
+
+/* Index de colonnes pour l'animation progressive */
+tr.has-defaut td:nth-child(1) { --col-index: 0; }
+tr.has-defaut td:nth-child(2) { --col-index: 1; }
+tr.has-defaut td:nth-child(3) { --col-index: 2; }
+tr.has-defaut td:nth-child(4) { --col-index: 3; }
+tr.has-defaut td:nth-child(5) { --col-index: 4; }
+tr.has-defaut td:nth-child(6) { --col-index: 5; }
+tr.has-defaut td:nth-child(7) { --col-index: 6; }
+
 /* Indicateur de défaut dans la cellule */
 .defaut-indicator {
     position: absolute;
-    top: 1px;
+    top: 50%;
     right: 1px;
-    font-size: 0.625rem;
+    transform: translateY(-50%);
+    font-size: 0.75rem;
     font-weight: 700;
     color: white;
     background-color: #dc3545;
-    padding: 1px 3px;
-    border-radius: 2px;
-    line-height: 1;
+    padding: 2px 5px;
+    border-radius: 3px;
+    line-height: 1.2;
     z-index: 10;
     cursor: pointer;
     transition: background-color 0.2s;
+    min-width: 25px;
+    text-align: center;
+    animation: popFromBehind 0.8s ease-out;
+}
+
+@keyframes popFromBehind {
+    0% {
+        transform: translateY(-50%) scale(0) translateZ(-100px);
+        opacity: 0;
+    }
+    40% {
+        transform: translateY(-50%) scale(1) translateZ(0);
+        opacity: 1;
+    }
+    55% {
+        transform: translateY(-50%) scale(1.15);
+    }
+    70% {
+        transform: translateY(-50%) scale(0.95);
+    }
+    85% {
+        transform: translateY(-50%) scale(1.05);
+    }
+    100% {
+        transform: translateY(-50%) scale(1);
+    }
 }
 
 .defaut-indicator:hover {
     background-color: #c82333;
+}
+
+/* Animation de disparition */
+.fade-out {
+    animation: fadeOut 0.3s ease-out forwards;
+}
+
+@keyframes fadeOut {
+    from {
+        opacity: 1;
+        transform: translateY(-50%) scale(1);
+    }
+    to {
+        opacity: 0;
+        transform: translateY(-50%) scale(0.8);
+    }
 }
 
 /* Bouton pour ajouter un défaut */
@@ -152,26 +261,33 @@ tr.has-defaut td.col-metrage::after {
     position: absolute;
     top: 1px;
     right: 1px;
-    width: 16px;
-    height: 16px;
+    width: 20px;
+    height: 20px;
     padding: 0;
-    border: none;
-    background-color: #dc3545;
-    color: white;
-    font-size: 0.75rem;
-    line-height: 1;
-    border-radius: 2px;
+    padding-bottom: 2px;
+    border: 1px solid transparent;
+    background-color: transparent;
+    color: #dc3545;
+    font-size: 1.2rem;
+    font-weight: normal;
+    line-height: 18px;
+    text-align: center;
+    border-radius: 3px;
     cursor: pointer;
     opacity: 0;
-    transition: opacity 0.2s, background-color 0.2s;
+    transition: all 0.2s;
 }
 
-.col-defaut:hover .add-defaut-btn {
-    opacity: 1;
+.col-defaut:hover .add-defaut-btn,
+.add-defaut-btn.active {
+    opacity: 0.6;
 }
 
-.add-defaut-btn:hover {
-    background-color: #c82333;
+.add-defaut-btn:hover,
+.add-defaut-btn.active {
+    background-color: #dc3545;
+    color: white;
+    opacity: 1 !important;
 }
 
 
@@ -182,29 +298,84 @@ tr.has-defaut td.col-metrage::after {
     display: flex;
     align-items: center;
     justify-content: center;
+    position: relative;
 }
 
 /* Input d'épaisseur */
 .epaisseur-input {
-    width: 2.8rem;
-    height: 2.8rem;
+    width: 3.6rem;
+    height: 2.4rem;
     border: none;
-    background: #dae9f8;
+    background: transparent;
     text-align: center;
-    font-size: 1.1rem;
+    font-size: 1rem;
     font-weight: 600;
     padding: 0;
-    border-radius: 50%;
     cursor: pointer;
     position: relative;
-    z-index: 5;
+    z-index: 1;
+    line-height: 2.4rem;
+    color: #215c98;
 }
 
 
 .epaisseur-input:focus {
     outline: none;
-    box-shadow: 0 0 0 0.125rem rgba(33, 92, 152, 0.25);
-    background: white;
+    box-shadow: none;
+    background: transparent;
+}
+
+/* Indicateur d'épaisseur NOK */
+.epaisseur-nok-indicator {
+    position: absolute;
+    top: 50%;
+    left: 1px;
+    transform: translateY(-50%);
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: white;
+    background-color: #dc3545;
+    padding: 2px 5px;
+    border-radius: 3px;
+    line-height: 1.2;
+    z-index: 10;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    min-width: 25px;
+    text-align: center;
+    animation: slideFromInput 0.8s ease-out;
+}
+
+@keyframes slideFromInput {
+    0% {
+        left: 50%;
+        transform: translateX(-50%) translateY(-50%) scale(1.5);
+        opacity: 0.7;
+    }
+    40% {
+        left: 1px;
+        transform: translateX(0) translateY(-50%) scale(1);
+        opacity: 1;
+    }
+    55% {
+        transform: translateX(0) translateY(-50%) scale(1.15);
+    }
+    70% {
+        transform: translateX(0) translateY(-50%) scale(0.95);
+    }
+    85% {
+        transform: translateX(0) translateY(-50%) scale(1.05);
+    }
+    100% {
+        left: 1px;
+        transform: translateX(0) translateY(-50%) scale(1);
+        opacity: 1;
+    }
+}
+
+
+.epaisseur-nok-indicator:hover {
+    background-color: #c82333;
 }
 
 /* Sélecteur de défauts */

@@ -7,6 +7,7 @@ function rouleau() {
         nbNok: 0,
         nbDefauts: 0,
         epaisseurs: [],
+        epaisseursNok: [], // Épaisseurs rejetées
         defauts: [],
         defautTypes: [], // Types de défauts depuis Django
         selectedDefautType: null,
@@ -27,6 +28,25 @@ function rouleau() {
                 this.longueurCible = e.detail.longueur;
                 this.updateGrid();
             });
+            
+            // Écouter la validation des épaisseurs (blur ou Enter)
+            this.$el.addEventListener('blur', (e) => {
+                if (e.target.classList.contains('epaisseur-input')) {
+                    this.handleEpaisseurInput(e.target);
+                }
+            }, true);
+            
+            this.$el.addEventListener('keydown', (e) => {
+                if (e.target.classList.contains('epaisseur-input')) {
+                    if (e.key === 'Enter') {
+                        this.handleEpaisseurInput(e.target);
+                        e.target.blur();
+                    } else if (e.key === 'Tab') {
+                        e.preventDefault();
+                        this.navigateToNextEpaisseur(e.target, e.shiftKey);
+                    }
+                }
+            });
         },
         
         // Charger la longueur cible
@@ -44,14 +64,6 @@ function rouleau() {
             console.log('Mise à jour de la grille pour longueur:', this.longueurCible);
         },
         
-        // Ajouter une épaisseur
-        addEpaisseur(position, value) {
-            this.epaisseurs.push({ position, value });
-            this.nbEpaisseurs = this.epaisseurs.length;
-            if (value < 0) { // Exemple de condition NOK
-                this.nbNok++;
-            }
-        },
         
         // Ajouter un défaut
         addDefaut(position, type) {
@@ -192,7 +204,7 @@ function rouleau() {
         
         // Supprimer un défaut
         removeDefaut(row, col) {
-            // Trouver l'index du défaut à supprimer
+            // Pour l'instant, supprimer directement sans animation
             const index = this.defauts.findIndex(d => d.row === row && d.col === col);
             if (index > -1) {
                 this.defauts.splice(index, 1);
@@ -212,6 +224,170 @@ function rouleau() {
         // Vérifier si une ligne a au moins un défaut
         hasDefautInRow(row) {
             return this.defauts.some(d => d.row === row);
+        },
+        
+        // Gérer la saisie d'épaisseur
+        handleEpaisseurInput(input) {
+            // Remplacer la virgule par un point pour parseFloat
+            const inputValue = input.value.trim().replace(',', '.');
+            const value = parseFloat(inputValue);
+            const row = parseInt(input.dataset.row);
+            const col = input.dataset.col;
+            
+            if (!isNaN(value) && inputValue !== '') {
+                // Vérifier si l'épaisseur est NOK (< 5 pour le test)
+                if (value < 5) {
+                    // Stocker l'épaisseur NOK
+                    this.epaisseursNok.push({
+                        row: row,
+                        col: col,
+                        value: value
+                    });
+                    this.nbNok++;
+                    
+                    // Vider l'input pour permettre la saisie de rattrapage
+                    input.value = '';
+                    
+                    // Mettre à jour l'affichage
+                    this.updateEpaisseurDisplay();
+                } else {
+                    // Épaisseur OK
+                    this.addEpaisseur(row, col, value);
+                }
+            }
+        },
+        
+        // Vérifier si une cellule a une épaisseur NOK
+        hasEpaisseurNok(row, col) {
+            return this.epaisseursNok.some(e => e.row === row && e.col === col);
+        },
+        
+        // Obtenir la valeur de l'épaisseur NOK
+        getEpaisseurNok(row, col) {
+            const ep = this.epaisseursNok.find(e => e.row === row && e.col === col);
+            if (ep) {
+                // Convertir en string et remplacer le point par une virgule
+                const valueStr = ep.value.toString().replace('.', ',');
+                
+                // Si on a déjà une virgule avec une décimale, garder tel quel
+                if (valueStr.includes(',') && valueStr.split(',')[1].length === 1) {
+                    return valueStr;
+                }
+                
+                // Si on a plus d'une décimale, arrondir inférieur à 1 décimale
+                if (valueStr.includes(',') && valueStr.split(',')[1].length > 1) {
+                    const rounded = Math.floor(ep.value * 10) / 10;
+                    return rounded.toString().replace('.', ',');
+                }
+                
+                // Si c'est un entier, ajouter ,0
+                return valueStr + ',0';
+            }
+            return '';
+        },
+        
+        // Mettre à jour l'affichage des épaisseurs
+        updateEpaisseurDisplay() {
+            // Émettre un événement pour mettre à jour le badge
+            window.dispatchEvent(new CustomEvent('rouleau-updated', {
+                detail: { 
+                    nbEpaisseurs: this.nbEpaisseurs,
+                    nbNok: this.nbNok,
+                    nbDefauts: this.nbDefauts
+                }
+            }));
+        },
+        
+        // Ajouter une épaisseur valide
+        addEpaisseur(row, col, value) {
+            // Retirer l'épaisseur NOK si elle existe
+            const nokIndex = this.epaisseursNok.findIndex(e => e.row === row && e.col === col);
+            if (nokIndex > -1) {
+                this.epaisseursNok.splice(nokIndex, 1);
+                this.nbNok = this.epaisseursNok.length;
+            }
+            
+            // Ajouter l'épaisseur valide
+            this.epaisseurs.push({
+                row: row,
+                col: col,
+                value: value
+            });
+            this.nbEpaisseurs = this.epaisseurs.length;
+            
+            this.updateEpaisseurDisplay();
+        },
+        
+        // Supprimer une épaisseur NOK
+        removeEpaisseurNok(row, col) {
+            const index = this.epaisseursNok.findIndex(e => e.row === row && e.col === col);
+            if (index > -1) {
+                this.epaisseursNok.splice(index, 1);
+                this.nbNok = this.epaisseursNok.length;
+                this.updateEpaisseurDisplay();
+            }
+        },
+        
+        // Naviguer vers la prochaine cellule d'épaisseur
+        navigateToNextEpaisseur(currentInput, reverse = false) {
+            const currentRow = parseInt(currentInput.dataset.row);
+            const currentCol = currentInput.dataset.col;
+            
+            // Ordre des colonnes
+            const cols = ['G1', 'C1', 'D1', 'G2', 'C2', 'D2'];
+            const currentColIndex = cols.indexOf(currentCol);
+            
+            // Trouver toutes les lignes avec épaisseur
+            const epaisseurRows = [];
+            for (let row = 1; row <= 12; row++) {
+                if (this.isEpaisseurRow(row)) {
+                    epaisseurRows.push(row);
+                }
+            }
+            
+            // Position actuelle dans la grille
+            const currentRowIndex = epaisseurRows.indexOf(currentRow);
+            
+            let nextRow, nextCol;
+            
+            if (reverse) {
+                // Navigation arrière (Shift+Tab)
+                if (currentColIndex > 0) {
+                    // Colonne précédente, même ligne
+                    nextRow = currentRow;
+                    nextCol = cols[currentColIndex - 1];
+                } else if (currentRowIndex > 0) {
+                    // Dernière colonne de la ligne précédente
+                    nextRow = epaisseurRows[currentRowIndex - 1];
+                    nextCol = cols[cols.length - 1];
+                } else {
+                    // On est au début, aller à la fin
+                    nextRow = epaisseurRows[epaisseurRows.length - 1];
+                    nextCol = cols[cols.length - 1];
+                }
+            } else {
+                // Navigation avant (Tab)
+                if (currentColIndex < cols.length - 1) {
+                    // Colonne suivante, même ligne
+                    nextRow = currentRow;
+                    nextCol = cols[currentColIndex + 1];
+                } else if (currentRowIndex < epaisseurRows.length - 1) {
+                    // Première colonne de la ligne suivante
+                    nextRow = epaisseurRows[currentRowIndex + 1];
+                    nextCol = cols[0];
+                } else {
+                    // On est à la fin, aller au début
+                    nextRow = epaisseurRows[0];
+                    nextCol = cols[0];
+                }
+            }
+            
+            // Trouver et focus le prochain input
+            const nextInput = this.$el.querySelector(`input[data-row="${nextRow}"][data-col="${nextCol}"]`);
+            if (nextInput) {
+                nextInput.focus();
+                nextInput.select();
+            }
         }
     };
 }
