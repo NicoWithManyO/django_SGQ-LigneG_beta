@@ -199,11 +199,13 @@ function roll() {
         addDefect() {
             if (!this.selectedDefectType || !this.currentCell) return;
             
+            const selectedDefect = this.defectTypes.find(d => d.id == this.selectedDefectType);
             const defect = {
                 row: this.currentCell.row,
                 col: this.currentCell.col,
                 typeId: this.selectedDefectType,
-                typeName: this.defectTypes.find(d => d.id == this.selectedDefectType)?.name
+                typeName: selectedDefect?.name,
+                severity: selectedDefect?.severity
             };
             
             this.defects.push(defect);
@@ -246,6 +248,24 @@ function roll() {
             return '';
         },
         
+        // Obtenir la classe CSS selon la sévérité du défaut
+        getDefectSeverityClass(row, col) {
+            const defect = this.defects.find(d => d.row === row && d.col === col);
+            if (!defect) return '';
+            return (defect.severity === 'non_blocking' || defect.severity === 'threshold') ? 'non-blocking' : '';
+        },
+        
+        // Compter le nombre de défauts d'un type donné
+        getDefectCount(typeId) {
+            return this.defects.filter(d => d.typeId == typeId).length;
+        },
+        
+        // Obtenir le typeId du défaut à une position donnée
+        getDefectTypeId(row, col) {
+            const defect = this.defects.find(d => d.row === row && d.col === col);
+            return defect ? defect.typeId : null;
+        },
+        
         // Supprimer un défaut
         removeDefect(row, col) {
             // Pour l'instant, supprimer directement sans animation
@@ -268,10 +288,11 @@ function roll() {
             }
         },
         
-        // Vérifier si une ligne a au moins un défaut
+        // Vérifier si une ligne a au moins un défaut bloquant (pour afficher les ciseaux)
         hasDefectInRow(row) {
-            // Une ligne a un défaut si elle a un défaut visuel OU une cellule avec 2 épaisseurs NOK
-            if (this.defects.some(d => d.row === row)) {
+            // Une ligne a un défaut bloquant si elle a un défaut visuel bloquant OU une cellule avec 2 épaisseurs NOK
+            const blockingDefect = this.defects.find(d => d.row === row && d.severity === 'blocking');
+            if (blockingDefect) {
                 return true;
             }
             

@@ -224,6 +224,11 @@ tr.has-defect td:nth-child(7) { --col-index: 6; }
     animation: popFromBehind 1s ease-out;
 }
 
+/* Badge orange pour défauts non bloquants */
+.defect-indicator.non-blocking {
+    background-color: #fd7e14;
+}
+
 @keyframes popFromBehind {
     0% {
         transform: translateY(-50%) scale(0) translateZ(-100px);
@@ -255,6 +260,29 @@ tr.has-defect td:nth-child(7) { --col-index: 6; }
 
 .defect-indicator:hover {
     background-color: #c82333;
+}
+
+/* Hover spécifique pour les non bloquants */
+.defect-indicator.non-blocking:hover {
+    background-color: #e8590c; /* Orange plus foncé au hover */
+}
+
+/* Compteur de défauts sur le badge */
+.defect-count {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    font-size: 0.6rem;
+    background-color: #212529;
+    color: white;
+    border-radius: 50%;
+    width: 16px;
+    height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    border: 1px solid white;
 }
 
 /* Animation de disparition avec translation Y */

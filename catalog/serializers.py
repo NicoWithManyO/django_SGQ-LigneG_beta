@@ -67,4 +67,4 @@ class QualityDefectTypeSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = QualityDefectType
-        fields = ['id', 'name', 'description', 'severity', 'is_active']
+        fields = ['id', 'name', 'description', 'severity', 'threshold_value', 'is_active']

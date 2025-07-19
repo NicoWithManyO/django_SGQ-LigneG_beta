@@ -16,7 +16,9 @@
                 :style="`top: ${selectorPosition.top}px; left: ${selectorPosition.left}px;`"
                 :size="defectTypes.length">
             <template x-for="defect in defectTypes" :key="defect.id">
-                <option :value="defect.id" x-text="defect.name"></option>
+                <option :value="defect.id" 
+                        x-text="defect.name + (defect.severity === 'threshold' && defect.threshold_value ? ` (NOK ${defect.threshold_value})` : '')"
+                        :style="(defect.severity === 'non_blocking' || defect.severity === 'threshold') ? 'color: #fd7e14' : 'color: #dc3545'"></option>
             </template>
         </select>
         <table class="roll-table">
@@ -54,8 +56,12 @@
                                         </div>
                                         <div x-show="hasDefect(row, col)" 
                                              class="defect-indicator" 
+                                             :class="getDefectSeverityClass(row, col)"
                                              @click.stop="removeDefect(row, col)">
                                             <span x-text="getDefectCode(row, col)"></span>
+                                            <span x-show="getDefectCount(getDefectTypeId(row, col)) > 1" 
+                                                  class="defect-count" 
+                                                  x-text="getDefectCount(getDefectTypeId(row, col))"></span>
                                         </div>
                                         <button x-show="!hasDefect(row, col)" 
                                                 class="add-defect-btn" 
