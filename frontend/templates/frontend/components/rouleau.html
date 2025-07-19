@@ -17,7 +17,7 @@
         <table class="rouleau-table">
             <!-- Corps du tableau -->
             <tbody>
-                <template x-for="row in 12" :key="row">
+                <template x-for="row in nbRows" :key="row">
                     <tr :class="{'has-defaut': hasDefautInRow(row)}">
                         <!-- Boucle pour les colonnes -->
                         <template x-for="(col, index) in getColumns()" :key="col">

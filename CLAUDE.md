@@ -667,3 +667,6 @@ Aucune configuration de tests n'est implémentée.
 8. **Gestion d'état multi-niveaux** (badges, inputs, indicateurs)
 9. **CSS Custom Properties** pour animations séquentielles
 10. **Positionnement dynamique** d'éléments UI (sélecteur défauts)
+11. **Grille rouleau dynamique** basée sur la longueur cible
+12. **Mise à jour au blur** pour éviter les re-rendus constants
+13. **Calcul automatique des lignes d'épaisseur** (3m puis tous les 5m)

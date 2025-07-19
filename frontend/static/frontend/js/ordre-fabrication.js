@@ -31,6 +31,7 @@ function ordreFabrication() {
                 if (this.editingLongueur) {
                     this.saveToSession();
                 }
+                // Ne plus émettre l'événement ici - on le fera au blur
             });
             
             this.$watch('ofDecoupe', () => {
@@ -46,6 +47,13 @@ function ordreFabrication() {
                 this.ofEnCours = window.sessionData.of_en_cours || '';
                 this.longueurCible = window.sessionData.longueur_cible || '';
                 this.ofDecoupe = window.sessionData.of_decoupe || '';
+                
+                // Émettre l'événement initial pour le rouleau
+                if (this.longueurCible) {
+                    window.dispatchEvent(new CustomEvent('longueur-cible-changed', {
+                        detail: { longueur: parseInt(this.longueurCible) || 0 }
+                    }));
+                }
             }
         },
         
@@ -96,6 +104,13 @@ function ordreFabrication() {
             }
         },
         
+        // Gérer la fin d'édition de la longueur cible
+        handleLongueurBlur() {
+            // Émettre l'événement pour mettre à jour le rouleau
+            window.dispatchEvent(new CustomEvent('longueur-cible-changed', {
+                detail: { longueur: parseInt(this.longueurCible) || 0 }
+            }));
+        }
         
     };
 }

@@ -3,6 +3,7 @@ function rouleau() {
     return {
         // État
         longueurCible: 0,
+        nbRows: 12, // Nombre de lignes à afficher (basé sur longueur cible)
         nbEpaisseurs: 0,
         nbNok: 0,
         nbDefauts: 0,
@@ -64,9 +65,18 @@ function rouleau() {
         
         // Mettre à jour la grille
         updateGrid() {
-            // Logique pour générer la grille en fonction de la longueur
-            // À implémenter selon les spécifications
-            console.log('Mise à jour de la grille pour longueur:', this.longueurCible);
+            // Adapter le nombre de lignes à la longueur cible
+            // Par défaut, on affiche minimum 3 lignes et maximum 100
+            if (this.longueurCible > 0) {
+                this.nbRows = Math.max(3, Math.min(100, this.longueurCible));
+            } else {
+                this.nbRows = 12; // Valeur par défaut
+            }
+            
+            // Émettre un événement pour notifier du changement
+            this.$dispatch('grid-updated', { rows: this.nbRows });
+            
+            console.log(`Grille mise à jour : ${this.nbRows} lignes pour ${this.longueurCible}m`);
         },
         
         
@@ -85,7 +95,7 @@ function rouleau() {
             
             // Vérifier si une cellule a 2 épaisseurs NOK (non rattrapée)
             // Parcourir toutes les lignes et colonnes
-            for (let row = 1; row <= 12; row++) {
+            for (let row = 1; row <= this.nbRows; row++) {
                 if (this.isEpaisseurRow(row)) {
                     const cols = ['G1', 'C1', 'D1', 'G2', 'C2', 'D2'];
                     for (const col of cols) {
@@ -108,8 +118,15 @@ function rouleau() {
             if (this.longueurCible < 3) {
                 return row === 1;
             }
-            // Sinon : ligne 3 (3m), ligne 8 (8m), etc.
-            return row === 3 || row === 8;
+            
+            // Pour les rouleaux >= 3m :
+            // Première épaisseur à 3m (ligne 3)
+            // Puis tous les 5m : 8m, 13m, 18m, etc.
+            if (row === 3) return true;
+            
+            // Vérifier si c'est un multiple de 5m après 3m
+            // (row - 3) doit être divisible par 5
+            return row > 3 && (row - 3) % 5 === 0;
         },
         
         // Charger les types de défauts depuis l'API
@@ -471,7 +488,7 @@ function rouleau() {
             
             // Trouver toutes les lignes avec épaisseur
             const epaisseurRows = [];
-            for (let row = 1; row <= 12; row++) {
+            for (let row = 1; row <= this.nbRows; row++) {
                 if (this.isEpaisseurRow(row)) {
                     epaisseurRows.push(row);
                 }

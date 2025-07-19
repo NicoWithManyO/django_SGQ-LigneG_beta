@@ -27,8 +27,8 @@
             <label class="form-label">Longueur cible</label>
             <div class="input-group">
                 <input type="text" class="form-control" :readonly="!editingLongueur" x-model="longueurCible" placeholder="m." 
-                       @blur="if(editingLongueur) { editingLongueur = false }"
-                       @keyup.enter="if(editingLongueur) { editingLongueur = false }">
+                       @blur="if(editingLongueur) { editingLongueur = false; handleLongueurBlur(); }"
+                       @keyup.enter="if(editingLongueur) { editingLongueur = false; handleLongueurBlur(); }">
                 <button class="btn btn-outline-secondary btn-edit-field" type="button" @click="toggleEditLongueur()">
                     <i class="bi bi-pencil"></i>
                 </button>

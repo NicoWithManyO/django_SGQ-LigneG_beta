@@ -114,7 +114,10 @@ frontend/
 ## 🆕 Dernières améliorations
 
 ### Composant Rouleau avancé
-- Grille de qualité 12 lignes × 7 colonnes (G1, C1, D1, métrage, G2, C2, D2)
+- **Grille dynamique** adaptée à la longueur cible (plus de grille fixe 12 lignes)
+- **Affichage sans scroll** pour voir tout le rouleau d'un coup
+- **Épaisseurs automatiques** : première à 3m puis tous les 5m (3m, 8m, 13m, 18m...)
+- **Mise à jour au blur** : le rouleau se redessine quand on quitte le champ longueur
 - Validation des épaisseurs en temps réel avec indicateurs visuels
 - Gestion des défauts avec sélecteur dynamique
 - Navigation clavier optimisée (Tab/Shift+Tab)
