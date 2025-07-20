@@ -34,7 +34,7 @@
                        class="form-control form-control-sm mx-auto mb-1"
                        :class="getInputClass('dryExtract', dryExtract.value)"
                        x-model="dryExtract.value"
-                       @keydown="validateNumericInput($event)"
+                       x-init="numericInputValidator.init($el)"
                        @blur="formatNumber($event, 'dryExtract'); updateDryExtract()"
                        placeholder="--"
                        style="width: 80px;">
@@ -68,7 +68,7 @@
                                                class="form-control form-control-sm" 
                                                :class="getInputClass('micrometry', micrometry.left[i-1])"
                                                x-model="micrometry.left[i-1]"
-                                               @keydown="validateNumericInput($event)"
+                                               x-init="numericInputValidator.init($el)"
                                                @blur="formatNumber($event, 'micrometry'); updateMicrometry()"
                                                placeholder="--">
                                     </template>
@@ -87,7 +87,7 @@
                                                class="form-control form-control-sm" 
                                                :class="getInputClass('micrometry', micrometry.right[i-1])"
                                                x-model="micrometry.right[i-1]"
-                                               @keydown="validateNumericInput($event)"
+                                               x-init="numericInputValidator.init($el)"
                                                @blur="updateMicrometry()"
                                                placeholder="--">
                                     </template>
@@ -110,7 +110,7 @@
                                                class="form-control form-control-sm"
                                                :class="getInputClass('surfaceMass', surfaceMass.leftLeft)"
                                                x-model="surfaceMass.leftLeft"
-                                               @keydown="validateNumericInput($event)"
+                                               x-init="numericInputValidator.init($el)"
                                                @blur="formatNumber($event, 'surfaceMass'); updateSurfaceMass()"
                                                placeholder="--">
                                     </div>
@@ -120,7 +120,7 @@
                                                class="form-control form-control-sm"
                                                :class="getInputClass('surfaceMass', surfaceMass.leftCenter)"
                                                x-model="surfaceMass.leftCenter"
-                                               @keydown="validateNumericInput($event)"
+                                               x-init="numericInputValidator.init($el)"
                                                @blur="formatNumber($event, 'surfaceMass'); updateSurfaceMass()"
                                                placeholder="--">
                                     </div>
@@ -140,7 +140,7 @@
                                                class="form-control form-control-sm"
                                                :class="getInputClass('surfaceMass', surfaceMass.rightCenter)"
                                                x-model="surfaceMass.rightCenter"
-                                               @keydown="validateNumericInput($event)"
+                                               x-init="numericInputValidator.init($el)"
                                                @blur="formatNumber($event, 'surfaceMass'); updateSurfaceMass()"
                                                placeholder="--">
                                     </div>
@@ -150,7 +150,7 @@
                                                class="form-control form-control-sm"
                                                :class="getInputClass('surfaceMass', surfaceMass.rightRight)"
                                                x-model="surfaceMass.rightRight"
-                                               @keydown="validateNumericInput($event)"
+                                               x-init="numericInputValidator.init($el)"
                                                @blur="formatNumber($event, 'surfaceMass'); updateSurfaceMass()"
                                                placeholder="--">
                                     </div>

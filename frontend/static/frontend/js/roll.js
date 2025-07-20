@@ -417,7 +417,7 @@ function roll() {
                         this.nokThicknesses.push({
                             row: row,
                             col: col,
-                            value: value
+                            value: value.toString().replace(',', '.')
                         });
                         this.nokCount = this.nokThicknesses.length;
                         

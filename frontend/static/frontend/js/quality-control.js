@@ -300,7 +300,10 @@ function qualityControl() {
                 this.surfaceMass.averageRight = null;
             }
             
-            this.updateStatus();
+            // Ne mettre à jour le statut que si toutes les propriétés existent
+            if (this.micrometry && this.dryExtract) {
+                this.updateStatus();
+            }
             this.saveToSession();
         },
         
@@ -467,24 +470,6 @@ function qualityControl() {
             } else {
                 // Si ce n'est pas un nombre valide, vider le champ
                 event.target.value = '';
-            }
-        },
-        
-        // Valider la saisie en temps réel
-        validateNumericInput(event) {
-            // Autoriser uniquement les chiffres, le point et la virgule
-            const allowedKeys = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '.', ',', 'Backspace', 'Delete', 'Tab', 'Enter', 'ArrowLeft', 'ArrowRight'];
-            
-            if (!allowedKeys.includes(event.key)) {
-                event.preventDefault();
-                return false;
-            }
-            
-            // Empêcher plusieurs points ou virgules
-            const currentValue = event.target.value;
-            if ((event.key === '.' || event.key === ',') && (currentValue.includes('.') || currentValue.includes(','))) {
-                event.preventDefault();
-                return false;
             }
         }
     }

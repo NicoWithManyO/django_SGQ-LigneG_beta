@@ -60,7 +60,7 @@
             </div>
             <div class="d-flex justify-content-center align-items-center meters-container">
                 <div class="w-50">
-                    <input type="number" class="form-control form-control-sm meters-input border-0" id="length-start" name="length_start" placeholder="m." x-model="lengthStart" x-show="machineStartedStart">
+                    <input type="text" class="form-control form-control-sm meters-input border-0" id="length-start" name="length_start" placeholder="m." x-model="lengthStart" x-show="machineStartedStart" x-init="numericInputValidator.init($el)">
                 </div>
             </div>
         </div>
@@ -79,7 +79,7 @@
                 </label>
             </div>
             <div class="d-flex justify-content-center">
-                <input type="number" class="form-control form-control-sm w-50 meters-input border-0" id="length-end" name="length_end" placeholder="m." x-model="lengthEnd" x-show="machineStartedEnd">
+                <input type="text" class="form-control form-control-sm w-50 meters-input border-0" id="length-end" name="length_end" placeholder="m." x-model="lengthEnd" x-show="machineStartedEnd" x-init="numericInputValidator.init($el)">
             </div>
         </div>
         <div class="col-6">

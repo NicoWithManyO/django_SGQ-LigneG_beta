@@ -27,6 +27,7 @@
             <label class="form-label">Longueur cible</label>
             <div class="input-group">
                 <input type="text" class="form-control" :readonly="!editingLength" x-model="targetLength" placeholder="m." 
+                       x-init="numericInputValidator.init($el)"
                        @blur="if(editingLength) { editingLength = false; handleLengthBlur(); }"
                        @keyup.enter="if(editingLength) { editingLength = false; handleLengthBlur(); }">
                 <button class="btn btn-outline-secondary btn-edit-field" type="button" @click="toggleEditLength()">

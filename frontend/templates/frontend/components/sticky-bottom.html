@@ -18,7 +18,7 @@
                         <div class="info-label">N° Rouleau</div>
                         <div class="d-flex align-items-center">
                             <i class="bi bi-magic me-1 text-warning"></i>
-                            <input type="number" class="info-value editable-value" x-model="rollNumber" placeholder="--" @click="$event.target.select()" :readonly="!editingRollNumber">
+                            <input type="text" class="info-value editable-value" x-model="rollNumber" placeholder="--" :readonly="!editingRollNumber" x-init="numericInputValidator.init($el)">
                             <button class="btn btn-sm btn-pencil-inline text-white" @click="toggleEditRollNumber()">
                                 <i class="bi bi-pencil"></i>
                             </button>
@@ -37,19 +37,19 @@
                     <!-- Masse tube -->
                     <div class="info-item">
                         <div class="info-label">Masse tube (g)</div>
-                        <input type="number" class="info-value editable-value" x-model="tubeMass" placeholder="--" @click="$event.target.select()">
+                        <input type="text" class="info-value editable-value" x-model="tubeMass" placeholder="--" x-init="numericInputValidator.init($el)">
                     </div>
                     
                     <!-- Longueur -->
                     <div class="info-item">
                         <div class="info-label">Longueur (m)</div>
-                        <input type="number" class="info-value editable-value" x-model="length" placeholder="--" @click="$event.target.select()">
+                        <input type="text" class="info-value editable-value" x-model="length" placeholder="--" x-init="numericInputValidator.init($el)">
                     </div>
                     
                     <!-- Masse totale -->
                     <div class="info-item">
                         <div class="info-label">Masse totale (g)</div>
-                        <input type="number" class="info-value editable-value" x-model="totalMass" placeholder="--" @click="$event.target.select()">
+                        <input type="text" class="info-value editable-value" x-model="totalMass" placeholder="--" x-init="numericInputValidator.init($el)">
                     </div>
                     
                     <!-- Grammage calculé -->
@@ -81,7 +81,7 @@
             <div class="col-auto">
                 <div class="info-item">
                     <div class="info-label">Tube suivant (g)</div>
-                    <input type="number" class="info-value editable-value" x-model="nextTubeMass" placeholder="--" @click="$event.target.select()">
+                    <input type="text" class="info-value editable-value" x-model="nextTubeMass" placeholder="--" x-init="numericInputValidator.init($el)">
                 </div>
             </div>
         </div>
