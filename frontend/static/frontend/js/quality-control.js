@@ -52,6 +52,18 @@ function qualityControl() {
                         this.updateStatus();
                     }
                 }
+                
+                // Toujours émettre le statut actuel au démarrage
+                window.dispatchEvent(new CustomEvent('quality-control-updated', {
+                    detail: {
+                        status: this.qcStatus,
+                        data: {
+                            micrometry: this.micrometry,
+                            surfaceMass: this.surfaceMass,
+                            dryExtract: this.dryExtract
+                        }
+                    }
+                }));
             }, 100);
             
             // Écouter les changements de profil

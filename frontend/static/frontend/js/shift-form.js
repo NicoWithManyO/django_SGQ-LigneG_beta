@@ -16,6 +16,8 @@ function shiftForm() {
         comment: '',
         shiftId: null,
         isValid: false,
+        hasValidId: false, // Pour l'icône ID Poste uniquement
+        qcStatus: 'pending', // Statut du contrôle qualité
         
         // Initialisation
         init() {
@@ -50,13 +52,21 @@ function shiftForm() {
                 if (!this.machineStartedStart) {
                     this.lengthStart = '';
                 }
+                this.validateForm();
             });
             
             this.$watch('machineStartedEnd', () => {
                 if (!this.machineStartedEnd) {
                     this.lengthEnd = '';
                 }
+                this.validateForm();
             });
+            
+            // Watchers pour la validation
+            this.$watch('startTime', () => this.validateForm());
+            this.$watch('endTime', () => this.validateForm());
+            this.$watch('lengthStart', () => this.validateForm());
+            this.$watch('lengthEnd', () => this.validateForm());
             
             // Initialiser la sauvegarde automatique pour tous les champs
             this.initAutoSave([
@@ -65,6 +75,12 @@ function shiftForm() {
                 'machineStartedStart', 'machineStartedEnd',
                 'lengthStart', 'lengthEnd', 'comment'
             ]);
+            
+            // Écouter les changements du contrôle qualité
+            window.addEventListener('quality-control-updated', (e) => {
+                this.qcStatus = e.detail.status;
+                this.validateForm();
+            });
         },
         
         // Charger depuis la session
@@ -81,6 +97,11 @@ function shiftForm() {
                 this.lengthStart = String(window.sessionData.length_start || '');
                 this.lengthEnd = String(window.sessionData.length_end || '');
                 this.comment = String(window.sessionData.comment || '');
+                
+                // Charger le statut QC depuis la session
+                if (window.sessionData.qc_status) {
+                    this.qcStatus = window.sessionData.qc_status;
+                }
             }
         },
         
@@ -141,15 +162,117 @@ function shiftForm() {
                     const firstName = nameParts[0] || '';
                     const lastName = nameParts.slice(1).join('').toUpperCase() || '';
                     this.shiftId = `${day}${month}${year}_${firstName}${lastName}_${this.vacation}`;
-                    this.isValid = true;
+                    this.hasValidId = true;
                 } else {
                     this.shiftId = null;
-                    this.isValid = false;
+                    this.hasValidId = false;
                 }
             } else {
                 this.shiftId = null;
-                this.isValid = false;
+                this.hasValidId = false;
             }
+            
+            // Valider après génération de l'ID
+            this.validateForm();
+        },
+        
+        // Valider le formulaire complet
+        validateForm() {
+            // Vérifier les champs obligatoires de base
+            if (!this.shiftId || !this.startTime || !this.endTime) {
+                this.isValid = false;
+                return;
+            }
+            
+            // Vérifier que le contrôle qualité est fait (pas pending)
+            if (this.qcStatus === 'pending') {
+                this.isValid = false;
+                return;
+            }
+            
+            // Vérifier la cohérence machine/métrage
+            if (this.machineStartedStart && !this.lengthStart) {
+                this.isValid = false;
+                return;
+            }
+            
+            if (this.machineStartedEnd && !this.lengthEnd) {
+                this.isValid = false;
+                return;
+            }
+            
+            // Vérifier la cohérence des heures (sauf pour vacation Nuit)
+            if (this.vacation !== 'Nuit') {
+                const start = this.timeToMinutes(this.startTime);
+                const end = this.timeToMinutes(this.endTime);
+                
+                if (start >= end) {
+                    this.isValid = false;
+                    return;
+                }
+            }
+            
+            // Vérifier la cohérence des métrages si les deux sont renseignés
+            if (this.lengthStart && this.lengthEnd) {
+                const startLength = parseFloat(this.lengthStart) || 0;
+                const endLength = parseFloat(this.lengthEnd) || 0;
+                
+                if (endLength < startLength) {
+                    this.isValid = false;
+                    return;
+                }
+            }
+            
+            // Toutes les validations sont passées
+            this.isValid = true;
+        },
+        
+        // Convertir heure HH:MM en minutes
+        timeToMinutes(time) {
+            if (!time) return 0;
+            const [hours, minutes] = time.split(':').map(Number);
+            return hours * 60 + minutes;
+        },
+        
+        // Obtenir le message de validation pour le tooltip
+        getValidationMessage() {
+            const messages = [];
+            
+            // Vérifier les champs de base
+            if (!this.operatorId) messages.push("Sélectionner un opérateur");
+            if (!this.shiftDate) messages.push("Saisir la date");
+            if (!this.vacation) messages.push("Sélectionner la vacation");
+            if (!this.startTime) messages.push("Saisir l'heure de début");
+            if (!this.endTime) messages.push("Saisir l'heure de fin");
+            
+            // Vérifier le contrôle qualité
+            if (this.qcStatus === 'pending') messages.push("Compléter le contrôle qualité");
+            
+            // Vérifier la cohérence machine/métrage
+            if (this.machineStartedStart && !this.lengthStart) {
+                messages.push("Saisir le métrage de début (machine démarrée)");
+            }
+            if (this.machineStartedEnd && !this.lengthEnd) {
+                messages.push("Saisir le métrage de fin (machine démarrée)");
+            }
+            
+            // Vérifier la cohérence des heures
+            if (this.startTime && this.endTime && this.vacation !== 'Nuit') {
+                const start = this.timeToMinutes(this.startTime);
+                const end = this.timeToMinutes(this.endTime);
+                if (start >= end) messages.push("L'heure de fin doit être après l'heure de début");
+            }
+            
+            // Vérifier la cohérence des métrages
+            if (this.lengthStart && this.lengthEnd) {
+                const startLength = parseFloat(this.lengthStart) || 0;
+                const endLength = parseFloat(this.lengthEnd) || 0;
+                if (endLength < startLength) {
+                    messages.push("Le métrage de fin doit être supérieur au métrage de début");
+                }
+            }
+            
+            return messages.length > 0 ? messages.join(" • ") : "";
         },
         
         // Définir les heures par défaut selon la vacation

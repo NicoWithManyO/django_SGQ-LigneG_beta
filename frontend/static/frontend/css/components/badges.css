@@ -49,13 +49,13 @@
 
 /* Input style badge vert */
 .epaisseur-input.has-value {
-    background: #28a745;
+    background: var(--bs-success);
     color: white;
     border-radius: 3px;
     font-size: 0.875rem;
     font-weight: 600;
     animation: validatePulse 0.8s ease-out;
-    --bg-color: #28a745;
+    --bg-color: var(--bs-success);
 }
 
 /* Input style badge rouge */

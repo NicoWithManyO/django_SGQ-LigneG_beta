@@ -35,8 +35,8 @@
     <div class="row form-row mb-4">
         <div class="col-12 d-flex align-items-center shift-id-status">
             <i class="bi status-icon me-2"
-               :class="isValid ? 'bi-check-circle-fill' : 'bi-exclamation-triangle-fill text-warning'"
-               :style="isValid ? 'color: #198754;' : ''">
+               :class="hasValidId ? 'bi-check-circle-fill' : 'bi-exclamation-triangle-fill text-warning'"
+               :style="hasValidId ? 'color: #198754;' : ''">
             </i>
             <span class="text-secondary small">ID Poste : <span class="shift-id-value" x-text="shiftId || '--'"></span></span>
         </div>
@@ -94,7 +94,31 @@
     <!-- Bouton Sauvegarder -->
     <div class="row form-row my-4">
         <div class="col-12 d-flex justify-content-center">
-            <button type="button" class="btn btn-primary btn-save-shift" @click="saveShift" :disabled="!isValid">Sauvegarder le Poste</button>
+            <div x-data="{ tooltipInstance: null }"
+                 x-init="
+                    // Créer le tooltip uniquement si le bouton est désactivé
+                    $watch('isValid', (value) => {
+                        if (!value && !tooltipInstance) {
+                            tooltipInstance = new bootstrap.Tooltip($refs.tooltipWrapper, {
+                                title: () => getValidationMessage()
+                            });
+                        } else if (value && tooltipInstance) {
+                            tooltipInstance.dispose();
+                            tooltipInstance = null;
+                        }
+                    });
+                 "
+                 x-ref="tooltipWrapper"
+                 data-bs-toggle="tooltip"
+                 data-bs-placement="top"
+                 style="display: inline-block;">
+                <button type="button" 
+                        class="btn btn-primary btn-save-shift" 
+                        @click="saveShift"
+                        :disabled="!isValid">
+                    Sauvegarder le Poste
+                </button>
+            </div>
         </div>
     </div>
     

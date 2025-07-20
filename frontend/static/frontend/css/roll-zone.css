@@ -31,7 +31,7 @@
 /* Grille du rouleau */
 .roll-grid {
     background-color: white;
-    border: 1px solid #0044a9;
+    border: 1px solid #0d6efd;
     padding: 0;
     position: relative;
     overflow: hidden;
@@ -373,7 +373,7 @@ tr.has-defect td:nth-child(7) { --col-index: 6; }
 
 /* Input avec épaisseur valide - style badge */
 .thickness-input.has-value {
-    background: #28a745;
+    background: var(--bs-success);
     color: white;
     border-radius: 3px;
     font-size: 0.875rem;
@@ -431,7 +431,7 @@ tr.has-defect td:nth-child(7) { --col-index: 6; }
 
 /* Garder le style badge même au focus si valeur valide */
 .thickness-input.has-value:focus {
-    background: #28a745;
+    background: var(--bs-success);
     color: white;
 }
 

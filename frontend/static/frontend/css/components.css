@@ -3,16 +3,27 @@
 
 /* Accordion modifications */
 .accordion-item {
-    border: none;
+    border: none !important;
     margin-bottom: 0;
-    border-radius: 0.5rem 0.5rem 0 0;
-    overflow: hidden;
+    border-radius: 0 !important;
+    overflow: visible;
+    background-color: transparent !important;
+}
+
+/* Supprimer les bordures Bootstrap par défaut */
+.accordion-collapse {
+    border: none !important;
+}
+
+.accordion-body {
+    border: none !important;
+    border-radius: 0 !important;
 }
 
 .accordion-button {
     font-weight: 500;
     border: none;
-    border-radius: 0;
+    border-radius: 0 !important;
     padding: 0.75rem 1rem;
     background-color: #f8f9fa;
     border-bottom: 2px solid #0d6efd !important;

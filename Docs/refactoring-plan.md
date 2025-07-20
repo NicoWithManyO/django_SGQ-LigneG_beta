@@ -1,29 +1,53 @@
 # Plan de Refactoring - SGQ Ligne G
 
+## 📂 État Actuel de la Séparation HTML/CSS/JS
+
+### ✅ Points Positifs
+- **Structure claire** : Un fichier par type et par composant
+- **Pas de code inline** : HTML propre, JS dans fichiers séparés
+- **Convention de nommage** : kebab-case cohérent
+- **Alpine.js bien utilisé** : x-data, x-show, x-model
+
+### ⚠️ Points d'Amélioration
+- **Fichiers JS trop gros** : roll.js (714 lignes), quality-control.js (479 lignes)
+- **Logique métier dans l'UI** : Calculs et validations mélangés avec DOM
+- **Duplication réelle** : Validation numérique répétée dans 5+ composants
+- **État partagé fragile** : Communication par events window
+
 ## 🎯 Vision et Objectifs
 
 ### Objectifs Principaux
-1. **Éliminer la duplication de code** (principe DRY)
-2. **Améliorer la scalabilité** pour supporter plus de fonctionnalités
-3. **Optimiser les performances** frontend
-4. **Faciliter la maintenance** et l'évolution du code
-5. **Renforcer la fiabilité** avec des tests
+1. **Éliminer la duplication de code** (principe DRY) - Focus sur les vraies duplications
+2. **Séparer logique métier et UI** sans casser le comportement existant
+3. **Optimiser la maintenabilité** en gardant la simplicité Alpine.js
+4. **Faciliter les tests** sur la logique métier extraite
+5. **Préserver la stabilité** - Aucune régression fonctionnelle
 
 ### Métriques de Succès
-- Réduction de 40% du code dupliqué
-- Temps de chargement initial < 2s
-- Couverture de tests > 70% sur le code critique
-- Réduction de 50% des bugs en production
+- Réduction de 25% du code dupliqué (objectif réaliste)
+- Zéro régression fonctionnelle
+- Fichiers JS < 300 lignes
+- Logique métier testable isolément
 
 ## 📊 Analyse d'Impact et Risques
 
-### Risques Identifiés
-1. **Risque de régression** : Modifications pouvant casser des fonctionnalités existantes
-   - *Mitigation* : Tests E2E avant chaque phase
-2. **Interruption de service** : Déploiement pouvant impacter la production
-   - *Mitigation* : Feature flags et déploiement progressif
-3. **Résistance au changement** : Équipe habituée aux patterns actuels
-   - *Mitigation* : Documentation et formation progressive
+### Risques Spécifiques Alpine.js
+1. **Contexte `this` perdu** : Les méthodes extraites perdent l'accès au composant
+   - *Mitigation* : Utiliser des wrappers ou passer le contexte en paramètre
+2. **Événements `$event` dans templates** : Les handlers attendent cet objet spécial
+   - *Mitigation* : Garder des méthodes proxy dans les composants
+3. **Chaînage de méthodes** : `@blur="method1(); method2()"` - ordre critique
+   - *Mitigation* : Préserver l'ordre exact dans les wrappers
+4. **Accès aux propriétés réactives** : `this.currentProfile`, `this.thicknessSpec`
+   - *Mitigation* : Passer en paramètres aux modules extraits
+
+### Risques de Régression
+1. **Validation numérique** : Comportement subtil avec virgules/points
+   - *Mitigation* : Tests exhaustifs sur tous les cas
+2. **État de session** : La sauvegarde doit rester identique
+   - *Mitigation* : Ne pas toucher à la structure de session
+3. **Classes CSS dynamiques** : Liées à la logique métier
+   - *Mitigation* : Retourner statuts, laisser UI gérer les classes
 
 ### Impact Business
 - **Court terme** : Aucune interruption de service
@@ -32,32 +56,77 @@
 
 ## 🚀 Roadmap en 3 Phases
 
-### Phase 1 : Quick Wins (2 semaines)
-*Améliorations sans impact sur l'architecture existante*
+### Phase 1 : Extractions Sécurisées (2 semaines)
+*Extraction du code dupliqué SANS changer le comportement*
 
-#### Semaine 1
-- [ ] **Extraction des constantes métier** (2 jours)
-  - Créer `config/business-rules.js`
-  - Centraliser toutes les valeurs hardcodées
-  - Estimation : 16h
-
-- [ ] **Module de validation partagé** (3 jours)
-  - Créer `validation/` avec validators réutilisables
-  - Éliminer la duplication dans roll.js et quality-control.js
+#### Semaine 1 - Duplications Réelles
+- [ ] **Module de validation numérique** (3 jours)
+  - Créer `validators/numeric-input.js`
+  - Extraire `validateNumericInput()` et `formatNumber()`
+  - Garder des wrappers dans les composants Alpine
+  - Cas identifiés : quality-control.js (12 occurrences), roll.js
   - Estimation : 24h
 
-#### Semaine 2
-- [ ] **Event Bus centralisé** (2 jours)
-  - Créer `events/event-bus.js`
-  - Remplacer les window.addEventListener dispersés
+- [ ] **Module de calculs partagés** (2 jours)
+  - Créer `business-logic/calculations.js`
+  - Extraire les calculs de moyennes (4 duplications)
+  - Extraire la logique de conformité
   - Estimation : 16h
 
-- [ ] **Documentation technique** (3 jours)
-  - JSDoc sur toutes les fonctions publiques
-  - Diagrammes de séquence pour workflows complexes
+#### Exemple de Refactoring Sécurisé
+```javascript
+// validators/numeric-input.js
+export const numericValidator = {
+    validateKeypress(event) {
+        const allowedKeys = ['0-9', '.', ',', 'Backspace', 'Delete', 'Tab', 'Enter', 'ArrowLeft', 'ArrowRight'];
+        // Logique pure extraite
+    },
+    formatValue(value) {
+        // Logique de formatage pure
+        return formattedValue;
+    }
+};
+
+// quality-control.js - WRAPPER qui garde le contexte Alpine
+validateNumericInput(event) {
+    numericValidator.validateKeypress(event);
+},
+formatNumber(event, type) {
+    const formatted = numericValidator.formatValue(event.target.value);
+    event.target.value = formatted;
+    // Mise à jour du modèle Alpine préservée
+    this.updateModel(event.target, formatted, type);
+    // Chaînage préservé pour updateMicrometry(), etc.
+}
+```
+
+#### Semaine 2 - Infrastructure
+- [ ] **Tests de non-régression** (2 jours)
+  - Capturer comportement actuel en vidéo
+  - Créer checklist manuelle de validation
+  - Tests sur tous les cas limites identifiés
+  - Estimation : 16h
+
+- [ ] **CSS Utilities** (3 jours)
+  - Créer `css/utilities/forms.css`
+  - Extraire styles dupliqués (.form-control custom, badges)
+  - Remplacer progressivement sans casser
   - Estimation : 24h
 
-**Total Phase 1 : 80h (2 développeurs)**
+**Total Phase 1 : 80h (1 développeur + tests)**
+
+### Clarifications Importantes
+
+#### "Valeurs Hardcodées" - Analyse Réelle
+- **Seul cas trouvé** : `value < 5` dans roll.js ligne 617
+- **Contexte** : Fallback de sécurité quand pas de profil chargé
+- **Décision** : À conserver, c'est une protection légitime
+
+#### Ce qui N'EST PAS à Refactorer
+- ✅ **api.js** : Déjà bien centralisé
+- ✅ **Session Django** : Ne pas toucher, fonctionne bien
+- ✅ **Structure HTML** : Propre et bien organisée
+- ✅ **Alpine.js patterns** : Bien utilisés, à préserver
 
 ### Phase 2 : Restructuration (4 semaines)
 *Refactoring structurel avec changements d'architecture*
@@ -149,20 +218,26 @@
 - [ ] Performance score > 90
 - [ ] 0 erreur Sentry sur 1 semaine
 
-## 🔄 Approche de Migration
+## 🔄 Approche de Migration Sécurisée
 
-### Stratégie "Strangler Fig"
-1. Nouveau code suit les nouveaux patterns
-2. Migration progressive du code existant
-3. Ancien code déprécié puis supprimé
+### Principe : "Extraire sans Casser"
+1. **Identifier** la duplication réelle (pas les faux positifs)
+2. **Extraire** la logique pure dans des modules
+3. **Wrapper** dans les composants pour garder le contexte Alpine
+4. **Tester** exhaustivement avant de passer au suivant
+5. **Valider** avec l'utilisateur à chaque étape
 
-### Feature Flags
+### Tests de Non-Régression Critiques
 ```javascript
-// config/features.js
-export const FEATURES = {
-  USE_CENTRAL_STORE: process.env.FEATURE_CENTRAL_STORE === 'true',
-  USE_NEW_VALIDATION: process.env.FEATURE_NEW_VALIDATION === 'true'
-};
+// Cas à tester pour validation numérique
+- Saisie avec virgule : "12,5" → "12.5"
+- Saisie avec point : "12.5" → "12.5"
+- Point seul : ".5" → "0.5"
+- Virgule seule : ",5" → "0.5"
+- Caractères interdits : bloqués
+- Copier-coller : formaté correctement
+- Blur vide : pas d'erreur
+- Chaînage @blur : updateMicrometry() appelé
 ```
 
 ## 📚 Prochaines Étapes
@@ -172,16 +247,26 @@ export const FEATURES = {
 3. **Formation de l'équipe** sur nouveaux patterns
 4. **Démarrage Phase 1** avec extraction des constantes
 
-## 🎯 Quick Wins Immédiats (sans refactoring)
+## 📝 Résumé des Vraies Duplications à Traiter
 
-Ces améliorations peuvent être faites dès maintenant :
+### Duplications Confirmées (à refactorer)
+1. **Validation numérique** : 12+ occurrences dans quality-control, roll
+2. **Calculs de moyennes** : 4+ duplications entre templates et JS
+3. **Gestion events** : window.addEventListener dans 15+ endroits
+4. **Formatage timestamps** : Logique répétée
 
-1. **Ajouter `.prettierrc`** pour formatage consistant
-2. **Configurer ESLint** avec règles adaptées
-3. **Créer snippets VSCode** pour patterns communs
-4. **Documenter les conventions** dans CONTRIBUTING.md
-5. **Ajouter hooks pre-commit** pour qualité du code
+### Faux Positifs (à NE PAS refactorer)
+1. **Session loading** : api.js déjà centralisé, composants l'utilisent bien
+2. **Valeur < 5** : Fallback de sécurité légitime
+3. **Patterns Alpine** : x-data, x-show bien utilisés
+
+## 🎯 Bénéfices Attendus Réalistes
+
+- **Code** : -25% de duplication (pas -40%)
+- **Maintenance** : Logique métier isolée et testable
+- **Stabilité** : Zéro régression grâce aux wrappers
+- **Évolutivité** : Ajout de features facilité
 
 ---
 
-*Document vivant - À mettre à jour après chaque phase*
+*Document mis à jour le 20/01/2025 - Basé sur analyse réelle du code*

@@ -62,7 +62,7 @@
 }
 
 .kpi-indicator.good {
-    background-color: #28a745;
+    background-color: var(--bs-success);
 }
 
 .kpi-indicator.warning {

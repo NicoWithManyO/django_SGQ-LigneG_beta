@@ -6,6 +6,11 @@
     padding: 0.0625rem 0;
 }
 
+/* Conteneur du numéro et texte pour qu'il prenne tout l'espace */
+.checklist-item .d-flex .d-flex:first-child {
+    flex: 1;
+}
+
 /* Numéro de l'item */
 .checklist-number {
     font-size: 0.7rem;
@@ -48,8 +53,8 @@
 
 /* États actifs */
 .checklist-item .btn-outline-success.active {
-    background-color: #28a745;
-    border-color: #28a745;
+    background-color: var(--bs-success);
+    border-color: var(--bs-success);
     color: white;
 }
 

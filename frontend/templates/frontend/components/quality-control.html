@@ -5,12 +5,12 @@
             <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseQualityControl" aria-expanded="true" aria-controls="collapseQualityControl">
                 <div class="d-flex align-items-center">
                     <h6 class="mb-0 text-primary me-3">
-                        <i class="bi bi-clipboard-check me-2"></i>Contrôles Qualité
+                        <i class="bi bi-clipboard-check me-2"></i>Production courante
                     </h6>
                     <span class="text-muted">
-                        Mic. moyen : <strong :class="getMoyenneClass('micrometry', (micrometry.averageLeft + micrometry.averageRight) / 2)" x-text="((micrometry.averageLeft + micrometry.averageRight) / 2).toFixed(1) || '--'"></strong> mg/min
+                        <strong :class="getMoyenneClass('micrometry', (micrometry.averageLeft + micrometry.averageRight) / 2)" x-text="((micrometry.averageLeft + micrometry.averageRight) / 2).toFixed(1) || '--'"></strong> mg/min
                         <span class="mx-2">|</span>
-                        Masse Surfa. moyenne : <strong :class="getMoyenneClass('surfaceMass', (surfaceMass.averageLeft + surfaceMass.averageRight) / 2)" x-text="surfaceMass.averageLeft && surfaceMass.averageRight ? formatMoyenne((surfaceMass.averageLeft + surfaceMass.averageRight) / 2, 'surfaceMass') : '--'"></strong> g/25cm²
+                        <strong :class="getMoyenneClass('surfaceMass', (surfaceMass.averageLeft + surfaceMass.averageRight) / 2)" x-text="surfaceMass.averageLeft && surfaceMass.averageRight ? formatMoyenne((surfaceMass.averageLeft + surfaceMass.averageRight) / 2, 'surfaceMass') : '--'"></strong> g/25cm²
                     </span>
                 </div>
             </button>
