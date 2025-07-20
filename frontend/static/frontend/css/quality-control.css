@@ -43,7 +43,6 @@
 
 /* Micro labels */
 .micro-label {
-    font-size: 0.75rem;
     color: #6c757d;
     margin-bottom: 0.25rem;
     display: block;
@@ -77,8 +76,8 @@
 
 /* Switch LOI - vert quand actif */
 .quality-control-container .form-check-input:checked {
-    background-color: #28a745;
-    border-color: #28a745;
+    background-color: var(--bs-success);
+    border-color: var(--bs-success);
 }
 
 /* Retirer les flèches dans Chrome, Safari, Edge */
@@ -95,17 +94,17 @@
 
 /* États des bordures */
 .quality-control-container .border-success {
-    border-color: #28a745 !important;
+    border-color: var(--bs-success) !important;
     border-width: 2px !important;
 }
 
 .quality-control-container .border-warning {
-    border-color: #ffc107 !important;
+    border-color: var(--bs-warning) !important;
     border-width: 2px !important;
 }
 
 .quality-control-container .border-danger {
-    border-color: #dc3545 !important;
+    border-color: var(--bs-danger) !important;
     border-width: 2px !important;
 }
 
@@ -117,15 +116,15 @@
 
 /* Classes de texte pour les moyennes */
 .quality-control-container .text-success {
-    color: #28a745 !important;
+    color: var(--bs-success) !important;
 }
 
 .quality-control-container .text-warning {
-    color: #ffc107 !important;
+    color: var(--bs-warning) !important;
 }
 
 .quality-control-container .text-danger {
-    color: #dc3545 !important;
+    color: var(--bs-danger) !important;
 }
 
 /* Extrait sec en overlay */

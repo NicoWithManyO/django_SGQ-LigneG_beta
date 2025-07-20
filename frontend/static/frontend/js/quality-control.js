@@ -9,10 +9,10 @@ function qualityControl() {
             averageRight: null
         },
         surfaceMass: {
-            LL: null,
-            LC: null,
-            RC: null,
-            RR: null,
+            leftLeft: null,
+            leftCenter: null,
+            rightCenter: null,
+            rightRight: null,
             averageLeft: null,
             averageRight: null
         },
@@ -94,10 +94,10 @@ function qualityControl() {
                 // Charger les masses surfaciques
                 if (data.surfaceMass) {
                     this.surfaceMass = {
-                        LL: data.surfaceMass.LL !== undefined ? data.surfaceMass.LL : null,
-                        LC: data.surfaceMass.LC !== undefined ? data.surfaceMass.LC : null,
-                        RC: data.surfaceMass.RC !== undefined ? data.surfaceMass.RC : null,
-                        RR: data.surfaceMass.RR !== undefined ? data.surfaceMass.RR : null,
+                        leftLeft: data.surfaceMass.leftLeft !== undefined ? data.surfaceMass.leftLeft : null,
+                        leftCenter: data.surfaceMass.leftCenter !== undefined ? data.surfaceMass.leftCenter : null,
+                        rightCenter: data.surfaceMass.rightCenter !== undefined ? data.surfaceMass.rightCenter : null,
+                        rightRight: data.surfaceMass.rightRight !== undefined ? data.surfaceMass.rightRight : null,
                         averageLeft: data.surfaceMass.averageLeft || null,
                         averageRight: data.surfaceMass.averageRight || null
                     };
@@ -149,7 +149,7 @@ function qualityControl() {
         loadThresholdsFromProfile() {
             if (!this.currentProfile || !this.currentProfile.profilespecvalue_set) {
                 this.thresholds = qualityControlBusinessLogic.defaultThresholds;
-                console.log('Using default thresholds:', this.thresholds);
+                console.log('Utilisation des seuils par défaut:', this.thresholds);
                 return;
             }
             
@@ -238,12 +238,12 @@ function qualityControl() {
                 }
             });
             
-            console.log('Loaded thresholds from profile:', thresholds);
+            console.log('Seuils chargés depuis le profil:', thresholds);
             this.thresholds = thresholds;
             
             // Vérifier si les seuils ont été mis à jour
             if (JSON.stringify(thresholds.micrometry) === JSON.stringify(qualityControlBusinessLogic.defaultThresholds.micrometry)) {
-                console.warn('Warning: Micronnaire thresholds were not updated from profile!');
+                console.warn('Attention: Les seuils de micronnaire n\'ont pas été mis à jour depuis le profil!');
             }
         },
         
@@ -269,8 +269,8 @@ function qualityControl() {
             if (!this.surfaceMass) return;
             
             // Calculer les moyennes - uniquement si les DEUX valeurs sont présentes
-            const leftValues = [this.surfaceMass.LL, this.surfaceMass.LC];
-            const rightValues = [this.surfaceMass.RC, this.surfaceMass.RR];
+            const leftValues = [this.surfaceMass.leftLeft, this.surfaceMass.leftCenter];
+            const rightValues = [this.surfaceMass.rightCenter, this.surfaceMass.rightRight];
             
             // Vérifier que les deux valeurs gauche sont remplies
             if (leftValues.every(v => v !== null && v !== undefined && v !== '')) {

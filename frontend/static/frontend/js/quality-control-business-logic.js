@@ -66,10 +66,10 @@ const qualityControlBusinessLogic = {
         
         // Toutes les masses surfaciques doivent être remplies
         const hasSurfaceMass = data.surfaceMass && 
-                           data.surfaceMass.LL !== null && data.surfaceMass.LL !== '' &&
-                           data.surfaceMass.LC !== null && data.surfaceMass.LC !== '' &&
-                           data.surfaceMass.RC !== null && data.surfaceMass.RC !== '' &&
-                           data.surfaceMass.RR !== null && data.surfaceMass.RR !== '';
+                           data.surfaceMass.leftLeft !== null && data.surfaceMass.leftLeft !== '' &&
+                           data.surfaceMass.leftCenter !== null && data.surfaceMass.leftCenter !== '' &&
+                           data.surfaceMass.rightCenter !== null && data.surfaceMass.rightCenter !== '' &&
+                           data.surfaceMass.rightRight !== null && data.surfaceMass.rightRight !== '';
         
         // L'extrait sec doit être rempli
         const hasDryExtract = data.dryExtract && data.dryExtract.value !== null && data.dryExtract.value !== '';

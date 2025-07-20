@@ -73,8 +73,8 @@
 
 /* Card Qualité */
 .kpi-card.kpi-quality {
-    --kpi-color-start: #10b981;
-    --kpi-color-end: #059669;
+    --kpi-color-start: var(--bs-success);
+    --kpi-color-end: var(--bs-success);
 }
 
 /* Card Productivité */

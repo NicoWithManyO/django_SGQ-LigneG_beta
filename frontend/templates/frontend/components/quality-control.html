@@ -34,8 +34,8 @@
                     <input class="form-check-input" type="checkbox" 
                            x-model="dryExtract.sample" 
                            @change="updateLOI()"
-                           id="echantillonLOI">
-                    <label class="form-check-label small ms-2" for="echantillonLOI">
+                           id="sampleLOI">
+                    <label class="form-check-label small ms-2" for="sampleLOI">
                         LOI
                     </label>
                 </div>
@@ -95,8 +95,8 @@
                                         <label class="micro-label">GG</label>
                                         <input type="text" 
                                                class="form-control form-control-sm"
-                                               :class="getInputClass('surfaceMass', surfaceMass.LL)"
-                                               x-model="surfaceMass.LL"
+                                               :class="getInputClass('surfaceMass', surfaceMass.leftLeft)"
+                                               x-model="surfaceMass.leftLeft"
                                                @keydown="validateNumericInput($event)"
                                                @blur="formatNumber($event, 'surfaceMass'); updateSurfaceMass()"
                                                placeholder="--">
@@ -105,8 +105,8 @@
                                         <label class="micro-label">GC</label>
                                         <input type="text" 
                                                class="form-control form-control-sm"
-                                               :class="getInputClass('surfaceMass', surfaceMass.LC)"
-                                               x-model="surfaceMass.LC"
+                                               :class="getInputClass('surfaceMass', surfaceMass.leftCenter)"
+                                               x-model="surfaceMass.leftCenter"
                                                @keydown="validateNumericInput($event)"
                                                @blur="formatNumber($event, 'surfaceMass'); updateSurfaceMass()"
                                                placeholder="--">
@@ -125,8 +125,8 @@
                                         <label class="micro-label">DC</label>
                                         <input type="text" 
                                                class="form-control form-control-sm"
-                                               :class="getInputClass('surfaceMass', surfaceMass.RC)"
-                                               x-model="surfaceMass.RC"
+                                               :class="getInputClass('surfaceMass', surfaceMass.rightCenter)"
+                                               x-model="surfaceMass.rightCenter"
                                                @keydown="validateNumericInput($event)"
                                                @blur="formatNumber($event, 'surfaceMass'); updateSurfaceMass()"
                                                placeholder="--">
@@ -135,8 +135,8 @@
                                         <label class="micro-label">DD</label>
                                         <input type="text" 
                                                class="form-control form-control-sm"
-                                               :class="getInputClass('surfaceMass', surfaceMass.RR)"
-                                               x-model="surfaceMass.RR"
+                                               :class="getInputClass('surfaceMass', surfaceMass.rightRight)"
+                                               x-model="surfaceMass.rightRight"
                                                @keydown="validateNumericInput($event)"
                                                @blur="formatNumber($event, 'surfaceMass'); updateSurfaceMass()"
                                                placeholder="--">
