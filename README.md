@@ -13,6 +13,8 @@ Système de gestion de production pour la ligne de fibrage, conforme aux normes 
 - **Session persistante** : Sauvegarde automatique de toutes les données saisies
 - **Zone rouleau avancée** : Navigation clavier optimisée, indicateurs visuels OK/NOK et grille adaptative
 - **Interface à onglets** : Système d'onglets pour les profils (Specs&Params et KPI/TRS)
+- **Validation en temps réel** : Épaisseurs et grammage validés selon le profil avec codes couleur
+- **Badge de conformité dynamique** : Affichage temps réel du statut de conformité du rouleau
 
 ## 🛠 Environnement technique
 
@@ -58,16 +60,18 @@ django_SGQ-LigneG_beta/
 
 ### Contrôle qualité amélioré
 - **Badge de statut intelligent** : Affichage pending/passed/failed selon l'état des contrôles
-- **Validation numérique** : Saisie restreinte aux valeurs numériques avec formatage automatique
+- **Validation numérique** : Saisie restreinte aux valeurs numériques avec conversion virgule→point automatique
 - **Horodatage** : Timestamps pour extrait sec et LOI
 - **Labels de masse surfacique** : GG, GC, DC, DD pour une meilleure lisibilité
 - **LOI obligatoire** : Le contrôle qualité ne peut être validé sans cocher la LOI
+- **Validation formulaire poste** : Le bouton "Sauvegarder le Poste" vérifie que le contrôle qualité est complété
 
 ### Navigation optimisée (Zone rouleau)
 - **Navigation clavier** : Tab/Shift+Tab entre les champs d'épaisseur
 - **Sélection automatique** : Le contenu est sélectionné au focus
 - **Validation temps réel** : Indicateurs visuels OK/NOK selon les spécifications
 - **Grille dynamique** : Adaptation automatique à la longueur cible du rouleau
+- **Codes couleur** : Vert (#28a745) pour OK, orange pour alerte, rouge pour NOK
 
 ### Gestion des profils
 Chaque profil de production définit :
@@ -141,6 +145,8 @@ Pour plus de détails techniques, consulter :
 - [Plan de Refactoring](Docs/refactoring-plan.md)
 - [Architecture Détaillée](Docs/architecture.md)
 - [Analyse de Performance](Docs/performance-analysis.md)
+- [Logique Métier Frontend](Docs/logique-metier-frontend.md)
+- [Conventions de Code](Docs/conventions.md)
 
 ## 🚨 Points d'attention
 
