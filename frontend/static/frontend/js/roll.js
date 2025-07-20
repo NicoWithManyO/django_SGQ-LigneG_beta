@@ -17,6 +17,7 @@ function roll() {
         selectorPosition: { top: 0, left: 0 },
         currentProfile: null,
         thicknessSpec: null,
+        qcStatus: 'pending', // Statut du contrôle qualité
         
         // Initialisation
         init() {
@@ -39,6 +40,12 @@ function roll() {
                     spec.spec_item.name === 'thickness' || 
                     spec.spec_item.display_name.toLowerCase().includes('épaisseur')
                 );
+            });
+            
+            // Écouter les changements du contrôle qualité
+            window.addEventListener('quality-control-updated', (e) => {
+                this.qcStatus = e.detail.status;
+                // La conformité sera recalculée automatiquement via les watchers Alpine
             });
             
             // Émettre l'état initial après un court délai pour que tout soit initialisé
@@ -159,7 +166,8 @@ function roll() {
                 defectTypes: this.defectTypes,
                 thicknesses: this.thicknesses,
                 nokThicknesses: this.nokThicknesses,
-                targetLength: this.targetLength
+                targetLength: this.targetLength,
+                qcStatus: this.qcStatus
             });
         },
         

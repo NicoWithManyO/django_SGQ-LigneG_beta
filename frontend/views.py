@@ -42,6 +42,8 @@ def production(request):
         'checklist_responses': request.session.get('checklist_responses', {}),
         'checklist_signature': request.session.get('checklist_signature', ''),
         'checklist_signature_time': request.session.get('checklist_signature_time', ''),
+        # Contrôle qualité
+        'quality_control': request.session.get('quality_control', {}),
     }
     
     # Préparer les données des opérateurs pour JS

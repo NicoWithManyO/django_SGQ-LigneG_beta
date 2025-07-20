@@ -39,10 +39,33 @@ const api = {
             });
             
             await this.handleResponse(response);
+            // Mettre à jour window.sessionData après sauvegarde réussie
+            if (window.sessionData) {
+                Object.assign(window.sessionData, data);
+            }
             return true;
         } catch (error) {
             console.error('Erreur lors de la sauvegarde en session:', error);
             return false;
+        }
+    },
+
+    // Méthode pour récupérer la session
+    async getSession() {
+        try {
+            const response = await fetch(this.endpoints.session, {
+                method: 'GET',
+                headers: this.getHeaders(false)
+            });
+            
+            await this.handleResponse(response);
+            const data = await response.json();
+            // Mettre à jour window.sessionData
+            window.sessionData = data;
+            return data;
+        } catch (error) {
+            console.error('Erreur lors de la récupération de la session:', error);
+            return null;
         }
     },
 
@@ -129,3 +152,6 @@ const api = {
         return await this.post(this.endpoints.checklistResponses, data);
     }
 };
+
+// Export pour utilisation globale
+window.api = api;

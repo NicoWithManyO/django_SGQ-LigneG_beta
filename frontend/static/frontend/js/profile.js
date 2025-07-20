@@ -10,6 +10,7 @@ function profile() {
         loading: false,
         updatingMode: false, // Pour éviter les appels multiples
         targetLength: window.sessionData?.target_length || 0,
+        activeTab: 'specs', // Onglet actif par défaut
         
         // Initialisation
         async init() {
@@ -21,6 +22,12 @@ function profile() {
             
             // Charger depuis la session
             this.loadFromSession();
+            
+            // Charger l'onglet actif depuis sessionStorage
+            const savedTab = window.sessionStorage.getItem('profileActiveTab');
+            if (savedTab && ['specs', 'kpi'].includes(savedTab)) {
+                this.activeTab = savedTab;
+            }
             
             // Si un profil est sélectionné, charger ses détails
             if (this.selectedProfileId) {

@@ -1,0 +1,153 @@
+/* Styles pour le contrôle qualité */
+.quality-control-container {
+    margin-bottom: 0;
+    padding: 0;
+}
+
+/* Section principale */
+.quality-controls-section {
+    padding: 0;
+    border-bottom: 2px solid #dee2e6;
+}
+
+/* Header du contrôle qualité */
+.quality-controls-section > .d-flex:first-child {
+    background-color: #f8f9fa;
+    padding: 0.5rem 0;
+    margin: 0 0 0.5rem 0;
+    border-bottom: 2px solid #0d6efd;
+}
+
+/* Table QC - hérite du layout de roll-table mais sans les effets */
+.qc-table {
+    background-color: transparent;
+}
+
+.qc-table td {
+    padding: 0.5rem 0.25rem;
+    height: auto;
+}
+
+/* Désactiver les effets de survol de roll-table */
+.qc-table tr:hover td::before {
+    display: none !important;
+}
+
+.qc-table tr:hover .length-label {
+    font-weight: inherit !important;
+}
+
+.qc-table td::before {
+    display: none !important;
+}
+
+/* Micro labels */
+.micro-label {
+    font-size: 0.75rem;
+    color: #6c757d;
+    margin-bottom: 0.25rem;
+    display: block;
+    text-align: center;
+}
+
+/* Inputs de qualité */
+.quality-control-container input[type="number"],
+.quality-control-container input[type="text"] {
+    text-align: center;
+    width: 60px;
+    color: #0d6efd;
+    font-weight: 500;
+    -moz-appearance: textfield; /* Firefox */
+    cursor: pointer;
+}
+
+/* Garder la couleur bleue au focus */
+.quality-control-container input[type="number"]:focus,
+.quality-control-container input[type="text"]:focus {
+    color: #0d6efd !important;
+    font-weight: 500;
+    cursor: text;
+}
+
+/* Checkbox et label aussi avec curseur main */
+.quality-control-container input[type="checkbox"],
+.quality-control-container label {
+    cursor: pointer;
+}
+
+/* Switch LOI - vert quand actif */
+.quality-control-container .form-check-input:checked {
+    background-color: #28a745;
+    border-color: #28a745;
+}
+
+/* Retirer les flèches dans Chrome, Safari, Edge */
+.quality-control-container input[type="number"]::-webkit-outer-spin-button,
+.quality-control-container input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.qc-masse input[type="number"],
+.qc-masse input[type="text"] {
+    width: 80px;
+}
+
+/* États des bordures */
+.quality-control-container .border-success {
+    border-color: #28a745 !important;
+    border-width: 2px !important;
+}
+
+.quality-control-container .border-warning {
+    border-color: #ffc107 !important;
+    border-width: 2px !important;
+}
+
+.quality-control-container .border-danger {
+    border-color: #dc3545 !important;
+    border-width: 2px !important;
+}
+
+/* Badge QC */
+.quality-control-container .badge {
+    font-size: 0.875rem;
+    padding: 0.25rem 0.5rem;
+}
+
+/* Classes de texte pour les moyennes */
+.quality-control-container .text-success {
+    color: #28a745 !important;
+}
+
+.quality-control-container .text-warning {
+    color: #ffc107 !important;
+}
+
+.quality-control-container .text-danger {
+    color: #dc3545 !important;
+}
+
+/* Extrait sec en overlay */
+.qc-extrait-sec-overlay {
+    position: absolute;
+    top: 35%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 10;
+    text-align: center;
+    background: rgba(255, 255, 255, 0.95);
+    padding: 1rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+/* LOI en overlay */
+.qc-loi-overlay {
+    position: absolute;
+    top: 80%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 10;
+    text-align: center;
+}

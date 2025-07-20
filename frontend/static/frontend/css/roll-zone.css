@@ -22,8 +22,7 @@
 .roll-container {
     margin-top: 1rem;
     position: relative;
-    padding-left: 0.25rem;
-    padding-right: 0.25rem;
+    padding: 0;
 }
 
 /* Grille du rouleau */
@@ -37,7 +36,7 @@
 
 /* Container du badge de conformité */
 .badge-conformite-container {
-    padding: 1rem;
+    padding: 0.5rem 0;
     margin-bottom: 0;
 }
 

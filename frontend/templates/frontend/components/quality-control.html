@@ -1,0 +1,154 @@
+<!-- Composant Contrôle Qualité -->
+<div class="quality-control-container" x-data="qualityControl()" x-init="init()">
+    <div class="quality-controls-section mb-3">
+        <!-- Titre simple avec badge -->
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <h6 class="mb-0 text-primary">
+                <i class="bi bi-clipboard-check me-2"></i>Contrôle Qualité
+            </h6>
+            <span id="qc-badge" :class="qualityControlFormatters.getQCBadgeClass(qcStatus || 'pending')" style="display: none;">
+                <i :class="qualityControlFormatters.getStatusIcon(qcStatus || 'pending')" class="me-1"></i>
+                <span x-text="qualityControlFormatters.getQCBadgeText(qcStatus || 'pending')"></span>
+            </span>
+        </div>
+        
+        <!-- Table alignée avec le rouleau -->
+        <div class="position-relative">
+            <!-- Extrait Sec en position absolue -->
+            <div class="qc-extrait-sec-overlay">
+                <small class="text-muted d-block mb-1">Extrait Sec (%)</small>
+                <input type="text" 
+                       class="form-control form-control-sm mx-auto mb-1"
+                       :class="getInputClass('dryExtract', dryExtract.value)"
+                       x-model="dryExtract.value"
+                       @keydown="validateNumericInput($event)"
+                       @blur="formatNumber($event, 'dryExtract'); updateDryExtract()"
+                       placeholder="--"
+                       style="width: 80px;">
+                <small class="text-muted d-block" x-text="formatTimestamp(dryExtract.timestamp)"></small>
+            </div>
+            
+            <!-- LOI en position absolue entre les masses surfaciques -->
+            <div class="qc-loi-overlay">
+                <div class="form-check form-switch d-flex justify-content-center mb-1">
+                    <input class="form-check-input" type="checkbox" 
+                           x-model="dryExtract.sample" 
+                           @change="updateLOI()"
+                           id="echantillonLOI">
+                    <label class="form-check-label small ms-2" for="echantillonLOI">
+                        LOI
+                    </label>
+                </div>
+                <small class="text-muted d-block" x-text="formatTimestamp(dryExtract.loiTimestamp)"></small>
+            </div>
+            
+            <table class="roll-table qc-table">
+                <tbody>
+                    <!-- Ligne Micronnaire -->
+                    <tr>
+                        <td colspan="3" class="text-center">
+                            <div class="qc-micrometrie">
+                                <small class="text-muted d-block mb-1">Micronnaire G (mg/min)</small>
+                                <div class="d-flex flex-column gap-1 align-items-center">
+                                    <template x-for="i in 3" :key="i">
+                                        <input type="text" 
+                                               class="form-control form-control-sm" 
+                                               :class="getInputClass('micrometry', micrometry.left[i-1])"
+                                               x-model="micrometry.left[i-1]"
+                                               @keydown="validateNumericInput($event)"
+                                               @blur="formatNumber($event, 'micrometry'); updateMicrometry()"
+                                               placeholder="--">
+                                    </template>
+                                </div>
+                                <small class="d-block mt-1">Moyenne: <strong :class="getMoyenneClass('micrometry', micrometry.averageLeft)" 
+                                                                          x-text="formatMoyenne(micrometry.averageLeft, 'micrometry')"></strong></small>
+                            </div>
+                        </td>
+                        <td class="col-length"></td>
+                        <td colspan="3" class="text-center">
+                            <div class="qc-micrometrie">
+                                <small class="text-muted d-block mb-1">Micronnaire D (mg/min)</small>
+                                <div class="d-flex flex-column gap-1 align-items-center">
+                                    <template x-for="i in 3" :key="i">
+                                        <input type="text" 
+                                               class="form-control form-control-sm" 
+                                               :class="getInputClass('micrometry', micrometry.right[i-1])"
+                                               x-model="micrometry.right[i-1]"
+                                               @keydown="validateNumericInput($event)"
+                                               @blur="updateMicrometry()"
+                                               placeholder="--">
+                                    </template>
+                                </div>
+                                <small class="d-block mt-1">Moyenne: <strong :class="getMoyenneClass('micrometry', micrometry.averageRight)" 
+                                                                          x-text="formatMoyenne(micrometry.averageRight, 'micrometry')"></strong></small>
+                            </div>
+                        </td>
+                    </tr>
+                    
+                    <!-- Ligne Masse Surfacique -->
+                    <tr>
+                        <td colspan="3" class="text-center">
+                            <div class="qc-masse">
+                                <small class="text-muted d-block mb-1">Masse Surfacique G (g/25cm²)</small>
+                                <div class="d-flex gap-4 justify-content-center">
+                                    <div>
+                                        <label class="micro-label">GG</label>
+                                        <input type="text" 
+                                               class="form-control form-control-sm"
+                                               :class="getInputClass('surfaceMass', surfaceMass.LL)"
+                                               x-model="surfaceMass.LL"
+                                               @keydown="validateNumericInput($event)"
+                                               @blur="formatNumber($event, 'surfaceMass'); updateSurfaceMass()"
+                                               placeholder="--">
+                                    </div>
+                                    <div>
+                                        <label class="micro-label">GC</label>
+                                        <input type="text" 
+                                               class="form-control form-control-sm"
+                                               :class="getInputClass('surfaceMass', surfaceMass.LC)"
+                                               x-model="surfaceMass.LC"
+                                               @keydown="validateNumericInput($event)"
+                                               @blur="formatNumber($event, 'surfaceMass'); updateSurfaceMass()"
+                                               placeholder="--">
+                                    </div>
+                                </div>
+                                <small class="d-block mt-1">Moyenne: <strong :class="getMoyenneClass('surfaceMass', surfaceMass.averageLeft)" 
+                                                                          x-text="formatMoyenne(surfaceMass.averageLeft, 'surfaceMass')"></strong></small>
+                            </div>
+                        </td>
+                        <td class="col-length"></td>
+                        <td colspan="3" class="text-center">
+                            <div class="qc-masse">
+                                <small class="text-muted d-block mb-1">Masse Surfacique D (g/25cm²)</small>
+                                <div class="d-flex gap-4 justify-content-center">
+                                    <div>
+                                        <label class="micro-label">DC</label>
+                                        <input type="text" 
+                                               class="form-control form-control-sm"
+                                               :class="getInputClass('surfaceMass', surfaceMass.RC)"
+                                               x-model="surfaceMass.RC"
+                                               @keydown="validateNumericInput($event)"
+                                               @blur="formatNumber($event, 'surfaceMass'); updateSurfaceMass()"
+                                               placeholder="--">
+                                    </div>
+                                    <div>
+                                        <label class="micro-label">DD</label>
+                                        <input type="text" 
+                                               class="form-control form-control-sm"
+                                               :class="getInputClass('surfaceMass', surfaceMass.RR)"
+                                               x-model="surfaceMass.RR"
+                                               @keydown="validateNumericInput($event)"
+                                               @blur="formatNumber($event, 'surfaceMass'); updateSurfaceMass()"
+                                               placeholder="--">
+                                    </div>
+                                </div>
+                                <small class="d-block mt-1">Moyenne: <strong :class="getMoyenneClass('surfaceMass', surfaceMass.averageRight)" 
+                                                                          x-text="formatMoyenne(surfaceMass.averageRight, 'surfaceMass')"></strong></small>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

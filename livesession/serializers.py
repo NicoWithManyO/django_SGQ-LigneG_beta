@@ -43,6 +43,9 @@ class SessionSerializer(serializers.Serializer):
     checklist_signature = serializers.CharField(required=False, allow_null=True, allow_blank=True)
     checklist_signature_time = serializers.CharField(required=False, allow_null=True, allow_blank=True)
     
+    # Contrôle qualité
+    quality_control = serializers.JSONField(required=False, allow_null=True)
+    
     def update(self, instance, validated_data):
         """Met à jour la session avec les données validées."""
         # instance = request.session

@@ -1,5 +1,11 @@
 <!-- Composant Rouleau -->
 <div class="roll-container" x-data="roll()" x-init="init()">
+    <!-- Contrôle Qualité -->
+    {% include 'frontend/components/quality-control.html' %}
+    
+    <!-- Séparateur -->
+    <hr class="my-3" style="border-color: #dee2e6;">
+    
     <!-- Badge de conformité -->
     <div class="badge-conformite-container pb-3">
         <div class="row align-items-center">
@@ -19,12 +25,23 @@
                           'border-danger bg-danger text-white': !isConform,
                           'border-secondary bg-transparent text-secondary': isConform && !hasFirstRowComplete()
                       }">
+                    <i :class="{
+                        'bi-check-circle-fill me-1': isConform && hasFirstRowComplete(),
+                        'bi-x-circle-fill me-1': !isConform,
+                        'bi-clock-fill me-1': isConform && !hasFirstRowComplete()
+                    }"></i>
                     <span x-text="isConform ? 'CONFORME' : 'NON CONFORME'"></span>
                 </span>
             </div>
             
-            <!-- Colonne droite vide -->
-            <div class="col-4">
+            <!-- Colonne droite : Badge QC -->
+            <div class="col-4 text-start">
+                <div class="text-start">
+                    <small class="text-muted d-block">Contrôles Qualité</small>
+                    <div id="qc-badge-container">
+                        <!-- Le badge sera inséré ici par JavaScript -->
+                    </div>
+                </div>
             </div>
         </div>
     </div>

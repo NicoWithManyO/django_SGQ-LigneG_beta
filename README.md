@@ -12,6 +12,7 @@ Système de gestion de production pour la ligne de fibrage, conforme aux normes 
 - **Intégrations** : Connecteurs disponibles pour systèmes externes (ERP, MES)
 - **Session persistante** : Sauvegarde automatique de toutes les données saisies
 - **Zone rouleau avancée** : Navigation clavier optimisée, indicateurs visuels OK/NOK et grille adaptative
+- **Interface à onglets** : Système d'onglets pour les profils (Specs&Params et KPI/TRS)
 
 ## 🛠 Environnement technique
 
@@ -55,6 +56,13 @@ django_SGQ-LigneG_beta/
 - **Validation finale** : Transfert en base de données lors de la validation du poste
 - **Protection contre les pertes** : Aucune donnée perdue même en cas de coupure réseau
 
+### Contrôle qualité amélioré
+- **Badge de statut intelligent** : Affichage pending/passed/failed selon l'état des contrôles
+- **Validation numérique** : Saisie restreinte aux valeurs numériques avec formatage automatique
+- **Horodatage** : Timestamps pour extrait sec et LOI
+- **Labels de masse surfacique** : GG, GC, DC, DD pour une meilleure lisibilité
+- **LOI obligatoire** : Le contrôle qualité ne peut être validé sans cocher la LOI
+
 ### Navigation optimisée (Zone rouleau)
 - **Navigation clavier** : Tab/Shift+Tab entre les champs d'épaisseur
 - **Sélection automatique** : Le contenu est sélectionné au focus
@@ -67,6 +75,9 @@ Chaque profil de production définit :
 - **Paramètres machine** : Réglages optimaux pour chaque type de production
 - **Seuils d'alerte** : Valeurs min/max pour déclenchement d'alertes
 - **Blocages** : Certaines spécifications peuvent bloquer la production si hors tolérance
+- **Interface à onglets** :
+  - **Specs&Params** : Vue des paramètres machine et spécifications qualité
+  - **KPI/TRS** : Indicateurs de performance en temps réel (TRS, disponibilité, performance, qualité)
 
 ### Check-lists de contrôle
 - **Templates réutilisables** : Check-lists standards par défaut

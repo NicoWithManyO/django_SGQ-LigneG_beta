@@ -5,6 +5,8 @@
 .accordion-item {
     border: none;
     margin-bottom: 0;
+    border-radius: 0.5rem 0.5rem 0 0;
+    overflow: hidden;
 }
 
 .accordion-button {
@@ -12,16 +14,23 @@
     border: none;
     border-radius: 0;
     padding: 0.75rem 1rem;
+    background-color: #f8f9fa;
+    border-bottom: 2px solid #0d6efd !important;
 }
 
 .accordion-button:not(.collapsed) {
-    background-color: inherit;
+    background-color: #f8f9fa;
     box-shadow: none;
+    border-bottom: 2px solid #0d6efd !important;
 }
 
 .accordion-button:focus {
     box-shadow: none;
-    border-color: transparent;
+    border-bottom: 2px solid #0d6efd !important;
+}
+
+.accordion-button.collapsed {
+    border-bottom: 2px solid #0d6efd !important;
 }
 
 .accordion-button.bg-primary {
@@ -35,6 +44,12 @@
 
 .accordion-button::after {
     filter: brightness(0) invert(1);
+}
+
+/* Chevron bleu pour les headers avec text-primary */
+.accordion-button.text-primary::after {
+    filter: none;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%230d6efd'%3e%3cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3e%3c/svg%3e");
 }
 
 .accordion-body {
@@ -79,6 +94,15 @@
 
 .accordion-body .form-check-label {
     font-size: 0.875rem;
+}
+
+/* Header d'accordion avec tabs */
+.accordion-header > .d-flex {
+    background-color: #f8f9fa;
+}
+
+.accordion-header .accordion-button {
+    border-bottom: none !important;
 }
 
 

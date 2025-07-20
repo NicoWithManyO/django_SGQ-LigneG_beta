@@ -35,6 +35,7 @@ class SessionAPIView(APIView):
             'checklist_responses': request.session.get('checklist_responses'),
             'checklist_signature': request.session.get('checklist_signature'),
             'checklist_signature_time': request.session.get('checklist_signature_time'),
+            'quality_control': request.session.get('quality_control'),
         }
         return Response(data)
     
@@ -92,6 +93,7 @@ class SessionAPIView(APIView):
                 'checklist_responses': request.session.get('checklist_responses'),
                 'checklist_signature': request.session.get('checklist_signature'),
                 'checklist_signature_time': request.session.get('checklist_signature_time'),
+                'quality_control': request.session.get('quality_control'),
             })
         
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

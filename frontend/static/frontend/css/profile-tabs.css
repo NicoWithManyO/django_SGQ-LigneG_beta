@@ -1,0 +1,74 @@
+/* Styles pour les onglets du profil */
+
+/* Container des onglets dans le header */
+.profile-tabs-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    z-index: 10;
+}
+
+/* Onglets individuels */
+.profile-tab {
+    padding: 0.25rem 0.75rem;
+    font-size: 0.875rem;
+    border-radius: 0.25rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 1px solid #dee2e6;
+    background-color: #ffffff;
+    color: #6c757d;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    height: 32px;
+}
+
+/* Onglet actif */
+.profile-tab.active {
+    background-color: #0d6efd;
+    color: white;
+    border-color: #0d6efd;
+}
+
+/* Onglet au survol */
+.profile-tab:not(.active):hover {
+    background-color: #e9ecef;
+    color: #495057;
+}
+
+/* Ajustement du bouton accordion pour faire de la place aux onglets */
+.accordion-button.with-tabs {
+    position: relative;
+    padding-right: 200px;
+}
+
+/* Container des contenus d'onglets */
+.profile-tab-content {
+    display: none;
+}
+
+.profile-tab-content.active {
+    display: block;
+}
+
+/* Indicateur KPI */
+.kpi-indicator {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-left: 0.25rem;
+}
+
+.kpi-indicator.good {
+    background-color: #28a745;
+}
+
+.kpi-indicator.warning {
+    background-color: #ffc107;
+}
+
+.kpi-indicator.bad {
+    background-color: #dc3545;
+}

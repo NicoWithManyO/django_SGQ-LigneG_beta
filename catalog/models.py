@@ -186,7 +186,7 @@ class WcmChecklistTemplateItem(models.Model):
         verbose_name = "Item de template"
         verbose_name_plural = "Items de template"
         ordering = ['template', 'order']
-        unique_together = [['template', 'item'], ['template', 'order']]
+        unique_together = [['template', 'order']]
     
     def __str__(self):
         return f"{self.template.name} - {self.order}. {self.item.text}"
