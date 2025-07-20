@@ -76,21 +76,8 @@
                 <!-- Bloc Zone Rouleau -->
                 <div class="mt-3">
                     <div class="bg-light p-3 rounded">
-                        <!-- Container Zone Rouleau -->
-                        <div class="zone-rouleau-container" x-data="{ 
-                            status: 'standard',
-                            nbEpaisseurs: 0,
-                            nbNok: 0,
-                            nbDefauts: 0
-                        }">
-                            <!-- Badge de conformité avec compteurs -->
-                            <div>
-                                {% include 'frontend/components/badge-conformite.html' %}
-                            </div>
-                            
-                            <!-- Rouleau -->
-                            {% include 'frontend/components/roll.html' %}
-                        </div>
+                        <!-- Rouleau avec badge intégré -->
+                        {% include 'frontend/components/roll.html' %}
                     </div>
                 </div>
             </div>

@@ -46,8 +46,6 @@ function profile() {
             // Écouter les changements de longueur cible pour recalculer l'estimation
             window.addEventListener('target-length-changed', (e) => {
                 this.targetLength = e.detail.length;
-                // Forcer le recalcul
-                this.$refresh();
             });
         },
         

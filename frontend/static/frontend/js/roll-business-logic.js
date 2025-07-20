@@ -34,13 +34,21 @@ const rollBusinessLogic = {
     },
     
     // Calculer la conformité du rouleau
-    calculateConformity(defectCount, thicknesses, nokThicknesses) {
+    calculateConformity(defectCount, thicknesses, nokThicknesses, defects = []) {
         // Règles de conformité :
-        // - Non conforme si au moins 1 défaut
+        // - Non conforme si au moins 1 défaut BLOQUANT
+        // - Non conforme si plus de 3 cellules ont au moins une épaisseur NOK
         // - Non conforme si une cellule a 2 épaisseurs NOK (non rattrapée)
         
-        // Vérifier les défauts
-        if (defectCount > 0) {
+        // Vérifier s'il y a des défauts bloquants uniquement
+        const hasBlockingDefect = defects.some(d => d.severity === 'blocking');
+        if (hasBlockingDefect) {
+            return false;
+        }
+        
+        // Compter les cellules avec au moins un NOK
+        const cellsWithNok = this.countCellsWithNok(thicknesses, nokThicknesses);
+        if (cellsWithNok > 3) {
             return false;
         }
         
@@ -70,6 +78,25 @@ const rollBusinessLogic = {
         }
         
         return true;
+    },
+    
+    // Compter les cellules uniques avec au moins une épaisseur NOK
+    countCellsWithNok(thicknesses, nokThicknesses) {
+        const cellsWithNok = new Set();
+        
+        // Ajouter les cellules avec badge NOK
+        nokThicknesses.forEach(nok => {
+            cellsWithNok.add(`${nok.row}-${nok.col}`);
+        });
+        
+        // Ajouter les cellules avec input NOK
+        thicknesses.forEach(thickness => {
+            if (thickness.isNok) {
+                cellsWithNok.add(`${thickness.row}-${thickness.col}`);
+            }
+        });
+        
+        return cellsWithNok.size;
     },
     
     // Valider une épaisseur selon les spécifications

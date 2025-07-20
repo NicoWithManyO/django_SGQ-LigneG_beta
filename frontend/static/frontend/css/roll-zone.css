@@ -15,6 +15,7 @@
     transition: all 0.3s ease;
     font-weight: 600;
     letter-spacing: 0.5px;
+    padding: 1rem 2rem !important;
 }
 
 /* Container du rouleau */
@@ -36,7 +37,7 @@
 
 /* Container du badge de conformité */
 .badge-conformite-container {
-    padding: 0.5rem;
+    padding: 1rem;
     margin-bottom: 0;
 }
 
@@ -381,8 +382,8 @@ tr.has-defect td:nth-child(7) { --col-index: 6; }
 
 /* Input avec épaisseur NOK (deuxième ou plus) - style badge rouge */
 .thickness-input.has-nok {
-    background: #dc3545;
-    color: white;
+    background: #dc3545 !important;
+    color: white !important;
     border-radius: 3px;
     font-size: 0.875rem;
     font-weight: 600;
@@ -429,6 +430,12 @@ tr.has-defect td:nth-child(7) { --col-index: 6; }
 .thickness-input.has-value:focus {
     background: #28a745;
     color: white;
+}
+
+/* Garder le style badge rouge même au focus si NOK */
+.thickness-input.has-nok:focus {
+    background: #dc3545 !important;
+    color: white !important;
 }
 
 /* Indicateur d'épaisseur NOK */

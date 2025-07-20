@@ -1,5 +1,33 @@
 <!-- Composant Rouleau -->
 <div class="roll-container" x-data="roll()" x-init="init()">
+    <!-- Badge de conformité -->
+    <div class="badge-conformite-container pb-3">
+        <div class="row align-items-center">
+            <!-- Colonne gauche : Infos -->
+            <div class="col-4 text-end">
+                <div class="text-secondary small">
+                    <div>Ep. : <span x-text="thicknessCount"></span>/<span x-text="getThicknessPositions().length * 6"></span> | NOK : <span x-text="nokCount"></span> <span x-text="getThicknessThreshold() ? `(max : ${getThicknessThreshold()})` : ''"></span></div>
+                    <div>Défauts : <span x-text="defectCount"></span> | <span x-text="getDefectsList()"></span></div>
+                </div>
+            </div>
+            
+            <!-- Colonne centre : Badge -->
+            <div class="col-4 text-center">
+                <span class="badge-conformite badge fs-5 px-3 py-2 border" 
+                      :class="{
+                          'border-success bg-success text-white': isConform && thicknessCount >= 6,
+                          'border-danger bg-danger text-white': !isConform,
+                          'border-secondary bg-transparent text-secondary': isConform && thicknessCount < 6
+                      }">
+                    <span x-text="isConform ? 'CONFORME' : 'NON CONFORME'"></span>
+                </span>
+            </div>
+            
+            <!-- Colonne droite vide -->
+            <div class="col-4">
+            </div>
+        </div>
+    </div>
     <!-- Message si pas de longueur cible -->
     <div x-show="rowCount === 0" class="alert alert-info">
         <i class="bi bi-info-circle"></i> Veuillez définir une longueur cible pour afficher le rouleau
@@ -15,7 +43,7 @@
                 class="defect-selector position-fixed form-select form-select-sm"
                 :style="`top: ${selectorPosition.top}px; left: ${selectorPosition.left}px;`"
                 :size="defectTypes.length">
-            <template x-for="defect in defectTypes" :key="defect.id">
+            <template x-for="defect in defectTypes.filter(d => !d.name.toLowerCase().includes('épaisseur') && !d.name.toLowerCase().includes('epaisseur'))" :key="defect.id">
                 <option :value="defect.id" 
                         x-text="defect.name + (defect.severity === 'threshold' && defect.threshold_value ? ` (NOK ${defect.threshold_value})` : '')"
                         :style="(defect.severity === 'non_blocking' || defect.severity === 'threshold') ? 'color: #fd7e14' : 'color: #dc3545'"></option>

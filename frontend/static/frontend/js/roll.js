@@ -41,6 +41,11 @@ function roll() {
                 );
             });
             
+            // Émettre l'état initial après un court délai pour que tout soit initialisé
+            setTimeout(() => {
+                this.updateEpaisseurDisplay();
+            }, 100);
+            
             // Écouter la validation des épaisseurs (blur ou Enter)
             this.$el.addEventListener('blur', (e) => {
                 if (e.target.classList.contains('thickness-input') && !e.target.dataset.processing) {
@@ -147,14 +152,42 @@ function roll() {
             this.defectCount = this.defects.length;
         },
         
-        // Calculer la conformité
+        // Calculer la conformité du rouleau complet
         get isConform() {
-            // Utiliser la logique métier pour calculer la conformité
-            return rollBusinessLogic.calculateConformity(
-                this.defectCount,
-                this.thicknesses,
-                this.nokThicknesses
-            );
+            // Règle 1 : Défauts bloquants
+            const hasBlockingDefect = this.defects.some(d => d.severity === 'blocking');
+            if (hasBlockingDefect) {
+                return false;
+            }
+            
+            // Règle 2 : Défauts à seuil - vérifier si on dépasse le seuil
+            const thresholdDefects = this.defects.filter(d => d.severity === 'threshold');
+            for (const defectType of this.defectTypes) {
+                if (defectType.severity === 'threshold' && defectType.threshold_value) {
+                    const count = this.defects.filter(d => d.typeId == defectType.id).length;
+                    if (count >= defectType.threshold_value) {
+                        return false;
+                    }
+                }
+            }
+            
+            // Règle 3 : Plus de 3 cellules avec au moins une épaisseur NOK
+            const cellsWithNokCount = rollBusinessLogic.countCellsWithNok(this.thicknesses, this.nokThicknesses);
+            if (cellsWithNokCount > 3) {
+                return false;
+            }
+            
+            // Règle 4 : Une cellule avec 2 épaisseurs NOK
+            const cols = ['G1', 'C1', 'D1', 'G2', 'C2', 'D2'];
+            for (let row = 1; row <= this.rowCount; row++) {
+                for (const col of cols) {
+                    if (this.hasThicknessNok(row, col) && this.hasThicknessNokInInput(row, col)) {
+                        return false;
+                    }
+                }
+            }
+            
+            return true;
         },
         
         // Vérifier si une ligne doit avoir des inputs d'épaisseur
@@ -239,12 +272,18 @@ function roll() {
             // Sauvegarder dans la session
             this.saveRollData();
             
+            // Compter les cellules avec au moins un NOK
+            const cellsWithNokCount = rollBusinessLogic.countCellsWithNok(this.thicknesses, this.nokThicknesses);
+            
             // Émettre un événement pour mettre à jour le badge
             window.dispatchEvent(new CustomEvent('rouleau-updated', {
                 detail: { 
                     thicknessCount: this.thicknessCount,
                     nokCount: this.nokCount,
-                    defectCount: this.defectCount
+                    defectCount: this.defectCount,
+                    cellsWithNokCount: cellsWithNokCount,
+                    defects: this.defects,
+                    isConform: this.isConform
                 }
             }));
         },
@@ -298,35 +337,94 @@ function roll() {
                 // Sauvegarder dans la session
                 this.saveRollData();
                 
+                // Compter les cellules avec au moins un NOK
+                const cellsWithNokCount = rollBusinessLogic.countCellsWithNok(this.thicknesses, this.nokThicknesses);
+                
                 // Émettre un événement pour mettre à jour le badge
                 window.dispatchEvent(new CustomEvent('rouleau-updated', {
                     detail: { 
                         thicknessCount: this.thicknessCount,
                         nokCount: this.nokCount,
-                        defectCount: this.defectCount
+                        defectCount: this.defectCount,
+                        cellsWithNokCount: cellsWithNokCount,
+                        defects: this.defects
                     }
                 }));
             }
         },
         
-        // Vérifier si une ligne a au moins un défaut bloquant (pour afficher les ciseaux)
-        hasDefectInRow(row) {
-            // Une ligne a un défaut bloquant si elle a un défaut visuel bloquant OU une cellule avec 2 épaisseurs NOK
-            const blockingDefect = this.defects.find(d => d.row === row && d.severity === 'blocking');
-            if (blockingDefect) {
-                return true;
-            }
+        // Trouver la dernière ligne avec un problème
+        getLastProblemRow() {
+            let lastRow = 0;
             
-            // Vérifier si une cellule de cette ligne a 2 épaisseurs NOK
+            // Chercher la dernière ligne avec un défaut bloquant
+            const blockingDefects = this.defects.filter(d => d.severity === 'blocking');
+            blockingDefects.forEach(d => {
+                if (d.row > lastRow) lastRow = d.row;
+            });
+            
+            // Chercher la dernière ligne avec 2 épaisseurs NOK
             const cols = ['G1', 'C1', 'D1', 'G2', 'C2', 'D2'];
-            for (const col of cols) {
-                // Si on a un badge NOK ET un input NOK dans la même cellule
-                if (this.hasThicknessNok(row, col) && this.hasThicknessNokInInput(row, col)) {
-                    return true;
+            for (let row = 1; row <= this.rowCount; row++) {
+                for (const col of cols) {
+                    if (this.hasThicknessNok(row, col) && this.hasThicknessNokInInput(row, col)) {
+                        if (row > lastRow) lastRow = row;
+                    }
                 }
             }
             
+            // Si plus de 3 cellules avec NOK, chercher la dernière ligne avec épaisseur
+            const cellsWithNokCount = rollBusinessLogic.countCellsWithNok(this.thicknesses, this.nokThicknesses);
+            if (cellsWithNokCount > 3) {
+                // Trouver la dernière ligne avec une épaisseur NOK
+                [...this.thicknesses, ...this.nokThicknesses].forEach(ep => {
+                    if ((ep.isNok || this.nokThicknesses.includes(ep)) && ep.row > lastRow) {
+                        lastRow = ep.row;
+                    }
+                });
+            }
+            
+            return lastRow;
+        },
+        
+        // Vérifier si une ligne doit afficher les ciseaux
+        hasDefectInRow(row) {
+            // Les ciseaux ne s'affichent que sur la dernière ligne problématique
+            if (!this.isConform) {
+                return row === this.getLastProblemRow();
+            }
             return false;
+        },
+        
+        // Obtenir les positions des épaisseurs pour le calcul du total
+        getThicknessPositions() {
+            return rollBusinessLogic.getThicknessPositions(this.targetLength);
+        },
+        
+        // Obtenir le seuil du défaut épaisseur
+        getThicknessThreshold() {
+            const thicknessDefect = this.defectTypes.find(d => 
+                d.name.toLowerCase().includes('épaisseur') || 
+                d.name.toLowerCase().includes('epaisseur')
+            );
+            return thicknessDefect?.threshold_value || null;
+        },
+        
+        // Obtenir la liste des défauts
+        getDefectsList() {
+            if (this.defects.length === 0) return '--';
+            
+            // Grouper par type de défaut et compter
+            const defectCounts = {};
+            this.defects.forEach(d => {
+                const name = d.typeName || 'Inconnu';
+                defectCounts[name] = (defectCounts[name] || 0) + 1;
+            });
+            
+            // Formater la liste
+            return Object.entries(defectCounts)
+                .map(([name, count]) => count > 1 ? `${name} (${count})` : name)
+                .join(', ');
         },
         
         // Gérer la saisie d'épaisseur
@@ -444,12 +542,18 @@ function roll() {
             // Sauvegarder dans la session
             this.saveRollData();
             
+            // Compter les cellules avec au moins un NOK
+            const cellsWithNokCount = rollBusinessLogic.countCellsWithNok(this.thicknesses, this.nokThicknesses);
+            
             // Émettre un événement pour mettre à jour le badge
             window.dispatchEvent(new CustomEvent('rouleau-updated', {
                 detail: { 
                     thicknessCount: this.thicknessCount,
                     nokCount: this.nokCount,
-                    defectCount: this.defectCount
+                    defectCount: this.defectCount,
+                    cellsWithNokCount: cellsWithNokCount,
+                    defects: this.defects,
+                    isConform: this.isConform
                 }
             }));
         },
