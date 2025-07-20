@@ -212,9 +212,10 @@ function roll() {
             const button = event.target;
             const buttonRect = button.getBoundingClientRect();
             
-            // Position du sélecteur (position fixed, donc coordonnées de la fenêtre)
+            // Position du sélecteur juste au-dessus du bouton
+            // Le select aura sa hauteur automatique selon le nombre d'options
             this.selectorPosition = {
-                top: buttonRect.bottom + 2, // 2px sous le bouton
+                bottom: window.innerHeight - buttonRect.top + 5, // 5px au-dessus du bouton
                 left: buttonRect.left - 50 // Centrer le sélecteur
             };
             

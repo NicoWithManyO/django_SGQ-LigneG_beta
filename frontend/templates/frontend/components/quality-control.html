@@ -1,19 +1,32 @@
 <!-- Composant Contrôle Qualité -->
-<div class="quality-control-container" x-data="qualityControl()" x-init="init()">
-    <div class="quality-controls-section mb-3">
-        <!-- Titre simple avec badge -->
-        <div class="d-flex justify-content-between align-items-center mb-2">
-            <h6 class="mb-0 text-primary">
-                <i class="bi bi-clipboard-check me-2"></i>Contrôle Qualité
-            </h6>
-            <span id="qc-badge" :class="qualityControlFormatters.getQCBadgeClass(qcStatus || 'pending')" style="display: none;">
-                <i :class="qualityControlFormatters.getStatusIcon(qcStatus || 'pending')" class="me-1"></i>
-                <span x-text="qualityControlFormatters.getQCBadgeText(qcStatus || 'pending')"></span>
-            </span>
-        </div>
-        
-        <!-- Table alignée avec le rouleau -->
-        <div class="position-relative">
+<div class="quality-control-container accordion" x-data="qualityControl()" x-init="init()">
+    <div class="accordion-item">
+        <h2 class="accordion-header">
+            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseQualityControl" aria-expanded="true" aria-controls="collapseQualityControl">
+                <div class="d-flex align-items-center">
+                    <h6 class="mb-0 text-primary me-3">
+                        <i class="bi bi-clipboard-check me-2"></i>Contrôles Qualité
+                    </h6>
+                    <span class="text-muted">
+                        Mic. moyen : <strong :class="getMoyenneClass('micrometry', (micrometry.averageLeft + micrometry.averageRight) / 2)" x-text="((micrometry.averageLeft + micrometry.averageRight) / 2).toFixed(1) || '--'"></strong> mg/min
+                        <span class="mx-2">|</span>
+                        Masse Surfa. moyenne : <strong :class="getMoyenneClass('surfaceMass', (surfaceMass.averageLeft + surfaceMass.averageRight) / 2)" x-text="surfaceMass.averageLeft && surfaceMass.averageRight ? formatMoyenne((surfaceMass.averageLeft + surfaceMass.averageRight) / 2, 'surfaceMass') : '--'"></strong> g/25cm²
+                    </span>
+                </div>
+            </button>
+        </h2>
+        <div id="collapseQualityControl" class="accordion-collapse collapse show">
+            <div class="accordion-body">
+                <div class="quality-controls-section mb-3">
+                    <!-- Badge QC -->
+                    <div class="text-center mb-2">
+                        <span id="qc-badge" :class="qualityControlFormatters.getQCBadgeClass(qcStatus || 'pending')" style="display: none;">
+                            <i :class="qualityControlFormatters.getStatusIcon(qcStatus || 'pending')" class="me-1"></i>
+                            <span x-text="qualityControlFormatters.getQCBadgeText(qcStatus || 'pending')"></span>
+                        </span>
+                    </div>
+                    <!-- Table alignée avec le rouleau -->
+                    <div class="position-relative">
             <!-- Extrait Sec en position absolue -->
             <div class="qc-extrait-sec-overlay">
                 <small class="text-muted d-block mb-1">Extrait Sec (%)</small>
@@ -60,8 +73,8 @@
                                                placeholder="--">
                                     </template>
                                 </div>
-                                <small class="d-block mt-1">Moyenne: <strong :class="getMoyenneClass('micrometry', micrometry.averageLeft)" 
-                                                                          x-text="formatMoyenne(micrometry.averageLeft, 'micrometry')"></strong></small>
+                                <span class="d-block mt-1">Moyenne : <strong :class="getMoyenneClass('micrometry', micrometry.averageLeft)" 
+                                                                          x-text="formatMoyenne(micrometry.averageLeft, 'micrometry')"></strong></span>
                             </div>
                         </td>
                         <td class="col-length"></td>
@@ -79,8 +92,8 @@
                                                placeholder="--">
                                     </template>
                                 </div>
-                                <small class="d-block mt-1">Moyenne: <strong :class="getMoyenneClass('micrometry', micrometry.averageRight)" 
-                                                                          x-text="formatMoyenne(micrometry.averageRight, 'micrometry')"></strong></small>
+                                <span class="d-block mt-1">Moyenne : <strong :class="getMoyenneClass('micrometry', micrometry.averageRight)" 
+                                                                          x-text="formatMoyenne(micrometry.averageRight, 'micrometry')"></strong></span>
                             </div>
                         </td>
                     </tr>
@@ -112,8 +125,8 @@
                                                placeholder="--">
                                     </div>
                                 </div>
-                                <small class="d-block mt-1">Moyenne: <strong :class="getMoyenneClass('surfaceMass', surfaceMass.averageLeft)" 
-                                                                          x-text="formatMoyenne(surfaceMass.averageLeft, 'surfaceMass')"></strong></small>
+                                <span class="d-block mt-1">Moyenne : <strong :class="getMoyenneClass('surfaceMass', surfaceMass.averageLeft)" 
+                                                                          x-text="formatMoyenne(surfaceMass.averageLeft, 'surfaceMass')"></strong></span>
                             </div>
                         </td>
                         <td class="col-length"></td>
@@ -142,13 +155,16 @@
                                                placeholder="--">
                                     </div>
                                 </div>
-                                <small class="d-block mt-1">Moyenne: <strong :class="getMoyenneClass('surfaceMass', surfaceMass.averageRight)" 
-                                                                          x-text="formatMoyenne(surfaceMass.averageRight, 'surfaceMass')"></strong></small>
+                                <span class="d-block mt-1">Moyenne : <strong :class="getMoyenneClass('surfaceMass', surfaceMass.averageRight)" 
+                                                                          x-text="formatMoyenne(surfaceMass.averageRight, 'surfaceMass')"></strong></span>
                             </div>
                         </td>
                     </tr>
                 </tbody>
             </table>
+                </div>
+            </div>
+            </div>
         </div>
     </div>
 </div>

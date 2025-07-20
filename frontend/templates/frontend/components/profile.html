@@ -242,6 +242,38 @@
                     </div>
                 </div>
 
+                <!-- Card MTBF -->
+                <div class="kpi-card kpi-mtbf">
+                    <div class="kpi-header">
+                        <span class="kpi-title">MTBF</span>
+                        <div class="kpi-icon">
+                            <i class="bi bi-clock-history"></i>
+                        </div>
+                    </div>
+                    <div class="kpi-value">
+                        <span x-text="kpiCalculations.calculateMTBF(kpiData).value"></span><span class="kpi-unit" x-text="kpiCalculations.calculateMTBF(kpiData).unit"></span>
+                    </div>
+                    <div class="kpi-details">
+                        <span>Temps moyen entre pannes</span>
+                    </div>
+                </div>
+
+                <!-- Card Rendement -->
+                <div class="kpi-card kpi-yield">
+                    <div class="kpi-header">
+                        <span class="kpi-title">Rendement</span>
+                        <div class="kpi-icon">
+                            <i class="bi bi-graph-up-arrow"></i>
+                        </div>
+                    </div>
+                    <div class="kpi-value">
+                        <span x-text="kpiCalculations.calculateMaterialYield(kpiData).value"></span><span class="kpi-unit">%</span>
+                    </div>
+                    <div class="kpi-details">
+                        <span>Rendement matière</span>
+                    </div>
+                </div>
+
             </div>
         </div>
     </div>

@@ -16,11 +16,14 @@
     font-weight: 600;
     letter-spacing: 0.5px;
     padding: 1rem 2rem !important;
+    min-width: 220px;
+    display: inline-block;
 }
 
 /* Container du rouleau */
 .roll-container {
     margin-top: 1rem;
+    margin-bottom: 1rem;
     position: relative;
     padding: 0;
 }
@@ -28,10 +31,11 @@
 /* Grille du rouleau */
 .roll-grid {
     background-color: white;
-    border: none;
+    border: 1px solid #0044a9;
     padding: 0;
     position: relative;
     overflow: hidden;
+    margin-bottom: 1rem;
 }
 
 /* Container du badge de conformité */

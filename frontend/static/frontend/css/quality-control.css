@@ -4,15 +4,55 @@
     padding: 0;
 }
 
+/* Accordion du contrôle qualité */
+.quality-control-container.accordion {
+    border: none;
+}
+
+.quality-control-container .accordion-item {
+    border: none;
+    background-color: transparent;
+}
+
+.quality-control-container .accordion-button {
+    background-color: transparent;
+    border: none;
+    box-shadow: none;
+    padding: 0.5rem 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+.quality-control-container .accordion-button::after {
+    flex-shrink: 0;
+    margin-left: 1rem;
+    filter: brightness(0) saturate(100%) invert(27%) sepia(84%) saturate(2372%) hue-rotate(203deg) brightness(104%) contrast(106%);
+}
+
+.quality-control-container .accordion-button:not(.collapsed) {
+    background-color: transparent;
+    color: inherit;
+}
+
+.quality-control-container .accordion-button:focus {
+    box-shadow: none;
+}
+
+.quality-control-container .accordion-body {
+    padding: 0;
+}
+
 /* Section principale */
 .quality-controls-section {
     padding: 0;
-    border-bottom: 2px solid #dee2e6;
+    border-bottom: none;
 }
 
 /* Header du contrôle qualité */
 .quality-controls-section > .d-flex:first-child {
-    background-color: #f8f9fa;
+    background-color: transparent;
     padding: 0.5rem 0;
     margin: 0 0 0.5rem 0;
     border-bottom: 2px solid #0d6efd;
@@ -78,6 +118,11 @@
 .quality-control-container .form-check-input:checked {
     background-color: var(--bs-success);
     border-color: var(--bs-success);
+}
+
+/* Champ Extrait Sec - fond gris clair au focus */
+.qc-extrait-sec-overlay input:focus {
+    background-color: #f8f9fa;
 }
 
 /* Retirer les flèches dans Chrome, Safari, Edge */
