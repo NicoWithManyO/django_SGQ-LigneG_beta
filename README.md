@@ -106,6 +106,42 @@ Chaque profil de production définit :
 3. **Données d'épaisseur** pour contrôle statistique
 4. **Conformité ISO** assurée par le système
 
+## 🏗 Architecture Technique
+
+### Stack Technologique
+- **Backend** : Django 5.2.4 + Django REST Framework
+- **Frontend** : Alpine.js 3.x pour la réactivité
+- **CSS** : Bootstrap 5.3 + CSS personnalisé modulaire
+- **Base de données** : SQLite (dev) / PostgreSQL (prod)
+
+### Organisation du Code
+- **Apps Django** : Séparées par domaine métier (catalog, production, quality, wcm)
+- **Frontend modulaire** : 21 composants JavaScript indépendants
+- **CSS par composant** : Un fichier CSS par fonctionnalité
+- **API REST** : Endpoints versionnables pour évolution future
+
+### Points Forts
+- ✅ Architecture modulaire bien organisée
+- ✅ Session persistante robuste
+- ✅ Patterns documentés et réutilisables
+- ✅ Séparation logique métier/UI
+
+### Axes d'Amélioration
+- ⚠️ Dépendances entre composants à réduire
+- ⚠️ Performance à optimiser (bundling, lazy loading)
+- ⚠️ Tests automatisés à implémenter
+- ⚠️ Code dupliqué à factoriser (~23%)
+
+📊 **Métriques de Performance**
+- Temps de chargement : ~2.5s
+- Taille bundle JS : ~350kb
+- Watchers actifs : ~150
+
+Pour plus de détails techniques, consulter :
+- [Plan de Refactoring](Docs/refactoring-plan.md)
+- [Architecture Détaillée](Docs/architecture.md)
+- [Analyse de Performance](Docs/performance-analysis.md)
+
 ## 🚨 Points d'attention
 
 ### IDs auto-générés (NE JAMAIS MODIFIER)
@@ -116,4 +152,24 @@ Chaque profil de production définit :
 ### États machine
 - `machine_started_start` : Machine allumée en début de poste
 - `machine_started_end` : Machine reste allumée en fin de poste
+
+## 🤝 Contribution
+
+### Standards de Code
+- **Python** : PEP 8, code en anglais, commentaires en français
+- **JavaScript** : ESLint (à configurer), camelCase
+- **CSS** : BEM naming, kebab-case
+- **Git** : Conventional commits en anglais
+
+### Workflow
+1. Créer une branche feature depuis `main`
+2. Développer en suivant les conventions
+3. Tester manuellement (tests auto à venir)
+4. Pull request avec description détaillée
+
+### Bonnes Pratiques
+- Utiliser les patterns existants (voir Docs/patterns.md)
+- Éviter la duplication de code
+- Documenter les fonctions complexes
+- Maintenir la séparation des responsabilités
 

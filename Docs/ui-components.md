@@ -65,3 +65,48 @@ The Profile component now features a tabbed interface with two views:
 - Resolved unique constraint issue preventing item modifications
 - Migration created to allow multiple templates with same items
 - Fixed duplicate entries causing display issues
+
+## KPI Dashboard Component
+
+### Overview
+Modern KPI dashboard with 6 cards in a 3x2 grid layout featuring:
+- Gradient designs with unique color schemes per KPI
+- Animated progress bars
+- Trend indicators (up/down/neutral)
+- Responsive grid that adapts to screen size
+
+### KPI Cards Implemented
+1. **TRS/OEE** - Overall Equipment Effectiveness
+2. **Disponibilité** - Machine availability metric
+3. **Performance** - Production speed efficiency
+4. **Qualité** - Product quality rate
+5. **Productivité** - Production output per hour
+6. **Taux de rebut** - Scrap/rejection rate
+
+### Technical Details
+- `kpi-cards.css`: Styling with gradients and animations
+- `kpi-calculations.js`: Business logic for KPI calculations
+- Cards use CSS custom properties for theming
+- Hover effects with elevation and transitions
+
+### Component Dependencies
+
+#### Roll Component Dependencies
+- Listens to: `target-length-changed`, `profile-changed`, `quality-control-updated`
+- Emits: `roll-updated`, `thickness-updated`
+- DOM Dependencies: `#qc-badge-container`
+
+#### Quality Control Dependencies  
+- Looks for: `profileManager` component (with timeout)
+- Emits: `quality-control-updated`
+- Moves badge to: `#qc-badge-container`
+
+#### Profile Component Dependencies
+- Emits: `profile-changed`, `profile-tab-changed`
+- Listens to: `target-length-changed`
+- Manages: Profile selection and tab state
+
+### Known Issues & Workarounds
+1. **Component initialization order**: Quality control uses setTimeout to find profile component
+2. **Badge movement**: QC badge is moved to roll component area after render
+3. **Event proliferation**: 15+ custom events used for inter-component communication
