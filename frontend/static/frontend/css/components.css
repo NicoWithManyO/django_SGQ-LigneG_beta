@@ -1,6 +1,15 @@
 /* ===== COMPONENTS CSS ===== */
 /* Styles des composants réutilisables */
 
+/* Override Bootstrap success color */
+.bg-success {
+    background-color: #28a745 !important;
+}
+
+.badge.bg-success {
+    background-color: #28a745 !important;
+}
+
 /* Accordion modifications */
 .accordion-item {
     border: none !important;

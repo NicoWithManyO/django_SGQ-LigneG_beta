@@ -125,8 +125,8 @@
 
 /* Switch LOI - vert quand actif */
 .quality-control-container .form-check-input:checked {
-    background-color: var(--bs-success);
-    border-color: var(--bs-success);
+    background-color: #28a745;
+    border-color: #28a745;
 }
 
 /* Champ Extrait Sec - fond gris clair au focus */
@@ -148,7 +148,7 @@
 
 /* États des bordures */
 .quality-control-container .border-success {
-    border-color: var(--bs-success) !important;
+    border-color: #28a745 !important;
     border-width: 2px !important;
 }
 
@@ -170,7 +170,7 @@
 
 /* Classes de texte pour les moyennes */
 .quality-control-container .text-success {
-    color: var(--bs-success) !important;
+    color: #28a745 !important;
 }
 
 .quality-control-container .text-warning {

@@ -54,8 +54,8 @@
                     
                     <!-- Grammage calculé -->
                     <div class="info-item">
-                        <div class="info-label net-mass-label fw-bold"><span x-text="netMass || '--'">--</span><span x-show="netMass"> g</span></div>
-                        <div class="info-value text-warning fw-bold text-start" x-text="weight || '--'">--</div>
+                        <div class="info-label net-mass-label"><span x-text="netMass || '--'">--</span><span x-show="netMass"> g</span></div>
+                        <div class="info-value text-start" :class="getWeightClass()" x-text="weight || '--'">--</div>
                     </div>
                     
                     <!-- Boutons d'action -->

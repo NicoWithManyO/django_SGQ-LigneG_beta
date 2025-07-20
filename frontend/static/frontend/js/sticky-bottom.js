@@ -13,11 +13,22 @@ function stickyBottom() {
         currentFO: '',
         editingRollNumber: false,
         feltWidth: 1, // Largeur du feutre en mètres (par défaut 1m, à récupérer du profil)
+        currentProfile: null,
+        surfaceMassSpec: null,
         
         // Initialisation
         init() {
             // Charger les données du rouleau en cours
             this.loadCurrentRollData();
+            
+            // Essayer de récupérer le profil actuel
+            setTimeout(() => {
+                const profileComponent = document.querySelector('[x-data*="profileManager"]');
+                if (profileComponent && profileComponent.__x && profileComponent.__x.$data.selectedProfile) {
+                    this.currentProfile = profileComponent.__x.$data.selectedProfile;
+                    this.loadProfileSpecs();
+                }
+            }, 100);
             
             // Écouter les événements de mise à jour
             window.addEventListener('roll-updated', (event) => {
@@ -28,6 +39,12 @@ function stickyBottom() {
             window.addEventListener('of-changed', (event) => {
                 this.currentFO = event.detail.currentFO || '';
                 this.calculateRollId();
+            });
+            
+            // Écouter les changements de profil
+            window.addEventListener('profile-changed', (event) => {
+                this.currentProfile = event.detail.profile;
+                this.loadProfileSpecs();
             });
             
             // Calculer l'ID rouleau quand le numéro change
@@ -161,6 +178,68 @@ function stickyBottom() {
             } else {
                 this.weight = '';
             }
+        },
+        
+        // Charger les spécifications du profil
+        loadProfileSpecs() {
+            console.log('loadProfileSpecs appelé, currentProfile:', this.currentProfile);
+            if (this.currentProfile && this.currentProfile.profilespecvalue_set) {
+                // Chercher la spec de masse surfacique GLOBALE
+                const surfaceMassSpec = this.currentProfile.profilespecvalue_set.find(spec => 
+                    spec.spec_item.name.toLowerCase().includes('global') || 
+                    spec.spec_item.display_name.toLowerCase().includes('globale')
+                );
+                
+                console.log('Spec masse surfacique trouvée:', surfaceMassSpec);
+                
+                if (surfaceMassSpec) {
+                    this.surfaceMassSpec = {
+                        min: parseFloat(surfaceMassSpec.value_min),
+                        minAlert: parseFloat(surfaceMassSpec.value_min_alert),
+                        nominal: parseFloat(surfaceMassSpec.value_nominal),
+                        maxAlert: parseFloat(surfaceMassSpec.value_max_alert),
+                        max: parseFloat(surfaceMassSpec.value_max)
+                    };
+                    console.log('surfaceMassSpec créé:', this.surfaceMassSpec);
+                }
+            }
+        },
+        
+        // Obtenir la classe CSS pour le grammage
+        getWeightClass() {
+            console.log('getWeightClass appelé, weight:', this.weight, 'surfaceMassSpec:', this.surfaceMassSpec);
+            
+            if (!this.weight || !this.surfaceMassSpec) {
+                console.log('Pas de weight ou pas de spec, retour vide');
+                return '';
+            }
+            
+            // Extraire la valeur numérique
+            const value = parseFloat(this.weight.toString().replace(' g/m²', ''));
+            console.log('Valeur extraite:', value);
+            
+            if (isNaN(value)) {
+                console.log('Valeur NaN, retour vide');
+                return '';
+            }
+            
+            const spec = this.surfaceMassSpec;
+            
+            // NOK si hors limites min/max
+            if (value < spec.min || value > spec.max) {
+                console.log('DANGER: value=', value, 'min=', spec.min, 'max=', spec.max);
+                return 'text-danger';
+            }
+            
+            // Alerte si hors limites d'alerte
+            if (value < spec.minAlert || value > spec.maxAlert) {
+                console.log('WARNING: value=', value, 'minAlert=', spec.minAlert, 'maxAlert=', spec.maxAlert);
+                return 'text-warning';
+            }
+            
+            // OK sinon
+            console.log('SUCCESS: value=', value, 'dans les limites');
+            return 'text-success';
         }
     };
 }

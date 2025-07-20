@@ -40,16 +40,38 @@
 
 /* Style spécifique pour la masse nette */
 .net-mass-label {
-    font-size: 1rem;
+    font-size: 0.8125rem;
     opacity: 1;
+    margin-bottom: 0;
     text-align: left;
 }
 
 
 .info-value {
-    font-size: 1.125rem;
-    font-weight: 500;
+    font-size: 1rem;
+    font-weight: 700;
 }
+
+
+
+/* Styles spécifiques pour le grammage */
+.sticky-bottom-bar .info-item:has(.net-mass-label) .info-value {
+    font-size: 1.125rem;
+}
+
+/* Force les couleurs pour le grammage dans la sticky bar */
+.sticky-bottom-bar .info-value.text-success {
+    color: #28a745 !important;
+}
+
+.sticky-bottom-bar .info-value.text-warning {
+    color: var(--bs-warning) !important;
+}
+
+.sticky-bottom-bar .info-value.text-danger {
+    color: var(--bs-danger) !important;
+}
+
 
 /* Inputs éditables style épuré */
 input.info-value.editable-value {
@@ -58,8 +80,8 @@ input.info-value.editable-value {
     padding: 2px 8px;
     border: none;
     border-radius: 4px;
-    font-size: 1.125rem;
-    font-weight: 500;
+    font-size: 1rem;
+    font-weight: 700;
     text-align: center;
     width: 80px;
     outline: none;

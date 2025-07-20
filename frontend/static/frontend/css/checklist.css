@@ -53,8 +53,8 @@
 
 /* États actifs */
 .checklist-item .btn-outline-success.active {
-    background-color: var(--bs-success);
-    border-color: var(--bs-success);
+    background-color: #28a745;
+    border-color: #28a745;
     color: white;
 }
 
