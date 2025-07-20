@@ -1,0 +1,226 @@
+/* Styles pour les cards KPI */
+
+/* Container des KPIs */
+.kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+    .kpi-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .kpi-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Card KPI de base */
+.kpi-card {
+    background: white;
+    border-radius: 0.75rem;
+    padding: 1.25rem;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    border: 1px solid #e9ecef;
+    min-height: 140px;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Hover effect */
+.kpi-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+    border-color: #dee2e6;
+}
+
+/* Gradient background par type */
+.kpi-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--kpi-color-start), var(--kpi-color-end));
+}
+
+/* Card OEE/TRS */
+.kpi-card.kpi-oee {
+    --kpi-color-start: #6366f1;
+    --kpi-color-end: #8b5cf6;
+}
+
+/* Card Disponibilité */
+.kpi-card.kpi-availability {
+    --kpi-color-start: #06b6d4;
+    --kpi-color-end: #0891b2;
+}
+
+/* Card Performance */
+.kpi-card.kpi-performance {
+    --kpi-color-start: #f59e0b;
+    --kpi-color-end: #d97706;
+}
+
+/* Card Qualité */
+.kpi-card.kpi-quality {
+    --kpi-color-start: #10b981;
+    --kpi-color-end: #059669;
+}
+
+/* Card Productivité */
+.kpi-card.kpi-productivity {
+    --kpi-color-start: #3b82f6;
+    --kpi-color-end: #2563eb;
+}
+
+/* Card Taux de rebut */
+.kpi-card.kpi-scrap {
+    --kpi-color-start: #ef4444;
+    --kpi-color-end: #dc2626;
+}
+
+/* Card MTBF */
+.kpi-card.kpi-mtbf {
+    --kpi-color-start: #8b5cf6;
+    --kpi-color-end: #7c3aed;
+}
+
+/* Card Rendement */
+.kpi-card.kpi-yield {
+    --kpi-color-start: #14b8a6;
+    --kpi-color-end: #0d9488;
+}
+
+/* Header de la card */
+.kpi-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 0.75rem;
+}
+
+/* Titre du KPI */
+.kpi-title {
+    font-size: 0.875rem;
+    color: #6b7280;
+    font-weight: 500;
+    letter-spacing: 0.025em;
+}
+
+/* Icône du KPI */
+.kpi-icon {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.5rem;
+    background: var(--kpi-color-start);
+    background: linear-gradient(135deg, var(--kpi-color-start), var(--kpi-color-end));
+    color: white;
+    font-size: 1rem;
+    opacity: 0.9;
+}
+
+/* Valeur principale */
+.kpi-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #1f2937;
+    line-height: 1;
+    margin-bottom: 0.5rem;
+}
+
+/* Unité */
+.kpi-unit {
+    font-size: 1.25rem;
+    font-weight: 400;
+    color: #6b7280;
+    margin-left: 0.25rem;
+}
+
+/* Footer avec détails */
+.kpi-details {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: auto;
+    font-size: 0.75rem;
+    color: #9ca3af;
+}
+
+/* Indicateur de tendance */
+.kpi-trend {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.125rem 0.5rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.kpi-trend.up {
+    background-color: #d1fae5;
+    color: #065f46;
+}
+
+.kpi-trend.down {
+    background-color: #fee2e2;
+    color: #991b1b;
+}
+
+.kpi-trend.neutral {
+    background-color: #f3f4f6;
+    color: #4b5563;
+}
+
+/* Progress bar pour certains KPIs */
+.kpi-progress {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background-color: #f3f4f6;
+}
+
+.kpi-progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, var(--kpi-color-start), var(--kpi-color-end));
+    transition: width 0.6s ease;
+}
+
+/* Animation de chargement */
+.kpi-loading {
+    opacity: 0.5;
+}
+
+.kpi-loading .kpi-value {
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+/* Sparkline container */
+.kpi-sparkline {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    width: 80px;
+    height: 30px;
+    opacity: 0.2;
+}

@@ -47,6 +47,14 @@ class WcmChecklistTemplateItemInline(admin.TabularInline):
     fields = ['item', 'order', 'is_required']
     ordering = ['order']
     autocomplete_fields = ['item']
+    
+    def get_formset(self, request, obj=None, **kwargs):
+        """Override pour ajouter un help_text sur le champ order."""
+        formset = super().get_formset(request, obj, **kwargs)
+        formset.form.base_fields['order'].help_text = (
+            "Laissez à 0 pour auto-incrémenter. Les ordres doivent être uniques par template."
+        )
+        return formset
 
 
 @admin.register(WcmChecklistTemplate)

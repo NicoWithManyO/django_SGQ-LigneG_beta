@@ -190,6 +190,21 @@ class WcmChecklistTemplateItem(models.Model):
     
     def __str__(self):
         return f"{self.template.name} - {self.order}. {self.item.text}"
+    
+    def save(self, *args, **kwargs):
+        """Override save pour auto-incrémenter l'ordre si nécessaire."""
+        # Si pas d'ordre défini ou ordre=0 avec des items existants
+        if self.order == 0 and not self.pk:
+            # Chercher le max order pour ce template
+            max_order = WcmChecklistTemplateItem.objects.filter(
+                template=self.template
+            ).aggregate(models.Max('order'))['order__max']
+            
+            # Si des items existent déjà, prendre le prochain numéro
+            if max_order is not None:
+                self.order = max_order + 1
+        
+        super().save(*args, **kwargs)
 
 
 class WcmLostTimeReason(models.Model):

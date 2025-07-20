@@ -3,14 +3,11 @@
     <!-- Contrôle Qualité -->
     {% include 'frontend/components/quality-control.html' %}
     
-    <!-- Séparateur -->
-    <hr class="my-3" style="border-color: #dee2e6;">
-    
     <!-- Badge de conformité -->
     <div class="badge-conformite-container pb-3">
-        <div class="row align-items-center">
+        <div class="row">
             <!-- Colonne gauche : Infos -->
-            <div class="col-4 text-end">
+            <div class="col-4 text-end align-self-end">
                 <div class="text-secondary small">
                     <div>Ep. : <span x-text="thicknessCount"></span>/<span x-text="getThicknessPositions().length * 6"></span> | NOK : <span x-text="nokCount"></span> <span x-text="getThicknessThreshold() ? `(max : ${getThicknessThreshold()})` : ''"></span></div>
                     <div>Défauts : <span x-text="defectCount"></span> | <span x-text="getDefectsList()"></span></div>
@@ -18,7 +15,7 @@
             </div>
             
             <!-- Colonne centre : Badge -->
-            <div class="col-4 text-center">
+            <div class="col-4 text-center align-self-center">
                 <span class="badge-conformite badge fs-5 px-3 py-2 border" 
                       :class="{
                           'border-success bg-success text-white': isConform && hasFirstRowComplete(),
@@ -35,7 +32,7 @@
             </div>
             
             <!-- Colonne droite : Badge QC -->
-            <div class="col-4 text-start">
+            <div class="col-4 text-start align-self-start">
                 <div class="text-start">
                     <small class="text-muted d-block">Contrôles Qualité</small>
                     <div id="qc-badge-container">
