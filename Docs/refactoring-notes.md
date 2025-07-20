@@ -4,12 +4,13 @@ Ce document liste les opportunités de refactoring identifiées dans le code.
 
 ## 🔴 Priorité HAUTE
 
-### 1. Fichier roll.js trop volumineux (581 lignes)
+### 1. Fichier roll.js trop volumineux (752 lignes !)
 **Problème** : Le fichier gère trop de responsabilités différentes
 **Solution** : 
-- Séparer en modules : `roll-thickness.js`, `roll-defects.js`, `roll-grid.js`
-- Extraire la logique métier complexe dans `roll-business-logic.js` (déjà commencé)
+- Séparer en modules : `roll-thickness.js`, `roll-defects.js`, `roll-grid.js`, `roll-conformity.js`
+- Extraire la logique métier complexe dans `roll-business-logic.js` (déjà commencé mais peut être étendu)
 - Fonction `handleThicknessInput` trop complexe à refactorer
+- La logique de conformité devrait être entièrement dans `roll-business-logic.js`
 
 ### 2. Gestion d'erreurs dupliquée
 **Problème** : Pattern `console.error` répété dans 7 fichiers
@@ -110,19 +111,26 @@ export class ThicknessValidator {
 
 ## 🆕 À faire prochainement
 
-### Gestion du statut du rouleau en temps réel
-**Problème** : Le statut du rouleau doit être calculé dynamiquement selon tous les paramètres
-**Solution** : 
-- Centraliser la logique de calcul du statut
-- Écouter les changements de profil, épaisseurs, défauts
-- Mettre à jour le badge de conformité en temps réel
+### Gestion du statut du rouleau en temps réel ✅
+**État** : FAIT - Le badge de conformité se met à jour en temps réel
+**Implémenté** :
+- Badge de conformité avec statut dynamique
+- Règles de conformité complètes (défauts bloquants, seuils, épaisseurs NOK)
+- Affichage des ciseaux sur la dernière ligne problématique
 
-### Validation des épaisseurs selon le profil
-**État actuel** : La comparaison avec les seuils du profil est implémentée
+### Séparation roll.js en modules
+**Problème** : 752 lignes dans un seul fichier
+**À faire** :
+- `roll-thickness.js` : Gestion des épaisseurs (validation, NOK, rattrapages)
+- `roll-defects.js` : Gestion des défauts visuels
+- `roll-conformity.js` : Logique de conformité (actuellement dans roll.js)
+- `roll-grid.js` : Gestion de l'affichage de la grille
+
+### Badge de conformité et HTML/CSS
 **À améliorer** :
-- Gérer les cas où les specs d'épaisseur ne sont pas définies
-- Afficher visuellement les seuils quelque part
-- Historiser les changements de statut
+- Le badge est maintenant intégré dans roll.html (couplage fort)
+- Pourrait être un composant séparé réutilisable
+- CSS du badge dispersé dans roll-zone.css
 
 ## 📝 Notes additionnelles
 

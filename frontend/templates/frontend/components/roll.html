@@ -15,9 +15,9 @@
             <div class="col-4 text-center">
                 <span class="badge-conformite badge fs-5 px-3 py-2 border" 
                       :class="{
-                          'border-success bg-success text-white': isConform && thicknessCount >= 6,
+                          'border-success bg-success text-white': isConform && hasFirstRowComplete(),
                           'border-danger bg-danger text-white': !isConform,
-                          'border-secondary bg-transparent text-secondary': isConform && thicknessCount < 6
+                          'border-secondary bg-transparent text-secondary': isConform && !hasFirstRowComplete()
                       }">
                     <span x-text="isConform ? 'CONFORME' : 'NON CONFORME'"></span>
                 </span>

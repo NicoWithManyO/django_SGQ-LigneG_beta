@@ -106,12 +106,3 @@ Chaque profil de production définit :
 - `machine_started_start` : Machine allumée en début de poste
 - `machine_started_end` : Machine reste allumée en fin de poste
 
-## 🚀 Évolutions prévues
-
-- Interface de supervision temps réel multi-lignes
-- Application mobile pour contrôles terrain
-- Intégration avec l'ERP pour synchronisation OF
-- Tableaux de bord personnalisables
-- Alertes automatiques sur dépassement de seuils
-- Export des données pour analyses statistiques
-

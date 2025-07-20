@@ -63,11 +63,11 @@
                 <div class="accordion mt-3" id="accordionProfil">
                     <div class="accordion-item">
                         <h2 class="accordion-header">
-                            <button class="accordion-button bg-primary text-white" type="button" data-bs-toggle="collapse" data-bs-target="#collapseProfil" aria-expanded="true">
+                            <button class="accordion-button bg-primary text-white collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseProfil" aria-expanded="false">
                                 <i class="bi bi-graph-up me-2"></i> Profil : 80g/m² (Permissif)
                             </button>
                         </h2>
-                        <div id="collapseProfil" class="accordion-collapse collapse show">
+                        <div id="collapseProfil" class="accordion-collapse collapse">
                             {% include "frontend/components/profile.html" %}
                         </div>
                     </div>
@@ -118,6 +118,9 @@ window.operatorsData = {{ operators_json|safe }};
 <script src="{% static 'frontend/js/shared-mixins.js' %}"></script>
 <script src="{% static 'frontend/js/roll-calculations.js' %}"></script>
 <script src="{% static 'frontend/js/roll-business-logic.js' %}"></script>
+<script src="{% static 'frontend/js/roll-formatters.js' %}"></script>
+<script src="{% static 'frontend/js/roll-helpers.js' %}"></script>
+<script src="{% static 'frontend/js/roll-conformity.js' %}"></script>
 <script src="{% static 'frontend/js/shift-form.js' %}"></script>
 <script src="{% static 'frontend/js/profile.js' %}"></script>
 <script src="{% static 'frontend/js/production-order.js' %}"></script>
