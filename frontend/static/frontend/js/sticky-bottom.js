@@ -17,6 +17,8 @@ function stickyBottom() {
         surfaceMassSpec: null,
         isRollConform: false, // Statut de conformité du rouleau
         hasAllThicknesses: false, // Toutes les épaisseurs sont remplies
+        sessionVersion: 0, // Pour forcer la mise à jour des getters
+        saveDebounceTimer: null, // Timer pour débouncer la sauvegarde
         
         // Initialisation
         init() {
@@ -58,17 +60,17 @@ function stickyBottom() {
             // Sauvegarder en session quand les valeurs changent
             this.$watch('tubeMass', () => {
                 this.calculateNetMass();
-                this.saveToSession();
+                this.debouncedSaveToSession();
             });
             this.$watch('length', () => {
                 this.calculateWeight();
-                this.saveToSession();
+                this.debouncedSaveToSession();
             });
             this.$watch('totalMass', () => {
                 this.calculateNetMass();
-                this.saveToSession();
+                this.debouncedSaveToSession();
             });
-            this.$watch('nextTubeMass', () => this.saveToSession());
+            this.$watch('nextTubeMass', () => this.debouncedSaveToSession());
             
             // Écouter les événements blur sur les inputs de masse pour émettre le statut
             this.$nextTick(() => {
@@ -88,6 +90,13 @@ function stickyBottom() {
                     });
                 }
             });
+            
+            // Écouter les changements de session pour mise à jour live
+            window.addEventListener('session-updated', (event) => {
+                // Incrémenter sessionVersion pour forcer la mise à jour
+                this.sessionVersion++;
+            });
+            
         },
         
         // Calculer l'ID du rouleau
@@ -113,7 +122,15 @@ function stickyBottom() {
             
             // Émettre l'événement initial après un court délai
             this.$nextTick(() => {
-                if (this.weight) {
+                // Vérifier d'abord si la masse est invalide
+                if (this.isMassInvalid()) {
+                    window.dispatchEvent(new CustomEvent('weight-status-changed', {
+                        detail: { 
+                            weight: null,
+                            isWeightNok: true
+                        }
+                    }));
+                } else if (this.weight) {
                     const isNok = this.isWeightNok();
                     window.dispatchEvent(new CustomEvent('weight-status-changed', {
                         detail: { 
@@ -136,6 +153,19 @@ function stickyBottom() {
             };
             
             await api.saveToSession(data);
+        },
+        
+        // Sauvegarder en session avec débounce
+        debouncedSaveToSession() {
+            // Annuler le timer précédent
+            if (this.saveDebounceTimer) {
+                clearTimeout(this.saveDebounceTimer);
+            }
+            
+            // Créer un nouveau timer
+            this.saveDebounceTimer = setTimeout(() => {
+                this.saveToSession();
+            }, 300); // Attendre 300ms après la dernière frappe
         },
         
         
@@ -301,9 +331,15 @@ function stickyBottom() {
             return value < spec.min || value > spec.max;
         },
         
-        // Obtenir l'ID du poste depuis la session
-        get shiftId() {
-            return window.sessionData?.shift_id || null;
+        // Vérifier si on a un poste valide
+        get hasValidShift() {
+            // Utiliser sessionVersion pour forcer la réévaluation
+            this.sessionVersion;
+            
+            // Vérifier les données minimum pour un poste
+            return window.sessionData?.operator_id && 
+                   window.sessionData?.shift_date && 
+                   window.sessionData?.vacation;
         },
         
         // Vérifier si la masse est invalide (masse totale < masse tube)
@@ -322,7 +358,7 @@ function stickyBottom() {
             return total < tube;
         },
         
-        // Émettre le statut NOK si la masse est invalide (sur blur uniquement)
+        // Émettre le statut du grammage (sur blur uniquement)
         emitWeightStatusIfInvalid() {
             if (this.isMassInvalid()) {
                 // Masse invalide → NOK
@@ -340,37 +376,60 @@ function stickyBottom() {
                         isWeightNok: false
                     }
                 }));
+            } else {
+                // Masses valides → vérifier le grammage calculé
+                const isNok = this.isWeightNok();
+                window.dispatchEvent(new CustomEvent('weight-status-changed', {
+                    detail: { 
+                        weight: this.weight,
+                        isWeightNok: isNok
+                    }
+                }));
             }
         },
         
         // Configuration du bouton de sauvegarde
         get saveButtonConfig() {
-            // Pas d'ID poste ou pas d'ID rouleau
-            if (!this.shiftId || !this.rollId) {
+            // Pas de poste valide ou pas d'ID rouleau
+            if (!this.hasValidShift || !this.rollId) {
+                let tooltip = [];
+                if (!this.hasValidShift) tooltip.push("Données du poste incomplètes");
+                if (!this.rollId) tooltip.push("ID rouleau manquant");
+                
                 return { 
                     enabled: false, 
-                    text: 'Sauvegarder ID_ROULEAU', 
+                    text: 'Sauvegarder Rouleau', 
                     class: 'btn-success', 
-                    action: () => this.saveRoll()
+                    action: () => this.saveRoll(),
+                    tooltip: tooltip.join(' | ')
                 };
             }
             
             // Rouleau conforme
             if (this.isRollConform) {
+                let tooltip = null;
+                if (!this.hasAllThicknesses) {
+                    tooltip = "Toutes les épaisseurs doivent être remplies";
+                } else if (!this.weight) {
+                    tooltip = "Masse totale requise pour calculer le grammage";
+                }
+                
                 return { 
-                    enabled: this.hasAllThicknesses, 
-                    text: 'Sauvegarder ID_ROULEAU', 
+                    enabled: this.hasAllThicknesses && this.weight, 
+                    text: `<i class="bi bi-check-circle me-1"></i>Sauvegarder ${this.rollId}`, 
                     class: 'btn-success', 
-                    action: () => this.saveRoll()
+                    action: () => this.saveRoll(),
+                    tooltip: tooltip
                 };
             }
             
             // Rouleau non conforme
             return { 
                 enabled: true, 
-                text: 'Vers Découpe', 
+                text: '<i class="bi bi-scissors me-1"></i>Vers Découpe', 
                 class: 'btn-warning', 
-                action: () => this.sendToCutting()
+                action: () => this.sendToCutting(),
+                tooltip: null
             };
         },
         

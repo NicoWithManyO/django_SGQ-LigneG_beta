@@ -37,7 +37,7 @@
                     <!-- Masse tube -->
                     <div class="info-item">
                         <div class="info-label">Masse tube (g)</div>
-                        <input type="text" class="info-value editable-value" x-model="tubeMass" placeholder="--" x-init="numericInputValidator.init($el)" :class="{ 'text-danger': isMassInvalid() }">
+                        <input type="text" class="info-value editable-value" x-model="tubeMass" placeholder="--" x-init="numericInputValidator.init($el)" :class="{ 'text-warning': isMassInvalid() }">
                     </div>
                     
                     <!-- Longueur -->
@@ -49,7 +49,7 @@
                     <!-- Masse totale -->
                     <div class="info-item">
                         <div class="info-label">Masse totale (g)</div>
-                        <input type="text" class="info-value editable-value" x-model="totalMass" placeholder="--" x-init="numericInputValidator.init($el)" :class="{ 'text-danger': isMassInvalid() }">
+                        <input type="text" class="info-value editable-value" x-model="totalMass" placeholder="--" x-init="numericInputValidator.init($el)" :class="{ 'text-warning': isMassInvalid() }">
                     </div>
                     
                     <!-- Grammage calculé -->
@@ -62,12 +62,31 @@
                     
                     <!-- Boutons d'action -->
                     <div class="ms-4">
-                        <div class="info-label text-center">Temps de fibrage : <span x-text="'--:--'">--:--</span></div>
-                        <div>
+                        <div x-data="{ tooltipInstance: null }"
+                             x-init="
+                                // Surveiller les changements de tooltip
+                                $watch('saveButtonConfig.tooltip', (value) => {
+                                    if (value && !tooltipInstance) {
+                                        tooltipInstance = new bootstrap.Tooltip($refs.saveButton, {
+                                            title: value
+                                        });
+                                    } else if (!value && tooltipInstance) {
+                                        tooltipInstance.dispose();
+                                        tooltipInstance = null;
+                                    } else if (value && tooltipInstance) {
+                                        // Mettre à jour le titre
+                                        tooltipInstance.setContent({ '.tooltip-inner': value });
+                                    }
+                                });
+                             ">
                             <button :class="'btn me-2 ' + saveButtonConfig.class" 
                                     :disabled="!saveButtonConfig.enabled"
                                     @click="saveButtonConfig.action"
-                                    x-text="saveButtonConfig.text">
+                                    x-html="saveButtonConfig.text"
+                                    style="min-width: 200px;"
+                                    x-ref="saveButton"
+                                    data-bs-toggle="tooltip"
+                                    data-bs-placement="top">
                             </button>
                         <button class="btn btn-sm btn-warning btn-square me-1" @click="cancelRoll()" title="Couper le rouleau">
                             <i class="bi bi-scissors"></i>

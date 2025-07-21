@@ -42,6 +42,8 @@ const api = {
             // Mettre à jour window.sessionData après sauvegarde réussie
             if (window.sessionData) {
                 Object.assign(window.sessionData, data);
+                // Émettre un événement pour notifier du changement
+                window.dispatchEvent(new CustomEvent('session-updated', { detail: data }));
             }
             return true;
         } catch (error) {

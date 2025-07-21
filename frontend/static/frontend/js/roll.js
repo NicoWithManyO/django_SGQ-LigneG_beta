@@ -339,7 +339,10 @@ function roll() {
                         nokCount: this.nokCount,
                         defectCount: this.defectCount,
                         cellsWithNokCount: cellsWithNokCount,
-                        defects: this.defects
+                        defects: this.defects,
+                        isConform: this.isConform,
+                        hasAllThicknesses: this.hasAllRequiredThicknesses(),
+                        hasFirstRowComplete: this.hasFirstRowComplete()
                     }
                 }));
             }
@@ -383,10 +386,19 @@ function roll() {
         // Vérifier si toutes les épaisseurs requises sont remplies
         hasAllRequiredThicknesses() {
             const requiredPositions = this.getThicknessPositions();
-            // Pour chaque position requise, vérifier qu'au moins une épaisseur existe sur cette ligne
-            return requiredPositions.every(row => 
-                this.thicknesses.some(t => t.row === row)
-            );
+            const cols = ['G1', 'C1', 'D1', 'G2', 'C2', 'D2'];
+            
+            // Pour chaque position requise, vérifier que les 6 épaisseurs sont remplies
+            return requiredPositions.every(row => {
+                // Compter les épaisseurs sur cette ligne
+                let count = 0;
+                for (const col of cols) {
+                    if (this.thicknesses.some(t => t.row === row && t.col === col)) {
+                        count++;
+                    }
+                }
+                return count === 6;
+            });
         },
         
         // Vérifier si la première ligne d'épaisseur est complète (6 épaisseurs)
