@@ -10,7 +10,26 @@ body {
     background-color: var(--body-bg);
     color: #212529;
     line-height: 1.5;
-    overflow-y: scroll;
+}
+
+/* Forcer la scrollbar toujours visible */
+html {
+    overflow-y: scroll !important;
+}
+
+/* Empêcher Bootstrap de modifier le padding du body avec les modals */
+body.modal-open {
+    padding-right: 0 !important;
+}
+
+/* Empêcher le décalage de la navbar */
+.navbar.fixed-top {
+    padding-right: 0 !important;
+}
+
+/* Empêcher le décalage des éléments fixed */
+.fixed-top, .fixed-bottom, .is-fixed, .sticky-top {
+    padding-right: 0 !important;
 }
 
 /* Reset des marges par défaut */

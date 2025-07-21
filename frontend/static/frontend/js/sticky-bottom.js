@@ -11,12 +11,16 @@ function stickyBottom() {
         weight: '',
         nextTubeMass: '',
         currentFO: '',
+        cuttingOrder: '', // OF de découpe
         editingRollNumber: false,
         feltWidth: 1, // Largeur du feutre en mètres (par défaut 1m, à récupérer du profil)
         currentProfile: null,
         surfaceMassSpec: null,
         isRollConform: false, // Statut de conformité du rouleau
         hasAllThicknesses: false, // Toutes les épaisseurs sont remplies
+        defectCount: 0, // Nombre de défauts
+        nokCount: 0, // Nombre de NOK
+        maxNok: 3, // Maximum de NOK autorisés (depuis le profil)
         sessionVersion: 0, // Pour forcer la mise à jour des getters
         saveDebounceTimer: null, // Timer pour débouncer la sauvegarde
         
@@ -42,6 +46,7 @@ function stickyBottom() {
             // Écouter les changements d'OF depuis le composant ordre-fabrication
             window.addEventListener('of-changed', (event) => {
                 this.currentFO = event.detail.currentFO || '';
+                this.cuttingOrder = event.detail.cuttingOrder || '';
                 this.calculateRollId();
             });
             
@@ -55,6 +60,11 @@ function stickyBottom() {
             this.$watch('rollNumber', () => {
                 this.calculateRollId();
                 this.saveToSession();
+            });
+            
+            // Recalculer l'ID quand le statut de conformité change
+            this.$watch('isRollConform', () => {
+                this.calculateRollId();
             });
             
             // Sauvegarder en session quand les valeurs changent
@@ -101,7 +111,12 @@ function stickyBottom() {
         
         // Calculer l'ID du rouleau
         calculateRollId() {
-            this.rollId = RollCalculations.generateRollId(this.currentFO, this.rollNumber) || '';
+            // Si le rouleau n'est pas conforme, utiliser l'OF de découpe
+            if (!this.isRollConform && this.cuttingOrder) {
+                this.rollId = RollCalculations.generateCuttingRollId(this.cuttingOrder, true) || '';
+            } else {
+                this.rollId = RollCalculations.generateRollId(this.currentFO, this.rollNumber) || '';
+            }
         },
         
         // Charger les données du rouleau en cours
@@ -109,6 +124,7 @@ function stickyBottom() {
             // Récupérer les données depuis la session
             if (window.sessionData) {
                 this.currentFO = window.sessionData.of_en_cours || '';
+                this.cuttingOrder = window.sessionData.of_decoupe || '';
                 this.rollNumber = window.sessionData.roll_number || '';
                 this.tubeMass = window.sessionData.tube_mass || '';
                 this.length = window.sessionData.roll_length || '';
@@ -179,6 +195,8 @@ function stickyBottom() {
             if (data.grammage !== undefined) this.weight = data.grammage;
             if (data.isConform !== undefined) this.isRollConform = data.isConform;
             if (data.hasAllThicknesses !== undefined) this.hasAllThicknesses = data.hasAllThicknesses;
+            if (data.defectCount !== undefined) this.defectCount = data.defectCount;
+            if (data.nokCount !== undefined) this.nokCount = data.nokCount;
         },
         
         // Ouvrir la modal de données
@@ -277,6 +295,16 @@ function stickyBottom() {
                         maxAlert: parseFloat(surfaceMassSpec.value_max_alert),
                         max: parseFloat(surfaceMassSpec.value_max)
                     };
+                }
+                
+                // Chercher le nombre max de NOK autorisés
+                const nokSpec = this.currentProfile.profilespecvalue_set.find(spec => 
+                    spec.spec_item.name.toLowerCase().includes('nok') || 
+                    spec.spec_item.display_name.toLowerCase().includes('nok')
+                );
+                
+                if (nokSpec && nokSpec.value_max) {
+                    this.maxNok = parseInt(nokSpec.value_max) || 3;
                 }
             }
         },
@@ -435,14 +463,48 @@ function stickyBottom() {
         
         // Sauvegarder le rouleau
         saveRoll() {
-            // TODO: Implémenter la sauvegarde
-            alert('Fonctionnalité à implémenter : Sauvegarde du rouleau ' + this.rollId);
+            // Préparer les données pour la modal
+            const modalData = {
+                isNonConform: false,
+                rollId: this.rollId,
+                length: this.length,
+                netMass: this.netMass,
+                weight: this.weight,
+                weightClass: this.getWeightClass(),
+                hasAllThicknesses: this.hasAllThicknesses,
+                isWeightOk: !this.isWeightNok(),
+                defectCount: this.defectCount,
+                nokCount: this.nokCount,
+                maxNok: this.maxNok
+            };
+            
+            // Ouvrir la modal
+            window.dispatchEvent(new CustomEvent('open-roll-save-modal', { 
+                detail: modalData 
+            }));
         },
         
         // Envoyer vers découpe
         sendToCutting() {
-            // TODO: Implémenter l'envoi vers découpe
-            alert('Fonctionnalité à implémenter : Envoi vers découpe du rouleau ' + this.rollId);
+            // Préparer les données pour la modal
+            const modalData = {
+                isNonConform: true,
+                rollId: RollCalculations.generateCuttingRollId(this.cuttingOrder, true), // Format d'affichage
+                length: this.length,
+                netMass: this.netMass,
+                weight: this.weight,
+                weightClass: this.getWeightClass(),
+                hasAllThicknesses: this.hasAllThicknesses,
+                isWeightOk: !this.isWeightNok(),
+                defectCount: this.defectCount,
+                nokCount: this.nokCount,
+                maxNok: this.maxNok
+            };
+            
+            // Ouvrir la modal
+            window.dispatchEvent(new CustomEvent('open-roll-save-modal', { 
+                detail: modalData 
+            }));
         }
     };
 }

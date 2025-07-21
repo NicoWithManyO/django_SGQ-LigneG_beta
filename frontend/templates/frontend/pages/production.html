@@ -7,6 +7,7 @@
 <link rel="stylesheet" href="{% static 'frontend/css/quality-control.css' %}">
 <link rel="stylesheet" href="{% static 'frontend/css/profile-tabs.css' %}">
 <link rel="stylesheet" href="{% static 'frontend/css/kpi-cards.css' %}">
+<link rel="stylesheet" href="{% static 'frontend/css/roll-save-modal.css' %}">
 {% endblock %}
 
 {% block content %}
@@ -122,6 +123,10 @@
 
     </div>
 </div>
+
+<!-- Modal de sauvegarde du rouleau -->
+{% include 'frontend/components/roll-save-modal.html' %}
+
 {% endblock %}
 
 {% block extra_js %}
@@ -153,6 +158,7 @@ window.operatorsData = {{ operators_json|safe }};
 <script src="{% static 'frontend/js/sticky-bottom.js' %}"></script>
 <script src="{% static 'frontend/js/checklist.js' %}"></script>
 <script src="{% static 'frontend/js/roll.js' %}"></script>
+<script src="{% static 'frontend/js/roll-save-modal.js' %}"></script>
 <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
 <script>
 // Attendre que Alpine soit prêt
