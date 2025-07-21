@@ -15,6 +15,8 @@ function stickyBottom() {
         feltWidth: 1, // Largeur du feutre en mètres (par défaut 1m, à récupérer du profil)
         currentProfile: null,
         surfaceMassSpec: null,
+        isRollConform: false, // Statut de conformité du rouleau
+        hasAllThicknesses: false, // Toutes les épaisseurs sont remplies
         
         // Initialisation
         init() {
@@ -67,6 +69,25 @@ function stickyBottom() {
                 this.saveToSession();
             });
             this.$watch('nextTubeMass', () => this.saveToSession());
+            
+            // Écouter les événements blur sur les inputs de masse pour émettre le statut
+            this.$nextTick(() => {
+                // Input masse tube
+                const tubeMassInput = this.$el.querySelector('input[x-model="tubeMass"]');
+                if (tubeMassInput) {
+                    tubeMassInput.addEventListener('blur', () => {
+                        this.emitWeightStatusIfInvalid();
+                    });
+                }
+                
+                // Input masse totale
+                const totalMassInput = this.$el.querySelector('input[x-model="totalMass"]');
+                if (totalMassInput) {
+                    totalMassInput.addEventListener('blur', () => {
+                        this.emitWeightStatusIfInvalid();
+                    });
+                }
+            });
         },
         
         // Calculer l'ID du rouleau
@@ -126,6 +147,8 @@ function stickyBottom() {
             if (data.length !== undefined) this.length = data.length;
             if (data.totalMass !== undefined) this.totalMass = data.totalMass;
             if (data.grammage !== undefined) this.weight = data.grammage;
+            if (data.isConform !== undefined) this.isRollConform = data.isConform;
+            if (data.hasAllThicknesses !== undefined) this.hasAllThicknesses = data.hasAllThicknesses;
         },
         
         // Ouvrir la modal de données
@@ -208,7 +231,6 @@ function stickyBottom() {
         
         // Charger les spécifications du profil
         loadProfileSpecs() {
-            console.log('loadProfileSpecs appelé, currentProfile:', this.currentProfile);
             if (this.currentProfile && this.currentProfile.profilespecvalue_set) {
                 // Chercher la spec de masse surfacique GLOBALE
                 const surfaceMassSpec = this.currentProfile.profilespecvalue_set.find(spec => 
@@ -216,7 +238,6 @@ function stickyBottom() {
                     spec.spec_item.display_name.toLowerCase().includes('globale')
                 );
                 
-                console.log('Spec masse surfacique trouvée:', surfaceMassSpec);
                 
                 if (surfaceMassSpec) {
                     this.surfaceMassSpec = {
@@ -226,7 +247,6 @@ function stickyBottom() {
                         maxAlert: parseFloat(surfaceMassSpec.value_max_alert),
                         max: parseFloat(surfaceMassSpec.value_max)
                     };
-                    console.log('surfaceMassSpec créé:', this.surfaceMassSpec);
                 }
             }
         },
@@ -279,6 +299,91 @@ function stickyBottom() {
             
             // NOK si hors limites min/max
             return value < spec.min || value > spec.max;
+        },
+        
+        // Obtenir l'ID du poste depuis la session
+        get shiftId() {
+            return window.sessionData?.shift_id || null;
+        },
+        
+        // Vérifier si la masse est invalide (masse totale < masse tube)
+        isMassInvalid() {
+            if (!this.totalMass || !this.tubeMass) {
+                return false;
+            }
+            
+            const total = parseFloat(this.totalMass);
+            const tube = parseFloat(this.tubeMass);
+            
+            if (isNaN(total) || isNaN(tube)) {
+                return false;
+            }
+            
+            return total < tube;
+        },
+        
+        // Émettre le statut NOK si la masse est invalide (sur blur uniquement)
+        emitWeightStatusIfInvalid() {
+            if (this.isMassInvalid()) {
+                // Masse invalide → NOK
+                window.dispatchEvent(new CustomEvent('weight-status-changed', {
+                    detail: { 
+                        weight: null,
+                        isWeightNok: true
+                    }
+                }));
+            } else if (!this.totalMass || !this.tubeMass || !this.netMass) {
+                // Champs vides → pas de grammage donc pas NOK
+                window.dispatchEvent(new CustomEvent('weight-status-changed', {
+                    detail: { 
+                        weight: null,
+                        isWeightNok: false
+                    }
+                }));
+            }
+        },
+        
+        // Configuration du bouton de sauvegarde
+        get saveButtonConfig() {
+            // Pas d'ID poste ou pas d'ID rouleau
+            if (!this.shiftId || !this.rollId) {
+                return { 
+                    enabled: false, 
+                    text: 'Sauvegarder ID_ROULEAU', 
+                    class: 'btn-success', 
+                    action: () => this.saveRoll()
+                };
+            }
+            
+            // Rouleau conforme
+            if (this.isRollConform) {
+                return { 
+                    enabled: this.hasAllThicknesses, 
+                    text: 'Sauvegarder ID_ROULEAU', 
+                    class: 'btn-success', 
+                    action: () => this.saveRoll()
+                };
+            }
+            
+            // Rouleau non conforme
+            return { 
+                enabled: true, 
+                text: 'Vers Découpe', 
+                class: 'btn-warning', 
+                action: () => this.sendToCutting()
+            };
+        },
+        
+        // Sauvegarder le rouleau
+        saveRoll() {
+            // TODO: Implémenter la sauvegarde
+            alert('Fonctionnalité à implémenter : Sauvegarde du rouleau ' + this.rollId);
+        },
+        
+        // Envoyer vers découpe
+        sendToCutting() {
+            // TODO: Implémenter l'envoi vers découpe
+            alert('Fonctionnalité à implémenter : Envoi vers découpe du rouleau ' + this.rollId);
         }
     };
 }

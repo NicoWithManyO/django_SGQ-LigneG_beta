@@ -267,14 +267,15 @@ function roll() {
             const cellsWithNokCount = rollBusinessLogic.countCellsWithNok(this.thicknesses, this.nokThicknesses);
             
             // Émettre un événement pour mettre à jour le badge
-            window.dispatchEvent(new CustomEvent('rouleau-updated', {
+            window.dispatchEvent(new CustomEvent('roll-updated', {
                 detail: { 
                     thicknessCount: this.thicknessCount,
                     nokCount: this.nokCount,
                     defectCount: this.defectCount,
                     cellsWithNokCount: cellsWithNokCount,
                     defects: this.defects,
-                    isConform: this.isConform
+                    isConform: this.isConform,
+                    hasAllThicknesses: this.hasAllRequiredThicknesses()
                 }
             }));
         },
@@ -332,7 +333,7 @@ function roll() {
                 const cellsWithNokCount = rollBusinessLogic.countCellsWithNok(this.thicknesses, this.nokThicknesses);
                 
                 // Émettre un événement pour mettre à jour le badge
-                window.dispatchEvent(new CustomEvent('rouleau-updated', {
+                window.dispatchEvent(new CustomEvent('roll-updated', {
                     detail: { 
                         thicknessCount: this.thicknessCount,
                         nokCount: this.nokCount,
@@ -377,6 +378,15 @@ function roll() {
         // Obtenir la liste des défauts
         getDefectsList() {
             return rollFormatters.formatDefectsList(this.defects);
+        },
+        
+        // Vérifier si toutes les épaisseurs requises sont remplies
+        hasAllRequiredThicknesses() {
+            const requiredPositions = this.getThicknessPositions();
+            // Pour chaque position requise, vérifier qu'au moins une épaisseur existe sur cette ligne
+            return requiredPositions.every(row => 
+                this.thicknesses.some(t => t.row === row)
+            );
         },
         
         // Vérifier si la première ligne d'épaisseur est complète (6 épaisseurs)
@@ -516,14 +526,15 @@ function roll() {
             const cellsWithNokCount = rollBusinessLogic.countCellsWithNok(this.thicknesses, this.nokThicknesses);
             
             // Émettre un événement pour mettre à jour le badge
-            window.dispatchEvent(new CustomEvent('rouleau-updated', {
+            window.dispatchEvent(new CustomEvent('roll-updated', {
                 detail: { 
                     thicknessCount: this.thicknessCount,
                     nokCount: this.nokCount,
                     defectCount: this.defectCount,
                     cellsWithNokCount: cellsWithNokCount,
                     defects: this.defects,
-                    isConform: this.isConform
+                    isConform: this.isConform,
+                    hasAllThicknesses: this.hasAllRequiredThicknesses()
                 }
             }));
         },
@@ -556,8 +567,6 @@ function roll() {
             if (input) {
                 const hasNokBadge = this.nokThicknesses.some(e => e.row === row && e.col === col);
                 const status = this.checkThicknessStatus(value);
-                
-                console.log(`Thickness ${value}: status=${status}, hasNokBadge=${hasNokBadge}, spec=`, this.thicknessSpec);
                 
                 if (!hasNokBadge && status === 'alert') {
                     input.classList.add('text-warning');

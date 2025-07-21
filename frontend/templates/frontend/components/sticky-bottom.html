@@ -37,7 +37,7 @@
                     <!-- Masse tube -->
                     <div class="info-item">
                         <div class="info-label">Masse tube (g)</div>
-                        <input type="text" class="info-value editable-value" x-model="tubeMass" placeholder="--" x-init="numericInputValidator.init($el)">
+                        <input type="text" class="info-value editable-value" x-model="tubeMass" placeholder="--" x-init="numericInputValidator.init($el)" :class="{ 'text-danger': isMassInvalid() }">
                     </div>
                     
                     <!-- Longueur -->
@@ -49,7 +49,7 @@
                     <!-- Masse totale -->
                     <div class="info-item">
                         <div class="info-label">Masse totale (g)</div>
-                        <input type="text" class="info-value editable-value" x-model="totalMass" placeholder="--" x-init="numericInputValidator.init($el)">
+                        <input type="text" class="info-value editable-value" x-model="totalMass" placeholder="--" x-init="numericInputValidator.init($el)" :class="{ 'text-danger': isMassInvalid() }">
                     </div>
                     
                     <!-- Grammage calculé -->
@@ -64,9 +64,10 @@
                     <div class="ms-4">
                         <div class="info-label text-center">Temps de fibrage : <span x-text="'--:--'">--:--</span></div>
                         <div>
-                            <button class="btn btn-success me-2" @click="openDataModal()">
-                                <i class="bi bi-exclamation-circle me-1"></i>
-                                Données incomplètes
+                            <button :class="'btn me-2 ' + saveButtonConfig.class" 
+                                    :disabled="!saveButtonConfig.enabled"
+                                    @click="saveButtonConfig.action"
+                                    x-text="saveButtonConfig.text">
                             </button>
                         <button class="btn btn-sm btn-warning btn-square me-1" @click="cancelRoll()" title="Couper le rouleau">
                             <i class="bi bi-scissors"></i>
