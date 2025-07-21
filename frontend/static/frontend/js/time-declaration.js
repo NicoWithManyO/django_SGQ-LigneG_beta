@@ -18,6 +18,21 @@ function timeDeclaration() {
             // Charger les arrêts après un court délai pour s'assurer que sessionData est prêt
             this.$nextTick(() => {
                 this.loadArrets();
+                
+                // Émettre l'événement initial après le chargement
+                // pour que shift-form soit informé du statut
+                setTimeout(() => {
+                    const hasStartup = this.arrets.some(arret => {
+                        const motifName = this.getMotifName(arret.reason);
+                        return motifName === 'Démarrage';
+                    });
+                    window.dispatchEvent(new CustomEvent('lost-time-updated', {
+                        detail: { 
+                            tempsTotal: this.tempsTotal,
+                            hasStartupTime: hasStartup
+                        }
+                    }));
+                }, 100);
             });
             
             // Écouter les événements

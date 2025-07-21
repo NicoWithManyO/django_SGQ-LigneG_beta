@@ -126,6 +126,16 @@ function shiftForm() {
                 if (window.sessionData.has_startup_time) {
                     this.hasStartupTime = true;
                 }
+                
+                // Vérifier aussi directement dans les lost_time_entries au cas où
+                if (window.sessionData.lost_time_entries && window.sessionData.lost_time_entries.length > 0) {
+                    // Déclencher manuellement l'événement pour recalculer hasStartupTime
+                    window.dispatchEvent(new CustomEvent('lost-time-updated', {
+                        detail: { 
+                            hasStartupTime: window.sessionData.has_startup_time || false
+                        }
+                    }));
+                }
             }
         },
         
