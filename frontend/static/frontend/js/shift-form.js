@@ -18,6 +18,8 @@ function shiftForm() {
         isValid: false,
         hasValidId: false, // Pour l'icône ID Poste uniquement
         qcStatus: 'pending', // Statut du contrôle qualité
+        checklistSigned: false, // Statut de signature de la checklist
+        hasStartupTime: false, // Indique si du temps de démarrage a été déclaré
         
         // Initialisation
         init() {
@@ -81,6 +83,18 @@ function shiftForm() {
                 this.qcStatus = e.detail.status;
                 this.validateForm();
             });
+            
+            // Écouter les changements de la checklist
+            window.addEventListener('checklist-status-changed', (e) => {
+                this.checklistSigned = e.detail.signed || false;
+                this.validateForm();
+            });
+            
+            // Écouter les changements de temps perdu
+            window.addEventListener('lost-time-updated', (e) => {
+                this.hasStartupTime = e.detail.hasStartupTime || false;
+                this.validateForm();
+            });
         },
         
         // Charger depuis la session
@@ -101,6 +115,16 @@ function shiftForm() {
                 // Charger le statut QC depuis la session
                 if (window.sessionData.qc_status) {
                     this.qcStatus = window.sessionData.qc_status;
+                }
+                
+                // Charger le statut de la checklist depuis la session
+                if (window.sessionData.checklist_signature_time) {
+                    this.checklistSigned = true;
+                }
+                
+                // Charger le statut du temps de démarrage depuis la session
+                if (window.sessionData.has_startup_time) {
+                    this.hasStartupTime = true;
                 }
             }
         },
@@ -190,6 +214,18 @@ function shiftForm() {
                 return;
             }
             
+            // Vérifier que la checklist est signée
+            if (!this.checklistSigned) {
+                this.isValid = false;
+                return;
+            }
+            
+            // Si machine pas démarrée, vérifier qu'il y a du temps de démarrage
+            if (!this.machineStartedStart && !this.hasStartupTime) {
+                this.isValid = false;
+                return;
+            }
+            
             // Vérifier la cohérence machine/métrage
             if (this.machineStartedStart && !this.lengthStart) {
                 this.isValid = false;
@@ -247,6 +283,14 @@ function shiftForm() {
             
             // Vérifier le contrôle qualité
             if (this.qcStatus === 'pending') messages.push("Compléter le contrôle qualité");
+            
+            // Vérifier la checklist
+            if (!this.checklistSigned) messages.push("Signer la checklist de démarrage");
+            
+            // Vérifier le temps de démarrage si machine pas démarrée
+            if (!this.machineStartedStart && !this.hasStartupTime) {
+                messages.push("Déclarer le temps de démarrage machine");
+            }
             
             // Vérifier la cohérence machine/métrage
             if (this.machineStartedStart && !this.lengthStart) {

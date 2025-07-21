@@ -1,7 +1,7 @@
 // Composant Alpine.js pour les onglets du profil
 function profileTabs() {
     return {
-        activeTab: 'specs',
+        activeTab: 'kpi',
         
         // Initialisation
         init() {

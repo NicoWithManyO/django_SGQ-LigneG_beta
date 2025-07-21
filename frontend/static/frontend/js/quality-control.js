@@ -38,7 +38,7 @@ function qualityControl() {
             this.thresholds = qualityControlBusinessLogic.defaultThresholds;
             
             // Déplacer le badge QC vers la zone des badges
-            this.moveQCBadge();
+            // this.moveQCBadge(); // Désactivé - badge reste à sa place d'origine
             
             // Essayer de récupérer le profil actuel s'il existe
             // Utiliser un timeout pour s'assurer que le profileManager est initialisé

@@ -15,11 +15,18 @@ function timeDeclaration() {
             // Charger les motifs d'arrêt
             this.loadMotifs();
             
-            // Charger les arrêts du poste en cours
-            this.loadArrets();
+            // Charger les arrêts après un court délai pour s'assurer que sessionData est prêt
+            this.$nextTick(() => {
+                this.loadArrets();
+            });
             
             // Écouter les événements
             window.addEventListener('shift-changed', () => {
+                this.loadArrets();
+            });
+            
+            // Écouter les changements de session
+            window.addEventListener('session-changed', () => {
                 this.loadArrets();
             });
         },
@@ -35,14 +42,14 @@ function timeDeclaration() {
         },
         
         // Charger les arrêts du poste
-        async loadArrets() {
-            try {
-                const data = await api.getLostTimeEntries();
-                this.arrets = data;
-                this.calculerStats();
-            } catch (error) {
-                console.error('Erreur chargement arrêts:', error);
+        loadArrets() {
+            // Charger uniquement depuis la session
+            if (window.sessionData?.lost_time_entries) {
+                this.arrets = window.sessionData.lost_time_entries;
+            } else {
+                this.arrets = [];
             }
+            this.calculerStats();
         },
         
         // Vérifier si on peut déclarer
@@ -54,39 +61,44 @@ function timeDeclaration() {
         async declarer() {
             if (!this.canDeclare()) return;
             
-            const data = {
-                reason: this.motifId,
+            // Créer un nouvel arrêt avec un ID temporaire
+            const newArret = {
+                id: 'temp_' + Date.now(), // ID temporaire
+                reason: parseInt(this.motifId),
                 comment: this.commentaire || '',
-                duration: parseInt(this.duree)
+                duration: parseInt(this.duree),
+                created_at: new Date().toISOString()
             };
             
-            try {
-                await api.createLostTimeEntry(data);
-                
-                // Réinitialiser le formulaire
-                this.motifId = '';
-                this.commentaire = '';
-                this.duree = '';
-                
-                // Recharger les arrêts
-                await this.loadArrets();
-                
-                // Émettre un événement pour mettre à jour le header
-                this.emitTimeUpdate();
-            } catch (error) {
-                console.error('Erreur déclaration:', error);
-            }
+            // Ajouter au tableau local
+            this.arrets.push(newArret);
+            
+            // Sauvegarder dans la session
+            await api.saveToSession({
+                lost_time_entries: this.arrets
+            });
+            
+            // Réinitialiser le formulaire
+            this.motifId = '';
+            this.commentaire = '';
+            this.duree = '';
+            
+            // Recalculer les stats
+            this.calculerStats();
         },
         
         // Supprimer un arrêt
         async supprimerArret(id) {
-            try {
-                await api.deleteLostTimeEntry(id);
-                await this.loadArrets();
-                this.emitTimeUpdate();
-            } catch (error) {
-                console.error('Erreur suppression:', error);
-            }
+            // Filtrer pour retirer l'arrêt
+            this.arrets = this.arrets.filter(arret => arret.id !== id);
+            
+            // Sauvegarder dans la session
+            await api.saveToSession({
+                lost_time_entries: this.arrets
+            });
+            
+            // Recalculer les stats
+            this.calculerStats();
         },
         
         // Calculer les statistiques
@@ -94,25 +106,38 @@ function timeDeclaration() {
             const totalMinutes = this.arrets.reduce((sum, arret) => sum + arret.duration, 0);
             this.nombreArrets = this.arrets.length;
             
+            // Vérifier s'il y a un arrêt "Démarrage"
+            const hasStartupTime = this.arrets.some(arret => {
+                const motifName = this.getMotifName(arret.reason);
+                return motifName === 'Démarrage';
+            });
+            
             // Convertir en heures et minutes
             const heures = Math.floor(totalMinutes / 60);
             const minutes = totalMinutes % 60;
             this.tempsTotal = `${heures}h${minutes.toString().padStart(2, '0')}`;
             
-            // Si le temps total a changé, émettre l'événement
-            if (this.tempsTotal !== window.sessionData?.temps_total) {
-                this.emitTimeUpdate();
+            // Si le temps total a changé ou si le statut de démarrage a changé, émettre l'événement
+            if (this.tempsTotal !== window.sessionData?.temps_total || 
+                hasStartupTime !== window.sessionData?.has_startup_time) {
+                this.emitTimeUpdate(hasStartupTime);
             }
         },
         
         // Émettre un événement de mise à jour
-        async emitTimeUpdate() {
+        async emitTimeUpdate(hasStartupTime = false) {
             window.dispatchEvent(new CustomEvent('lost-time-updated', {
-                detail: { tempsTotal: this.tempsTotal }
+                detail: { 
+                    tempsTotal: this.tempsTotal,
+                    hasStartupTime: hasStartupTime
+                }
             }));
             
-            // Sauvegarder le temps total dans la session
-            await api.saveToSession({ temps_total: this.tempsTotal });
+            // Sauvegarder le temps total et le statut de démarrage dans la session
+            await api.saveToSession({ 
+                temps_total: this.tempsTotal,
+                has_startup_time: hasStartupTime
+            });
         },
         
         

@@ -193,6 +193,10 @@ function checklist() {
                     checklist_signature: null,
                     checklist_signature_time: null
                 });
+                // Émettre l'événement pour notifier le changement
+                window.dispatchEvent(new CustomEvent('checklist-status-changed', {
+                    detail: { signed: false, complete: this.isAllItemsChecked }
+                }));
                 return;
             }
             
@@ -200,6 +204,16 @@ function checklist() {
             const expectedInitials = this.getExpectedInitials();
             if (expectedInitials && this.signature !== expectedInitials) {
                 this.signatureInvalid = true;
+                this.signatureTime = null;
+                // Sauvegarder l'état invalide
+                await api.saveToSession({
+                    checklist_signature: this.signature,
+                    checklist_signature_time: null
+                });
+                // Émettre l'événement pour notifier le changement
+                window.dispatchEvent(new CustomEvent('checklist-status-changed', {
+                    detail: { signed: false, complete: this.isAllItemsChecked }
+                }));
                 return;
             }
             
@@ -219,6 +233,11 @@ function checklist() {
                     checklist_signature: this.signature,
                     checklist_signature_time: this.signatureTime
                 });
+                
+                // Émettre l'événement pour notifier que la checklist est signée
+                window.dispatchEvent(new CustomEvent('checklist-status-changed', {
+                    detail: { signed: true, complete: this.isChecklistComplete }
+                }));
             } catch (error) {
                 console.error('Erreur sauvegarde signature:', error);
             }

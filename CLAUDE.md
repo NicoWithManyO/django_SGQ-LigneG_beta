@@ -181,3 +181,57 @@ Currently using Django's default development settings with:
 4. Maintain the French comments for team documentation
 5. Test with keyboard navigation for accessibility
 6. Verify against the three ISO standards (9001, 14001, 45001) for compliance features
+
+## Key Architectural Patterns
+
+### Session Management Flow
+1. Frontend components use Alpine.js with debounced auto-save (300ms)
+2. Data is sent to `/api/session/` via PATCH requests
+3. Session data is namespaced by component (e.g., `shift_form`, `roll_zone`)
+4. On page load, components fetch their state from session
+5. Final validation transfers session data to database models
+
+### Event-Driven Frontend Communication
+Components dispatch custom events for cross-component updates:
+```javascript
+// Example: Roll creation notifies other components
+window.dispatchEvent(new CustomEvent('roll-created', { 
+    detail: { rollId: response.data.id }
+}));
+```
+
+### Validation Hierarchy
+1. **Frontend validation**: Immediate feedback (Alpine.js)
+2. **Session validation**: Data integrity checks
+3. **Model validation**: Django model constraints
+4. **Business validation**: Custom clean() methods
+
+### Critical Business Rules
+- **Defect Severity**: 
+  - Blocking (red): Stops production immediately
+  - Non-blocking (orange): Tracked but production continues
+  - Threshold-based: Becomes blocking after N occurrences
+- **Quality Control**: Must be completed before shift can be saved
+- **Thickness Grid**: Values outside min/max are flagged as NOK
+- **Machine State**: Must track if machine was on at start/end of shift
+
+## Frontend Component Dependencies
+
+Key component interactions to maintain:
+- `shift-form.js` → validates quality control completion
+- `roll-zone.js` → updates sticky bar with thickness data
+- `roll-conformity.js` → listens to thickness changes for badge updates
+- `quality-control.js` → broadcasts completion status
+- `sticky-bottom.js` → aggregates data from multiple components
+
+## Common Pitfalls to Avoid
+
+1. **Never modify ID generation logic** - External systems depend on exact formats
+2. **Don't skip session saves** - Users expect zero data loss
+3. **Maintain keyboard navigation** - Required for production floor usage
+4. **Keep components loosely coupled** - Use events, not direct references
+5. **Preserve French comments** - Team documentation requirement
+
+## Conception de composants
+
+- Utilise en priorité des trucs "intégré" bootstrap, en consultant la doc quand je te demande quelque chose. pour ne pas réinventer la roue quand c pas necessaire

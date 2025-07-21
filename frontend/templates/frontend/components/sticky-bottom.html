@@ -29,7 +29,7 @@
                     <div class="info-item">
                         <div class="info-label">ID Rouleau</div>
                         <div class="info-value">
-                            <i class="bi bi-check-circle-fill text-white me-1 icon-sm"></i>
+                            <i class="bi bi-check-circle-fill text-success me-1 icon-sm"></i>
                             <span x-text="rollId || '--'">3165_005</span>
                         </div>
                     </div>
@@ -54,8 +54,10 @@
                     
                     <!-- Grammage calculé -->
                     <div class="info-item">
-                        <div class="info-label net-mass-label"><span x-text="netMass || '--'">--</span><span x-show="netMass"> g</span></div>
-                        <div class="info-value text-start" :class="getWeightClass()" x-text="weight || '--'">--</div>
+                        <div class="info-label net-mass-label"><span x-text="netMass || '--'">--</span> g</div>
+                        <div class="info-value text-start" :class="getWeightClass()">
+                            <span x-text="weight ? weight : '--'">--</span><span x-show="!weight"> g/m²</span>
+                        </div>
                     </div>
                     
                     <!-- Boutons d'action -->

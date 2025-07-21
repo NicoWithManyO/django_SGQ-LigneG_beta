@@ -4,12 +4,36 @@
     padding: 0;
 }
 
-/* Badge QC plus grand */
+/* Badge QC dans le header */
 #qc-badge {
-    font-size: 1rem !important;
-    padding: 0.5rem 1rem !important;
+    font-size: 0.75rem !important;
+    padding: 0.2rem 0.4rem !important;
     font-weight: 600;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.3px;
+    vertical-align: middle;
+    line-height: 1.2;
+    display: inline-flex !important;
+    align-items: center;
+    transform: rotate(10deg);
+    transform-origin: center;
+}
+
+/* Pour s'assurer que le badge reste petit même avec la classe badge de Bootstrap */
+#qc-badge.badge {
+    font-size: 0.75rem !important;
+    padding: 0.2rem 0.4rem !important;
+}
+
+/* Icône dans le badge */
+#qc-badge i {
+    font-size: 0.75rem;
+    line-height: 1;
+}
+
+/* Alignement des éléments dans le header */
+.quality-control-container .accordion-button h6,
+.quality-control-container .accordion-button span {
+    line-height: 1.2;
 }
 
 

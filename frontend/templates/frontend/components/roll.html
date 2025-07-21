@@ -7,7 +7,7 @@
     <div class="badge-conformite-container pt-3">
         <div class="row">
             <!-- Colonne gauche : Infos -->
-            <div class="col-4 text-center align-self-center">
+            <div class="col-4 text-end align-self-center">
                 <div class="text-secondary">
                     <small class="d-block">Ep. : <span x-text="thicknessCount + nokCount"></span>/<span x-text="getThicknessPositions().length * 6 + nokCount"></span> | NOK : <span x-text="nokCount"></span> <span x-text="getThicknessThreshold() ? `(max : ${getThicknessThreshold()})` : ''"></span></small>
                     <small class="d-block">Défauts : <span x-text="defectCount"></span> | <span x-text="getDefectsList()"></span></small>

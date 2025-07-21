@@ -96,11 +96,21 @@
         <div class="col-12 d-flex justify-content-center">
             <div x-data="{ tooltipInstance: null }"
                  x-init="
-                    // Créer le tooltip uniquement si le bouton est désactivé
-                    $watch('isValid', (value) => {
+                    // Attendre un peu pour que isValid soit défini
+                    setTimeout(() => {
+                        // Créer le tooltip au chargement si nécessaire
+                        if (!$data.isValid) {
+                            tooltipInstance = new bootstrap.Tooltip($refs.tooltipWrapper, {
+                                title: () => $data.getValidationMessage()
+                            });
+                        }
+                    }, 100);
+                    
+                    // Surveiller les changements de validité
+                    $watch('$data.isValid', (value) => {
                         if (!value && !tooltipInstance) {
                             tooltipInstance = new bootstrap.Tooltip($refs.tooltipWrapper, {
-                                title: () => getValidationMessage()
+                                title: () => $data.getValidationMessage()
                             });
                         } else if (value && tooltipInstance) {
                             tooltipInstance.dispose();

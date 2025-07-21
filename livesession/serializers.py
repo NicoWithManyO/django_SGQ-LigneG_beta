@@ -46,6 +46,11 @@ class SessionSerializer(serializers.Serializer):
     # Contrôle qualité
     quality_control = serializers.JSONField(required=False, allow_null=True)
     
+    # Temps perdus
+    lost_time_entries = serializers.JSONField(required=False, allow_null=True)
+    temps_total = serializers.CharField(required=False, allow_null=True, allow_blank=True)
+    has_startup_time = serializers.BooleanField(required=False, allow_null=True, default=False)
+    
     def update(self, instance, validated_data):
         """Met à jour la session avec les données validées."""
         # instance = request.session
