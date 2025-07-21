@@ -23,4 +23,5 @@ urlpatterns = [
     path('', include('livesession.urls')),
     path('', include('catalog.urls')),
     path('', include('wcm.urls')),
+    path('', include('production.urls')),
 ]

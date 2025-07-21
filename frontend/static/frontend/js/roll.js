@@ -56,6 +56,11 @@ function roll() {
                 this.updateEpaisseurDisplay();
             });
             
+            // Écouter la réinitialisation du formulaire
+            window.addEventListener('reset-roll-form', () => {
+                this.resetGrid();
+            });
+            
             // Émettre l'état initial après un court délai pour que tout soit initialisé
             setTimeout(() => {
                 this.updateEpaisseurDisplay();
@@ -739,6 +744,34 @@ function roll() {
                 nextInput.focus();
                 nextInput.select();
             }
+        },
+        
+        // Réinitialiser la grille
+        resetGrid() {
+            // Vider les tableaux d'épaisseurs
+            this.thicknesses = [];
+            this.nokThicknesses = [];
+            
+            // Réinitialiser les compteurs
+            this.thicknessCount = 0;
+            this.nokCount = 0;
+            
+            // Vider les défauts
+            this.defects = [];
+            this.defectCount = 0;
+            
+            // Vider tous les inputs de la grille
+            const inputs = this.$el.querySelectorAll('.thickness-input');
+            inputs.forEach(input => {
+                input.value = '';
+                input.classList.remove('text-danger', 'text-success', 'text-warning');
+            });
+            
+            // Sauvegarder l'état vide
+            this.saveRollData();
+            
+            // Mettre à jour l'affichage
+            this.updateEpaisseurDisplay();
         }
     };
 }

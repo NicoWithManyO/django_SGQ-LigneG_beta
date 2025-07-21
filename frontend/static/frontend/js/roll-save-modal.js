@@ -15,6 +15,7 @@ function rollSaveModal() {
         nokCount: 0,
         maxNok: 3,
         isSaved: false,
+        isSaving: false,
         modalInstance: null,
         
         // Initialisation
@@ -34,6 +35,19 @@ function rollSaveModal() {
             
             // Réinitialiser quand la modal se ferme
             modalElement?.addEventListener('hidden.bs.modal', () => {
+                this.isSaved = false;
+                this.isSaving = false;
+            });
+            
+            // Écouter le succès de la sauvegarde
+            window.addEventListener('roll-saved', () => {
+                this.isSaving = false;
+                this.isSaved = true;
+            });
+            
+            // Écouter les erreurs de sauvegarde
+            window.addEventListener('roll-save-error', () => {
+                this.isSaving = false;
                 this.isSaved = false;
             });
             
@@ -71,6 +85,13 @@ function rollSaveModal() {
         
         // Confirmer la sauvegarde
         async confirmSave() {
+            // Éviter les doubles appels
+            if (this.isSaving || this.isSaved) {
+                return;
+            }
+            
+            this.isSaving = true;
+            
             try {
                 // Émettre l'événement de confirmation avec les données
                 window.dispatchEvent(new CustomEvent('confirm-roll-save', {
@@ -87,15 +108,15 @@ function rollSaveModal() {
                     }
                 }));
                 
-                // Marquer comme sauvegardé
-                this.isSaved = true;
+                // Ne PAS marquer comme sauvegardé ici - attendre la réponse
+                // this.isSaved = true;  // Sera fait par l'événement roll-saved
                 
-                // Placeholder pour la logique de sauvegarde
-                // TODO: Implémenter la sauvegarde réelle
-                console.log('Sauvegarde simulée:', this.rollId);
+                // Attendre que l'événement soit traité
+                await new Promise(resolve => setTimeout(resolve, 100));
                 
             } catch (error) {
                 console.error('Erreur lors de la sauvegarde:', error);
+                this.isSaving = false;
                 // TODO: Afficher un message d'erreur à l'utilisateur
             }
         }

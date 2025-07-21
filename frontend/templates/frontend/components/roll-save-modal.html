@@ -98,6 +98,7 @@
                 <button type="button" 
                         class="btn" 
                         :class="isSaved ? 'btn-secondary' : (isNonConform ? 'btn-warning' : 'btn-primary')"
+                        :disabled="isSaving"
                         @click="isSaved ? hide() : confirmSave()">
                     <template x-if="!isSaved">
                         <span>

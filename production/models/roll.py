@@ -2,6 +2,30 @@ from django.db import models
 from .shift import Shift
 
 
+class RollManager(models.Manager):
+    """Manager personnalisé pour les rouleaux."""
+    
+    def for_session(self, session_key):
+        """Retourne les rouleaux d'une session."""
+        return self.filter(session_key=session_key)
+    
+    def for_shift_id(self, shift_id_str):
+        """Retourne les rouleaux d'un poste via son ID string."""
+        return self.filter(shift_id_str=shift_id_str)
+    
+    def pending_association(self):
+        """Retourne les rouleaux en attente d'association à un shift."""
+        return self.filter(shift__isnull=True, shift_id_str__isnull=False)
+    
+    def conforming(self):
+        """Retourne les rouleaux conformes."""
+        return self.filter(status='CONFORME')
+    
+    def non_conforming(self):
+        """Retourne les rouleaux non conformes."""
+        return self.filter(status='NON_CONFORME')
+
+
 class Roll(models.Model):
     """Modèle représentant un rouleau de production."""
     
@@ -158,6 +182,9 @@ class Roll(models.Model):
     # Métadonnées
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    
+    # Manager personnalisé
+    objects = RollManager()
     
     class Meta:
         verbose_name = "Rouleau"

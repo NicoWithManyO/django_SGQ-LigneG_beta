@@ -107,6 +107,25 @@ function stickyBottom() {
                 this.sessionVersion++;
             });
             
+            // Flag pour éviter les doubles appels
+            this.isSavingRoll = false;
+            
+            // Écouter la confirmation de sauvegarde du rouleau
+            window.addEventListener('confirm-roll-save', async (event) => {
+                // Éviter les doubles appels
+                if (this.isSavingRoll) {
+                    console.warn('Sauvegarde déjà en cours, ignoré');
+                    return;
+                }
+                this.isSavingRoll = true;
+                
+                try {
+                    await this.handleRollSave(event.detail);
+                } finally {
+                    this.isSavingRoll = false;
+                }
+            });
+            
         },
         
         // Calculer l'ID du rouleau
@@ -127,7 +146,8 @@ function stickyBottom() {
                 this.cuttingOrder = window.sessionData.of_decoupe || '';
                 this.rollNumber = window.sessionData.roll_number || '';
                 this.tubeMass = window.sessionData.tube_mass || '';
-                this.length = window.sessionData.roll_length || '';
+                // Utiliser la longueur cible si pas de longueur de rouleau sauvegardée
+                this.length = window.sessionData.roll_length || window.sessionData.target_length || '';
                 this.totalMass = window.sessionData.total_mass || '';
                 this.nextTubeMass = window.sessionData.next_tube_mass || '';
             }
@@ -505,6 +525,256 @@ function stickyBottom() {
             window.dispatchEvent(new CustomEvent('open-roll-save-modal', { 
                 detail: modalData 
             }));
+        },
+        
+        // Gérer la sauvegarde du rouleau
+        async handleRollSave(detail) {
+            try {
+                const shiftId = this.getShiftId();
+                
+                // Préparer les données du rouleau
+                const rollData = {
+                    roll_id: detail.isNonConform ? 
+                        RollCalculations.generateCuttingRollId(this.cuttingOrder, false) : // Format complet avec timestamp
+                        this.rollId,
+                    shift_id_str: shiftId,
+                    fabrication_order: this.getFabricationOrderId(),
+                    roll_number: parseInt(this.rollNumber) || null,
+                    length: parseFloat(this.length) || null,
+                    tube_mass: parseFloat(this.tubeMass) || null,
+                    total_mass: parseFloat(this.totalMass) || null,
+                    net_mass: parseFloat(this.netMass) || null,
+                    status: detail.isNonConform ? 'NON_CONFORME' : 'CONFORME',
+                    destination: detail.isNonConform ? 'DECOUPE' : 'PRODUCTION',
+                    grammage_calc: parseFloat(this.weight) || null,
+                    has_blocking_defects: this.defectCount > 0,
+                    has_thickness_issues: this.nokCount > 0 || !this.hasAllThicknesses,
+                    comment: detail.comment || null
+                };
+                
+                // Récupérer les épaisseurs depuis la session
+                const thicknesses = [];
+                
+                // Récupérer les épaisseurs normales
+                if (window.sessionData?.roll_data?.thicknesses) {
+                    for (const thickness of window.sessionData.roll_data.thicknesses) {
+                        
+                        // Les positions sont stockées dans row et col
+                        const row = thickness.row;
+                        const col = thickness.col;
+                        
+                        // Déterminer le measurement_point basé sur la colonne
+                        // col est une string comme 'G1', 'C1', 'D1', 'G2', 'C2', 'D2'
+                        let measurementPoint;
+                        switch(col) {
+                            case 'G1': measurementPoint = 'GG'; break;
+                            case 'C1': measurementPoint = 'GC'; break;
+                            case 'D1': measurementPoint = 'GD'; break;
+                            case 'G2': measurementPoint = 'DG'; break;
+                            case 'C2': measurementPoint = 'DC'; break;
+                            case 'D2': measurementPoint = 'DD'; break;
+                            default: 
+                                console.error('Colonne invalide:', col);
+                                measurementPoint = 'GG'; // Fallback
+                        }
+                        
+                        thicknesses.push({
+                            meter_position: row + 1, // row est 0-based, meter_position est 1-based
+                            measurement_point: measurementPoint,
+                            thickness_value: parseFloat(thickness.value),
+                            is_catchup: false,
+                            is_within_tolerance: true  // À calculer côté backend
+                        });
+                    }
+                }
+                
+                // Récupérer aussi les épaisseurs NOK
+                if (window.sessionData?.roll_data?.nokThicknesses) {
+                    for (const nokThickness of window.sessionData.roll_data.nokThicknesses) {
+                        
+                        // Les positions sont stockées dans row et col
+                        const row = nokThickness.row;
+                        const col = nokThickness.col;
+                        
+                        // Déterminer le measurement_point basé sur la colonne
+                        let measurementPoint;
+                        switch(col) {
+                            case 'G1': measurementPoint = 'GG'; break;
+                            case 'C1': measurementPoint = 'GC'; break;
+                            case 'D1': measurementPoint = 'GD'; break;
+                            case 'G2': measurementPoint = 'DG'; break;
+                            case 'C2': measurementPoint = 'DC'; break;
+                            case 'D2': measurementPoint = 'DD'; break;
+                            default: 
+                                console.error('Colonne invalide pour NOK:', col);
+                                measurementPoint = 'GG'; // Fallback
+                        }
+                        
+                        // Ajouter l'épaisseur NOK (elle sera marquée hors tolérance)
+                        thicknesses.push({
+                            meter_position: row + 1, // row est 0-based, meter_position est 1-based
+                            measurement_point: measurementPoint,
+                            thickness_value: parseFloat(nokThickness.value),
+                            is_catchup: false,
+                            is_within_tolerance: false  // NOK = hors tolérance
+                        });
+                    }
+                }
+                
+                if (thicknesses.length > 0) {
+                    rollData.thicknesses = thicknesses;
+                }
+                
+                // Récupérer les défauts depuis la session
+                const defects = [];
+                if (window.sessionData?.roll_data?.defects) {
+                    for (const defect of window.sessionData.roll_data.defects) {
+                        if (defect.type) {
+                            // Mapper la position
+                            let sidePosition = 'C'; // Centre par défaut
+                            if (defect.col === 0 || defect.col === 1) {
+                                sidePosition = 'G'; // Gauche
+                            } else if (defect.col === 4 || defect.col === 5) {
+                                sidePosition = 'D'; // Droite
+                            }
+                            
+                            defects.push({
+                                defect_type_id: defect.type,
+                                meter_position: defect.row,
+                                side_position: sidePosition,
+                                comment: null
+                            });
+                        }
+                    }
+                }
+                
+                if (defects.length > 0) {
+                    rollData.defects = defects;
+                }
+                
+                // Debug: afficher les données envoyées
+                console.log('Données à envoyer:', rollData);
+                
+                // Envoyer les données à l'API
+                const response = await fetch('/api/rolls/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': window.sessionData?.csrf_token || document.querySelector('[name=csrfmiddlewaretoken]')?.value
+                    },
+                    body: JSON.stringify(rollData)
+                });
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    console.error('Erreur API:', errorData);
+                    throw new Error(`Erreur HTTP: ${response.status}`);
+                }
+                
+                const savedRoll = await response.json();
+                
+                // Message de succès
+                console.log('Rouleau sauvegardé avec succès:', savedRoll);
+                
+                // Mettre à jour la session avec les données retournées par le backend
+                if (savedRoll.fabrication_order && window.sessionData) {
+                    // Si le backend a créé/trouvé l'OF, mettre à jour la session
+                    window.sessionData.fabrication_order_id = savedRoll.fabrication_order;
+                }
+                
+                // Émettre un événement de succès
+                window.dispatchEvent(new CustomEvent('roll-saved', {
+                    detail: {
+                        roll: savedRoll,
+                        isNonConform: detail.isNonConform
+                    }
+                }));
+                
+                // Réinitialiser le formulaire
+                this.resetForm();
+                
+            } catch (error) {
+                console.error('Erreur lors de la sauvegarde du rouleau:', error);
+                
+                // Émettre un événement d'erreur
+                window.dispatchEvent(new CustomEvent('roll-save-error', {
+                    detail: {
+                        error: error.message
+                    }
+                }));
+            }
+        },
+        
+        // Obtenir l'ID du poste
+        getShiftId() {
+            // Essayer de récupérer depuis le composant shift-form
+            const shiftComponent = document.querySelector('[x-data*="shiftForm"]');
+            
+            if (shiftComponent && shiftComponent.__x && shiftComponent.__x.$data.shiftId) {
+                return shiftComponent.__x.$data.shiftId;
+            }
+            
+            // Essayer de récupérer depuis l'affichage direct
+            const shiftIdDisplay = document.querySelector('.shift-id-value');
+            if (shiftIdDisplay && shiftIdDisplay.textContent && shiftIdDisplay.textContent !== '--') {
+                return shiftIdDisplay.textContent;
+            }
+            
+            // Fallback sur la session si disponible
+            return window.sessionData?.shift_id || null;
+        },
+        
+        // Obtenir l'ID de l'ordre de fabrication
+        getFabricationOrderId() {
+            // Ne pas chercher l'ID, le backend va gérer la création/recherche de l'OF
+            // basé sur le numéro d'OF dans le roll_id
+            return null;
+        },
+        
+        // Réinitialiser le formulaire
+        resetForm() {
+            // Incrémenter le numéro de rouleau
+            const nextNumber = parseInt(this.rollNumber) + 1 || 1;
+            this.rollNumber = nextNumber.toString();
+            
+            // Réinitialiser les masses et longueur
+            this.tubeMass = this.nextTubeMass || '';
+            this.nextTubeMass = '';
+            this.totalMass = '';
+            // Remettre la longueur cible
+            this.length = window.sessionData?.target_length || '';
+            this.netMass = '';
+            this.weight = '';
+            
+            // Réinitialiser les compteurs
+            this.hasAllThicknesses = false;
+            this.defectCount = 0;
+            this.nokCount = 0;
+            
+            // Émettre un événement pour réinitialiser les autres composants
+            window.dispatchEvent(new CustomEvent('reset-roll-form'));
+            
+            // Vider les données du rouleau dans la session
+            if (window.sessionData?.roll_data) {
+                window.sessionData.roll_data = {
+                    thicknesses: [],
+                    nokThicknesses: [],
+                    defects: []
+                };
+            }
+            
+            // Sauvegarder en session avec les données vidées
+            const resetData = {
+                roll_data: {
+                    thicknesses: [],
+                    nokThicknesses: [],
+                    defects: []
+                }
+            };
+            api.saveToSession(resetData);
+            
+            // Sauvegarder en session
+            this.saveToSession();
         }
     };
 }

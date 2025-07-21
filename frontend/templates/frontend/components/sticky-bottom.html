@@ -55,8 +55,8 @@
                     <!-- Grammage calculé -->
                     <div class="info-item">
                         <div class="info-label net-mass-label"><span x-text="netMass || '--'">--</span> g</div>
-                        <div class="info-value text-start" :class="getWeightClass()">
-                            <span x-text="weight ? weight : '--'">--</span><span x-show="!weight"> g/m²</span>
+                        <div class="info-value text-start" :class="weight ? getWeightClass() : ''">
+                            <span x-text="weight ? weight : '--'" :class="!weight ? 'text-secondary' : ''">--</span><span x-show="!weight" class="text-secondary"> g/m²</span>
                         </div>
                     </div>
                     

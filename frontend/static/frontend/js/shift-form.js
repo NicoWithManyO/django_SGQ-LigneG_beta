@@ -170,6 +170,11 @@ function shiftForm() {
                 lengthEnd: 'length_end'
             };
             
+            // Ajouter l'ID du poste s'il existe
+            if (this.shiftId) {
+                mappedData.shift_id = this.shiftId;
+            }
+            
             Object.keys(data).forEach(key => {
                 const mappedKey = fieldMapping[key] || key;
                 mappedData[mappedKey] = data[key] || null;
@@ -208,6 +213,12 @@ function shiftForm() {
             
             // Valider après génération de l'ID
             this.validateForm();
+            
+            // Sauvegarder l'ID en session s'il a changé
+            // Commenté temporairement - cause erreur 400
+            // if (this.shiftId) {
+            //     this.saveToSession({ shift_id: this.shiftId });
+            // }
         },
         
         // Valider le formulaire complet
