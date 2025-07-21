@@ -18,6 +18,7 @@ function roll() {
         currentProfile: null,
         thicknessSpec: null,
         qcStatus: 'pending', // Statut du contrôle qualité
+        isWeightNok: false, // État du grammage
         
         // Initialisation
         init() {
@@ -46,6 +47,13 @@ function roll() {
             window.addEventListener('quality-control-updated', (e) => {
                 this.qcStatus = e.detail.status;
                 // La conformité sera recalculée automatiquement via les watchers Alpine
+            });
+            
+            // Écouter les changements du statut du grammage
+            window.addEventListener('weight-status-changed', (e) => {
+                this.isWeightNok = e.detail.isWeightNok || false;
+                // La conformité sera recalculée automatiquement
+                this.updateEpaisseurDisplay();
             });
             
             // Émettre l'état initial après un court délai pour que tout soit initialisé
@@ -167,7 +175,8 @@ function roll() {
                 thicknesses: this.thicknesses,
                 nokThicknesses: this.nokThicknesses,
                 targetLength: this.targetLength,
-                qcStatus: this.qcStatus
+                qcStatus: this.qcStatus,
+                isWeightNok: this.isWeightNok
             });
         },
         

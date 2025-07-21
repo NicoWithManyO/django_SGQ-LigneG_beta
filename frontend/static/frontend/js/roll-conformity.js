@@ -2,10 +2,15 @@
 const rollConformity = {
     // Calculer la conformité du rouleau complet
     calculate(data) {
-        const { defects, defectTypes, thicknesses, nokThicknesses, targetLength, qcStatus } = data;
+        const { defects, defectTypes, thicknesses, nokThicknesses, targetLength, qcStatus, isWeightNok } = data;
         
         // Le contrôle qualité ne doit PAS impacter la conformité du rouleau
         // Supprimer cette règle selon les exigences métier
+        
+        // Règle 0 : Grammage hors seuils
+        if (isWeightNok === true) {
+            return false;
+        }
         
         // Règle 1 : Défauts bloquants
         const hasBlockingDefect = defects.some(d => d.severity === 'blocking');

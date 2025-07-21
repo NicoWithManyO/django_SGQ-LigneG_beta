@@ -89,6 +89,19 @@ function stickyBottom() {
             // Calculer l'ID initial et les valeurs
             this.calculateRollId();
             this.calculateNetMass();
+            
+            // Émettre l'événement initial après un court délai
+            this.$nextTick(() => {
+                if (this.weight) {
+                    const isNok = this.isWeightNok();
+                    window.dispatchEvent(new CustomEvent('weight-status-changed', {
+                        detail: { 
+                            weight: this.weight,
+                            isWeightNok: isNok
+                        }
+                    }));
+                }
+            });
         },
         
         // Sauvegarder en session via API
@@ -173,10 +186,23 @@ function stickyBottom() {
                 netMassValue = RollCalculations.calculateNetMass(this.totalMass, this.tubeMass);
             }
             
+            const previousWeight = this.weight;
+            
             if (netMassValue) {
                 this.weight = RollCalculations.calculateGrammage(netMassValue, this.length, this.feltWidth) || '';
             } else {
                 this.weight = '';
+            }
+            
+            // Émettre un événement si le statut NOK a changé
+            if (previousWeight !== this.weight) {
+                const isNok = this.isWeightNok();
+                window.dispatchEvent(new CustomEvent('weight-status-changed', {
+                    detail: { 
+                        weight: this.weight,
+                        isWeightNok: isNok
+                    }
+                }));
             }
         },
         
@@ -207,19 +233,14 @@ function stickyBottom() {
         
         // Obtenir la classe CSS pour le grammage
         getWeightClass() {
-            console.log('getWeightClass appelé, weight:', this.weight, 'surfaceMassSpec:', this.surfaceMassSpec);
-            
             if (!this.weight || !this.surfaceMassSpec) {
-                console.log('Pas de weight ou pas de spec, retour vide');
                 return '';
             }
             
             // Extraire la valeur numérique
             const value = parseFloat(this.weight.toString().replace(' g/m²', ''));
-            console.log('Valeur extraite:', value);
             
             if (isNaN(value)) {
-                console.log('Valeur NaN, retour vide');
                 return '';
             }
             
@@ -227,19 +248,37 @@ function stickyBottom() {
             
             // NOK si hors limites min/max
             if (value < spec.min || value > spec.max) {
-                console.log('DANGER: value=', value, 'min=', spec.min, 'max=', spec.max);
                 return 'text-danger';
             }
             
             // Alerte si hors limites d'alerte
             if (value < spec.minAlert || value > spec.maxAlert) {
-                console.log('WARNING: value=', value, 'minAlert=', spec.minAlert, 'maxAlert=', spec.maxAlert);
                 return 'text-warning';
             }
             
             // OK sinon
-            console.log('SUCCESS: value=', value, 'dans les limites');
             return 'text-success';
+        },
+        
+        // Vérifier si le grammage est NOK (hors seuils)
+        isWeightNok() {
+            if (!this.weight || !this.surfaceMassSpec) {
+                // Pas de valeur ou pas de spec = considéré conforme
+                return false;
+            }
+            
+            // Extraire la valeur numérique
+            const value = parseFloat(this.weight.toString().replace(' g/m²', ''));
+            
+            if (isNaN(value)) {
+                // Valeur invalide = considéré conforme
+                return false;
+            }
+            
+            const spec = this.surfaceMassSpec;
+            
+            // NOK si hors limites min/max
+            return value < spec.min || value > spec.max;
         }
     };
 }
