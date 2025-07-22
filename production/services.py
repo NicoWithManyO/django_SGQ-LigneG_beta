@@ -456,6 +456,9 @@ class ShiftService:
         # Récupérer les rouleaux du poste
         rolls = Roll.objects.filter(shift_id_str=shift.shift_id)
         
+        # Lier les rouleaux au poste via la ForeignKey
+        rolls.update(shift=shift)
+        
         # Calculer les totaux de production
         production_totals = self.calculate_production_totals(rolls)
         shift.total_length = production_totals['total_length']

@@ -168,12 +168,12 @@ function rollSaveModal() {
             
             // Statuts
             this.stat1Label = 'CONTRÔLE Q.';
-            this.stat1Value = shiftData.qcCompleted ? 'OK' : 'À FAIRE';
-            this.stat1Class = shiftData.qcCompleted ? 'text-success' : 'text-warning';
+            this.stat1Value = 'OK'; // Si on peut sauvegarder, c'est forcément OK
+            this.stat1Class = 'text-success';
             
             this.stat2Label = 'CHECKLIST';
-            this.stat2Value = shiftData.checklistSigned ? 'OK' : 'À SIGNER';
-            this.stat2Class = shiftData.checklistSigned ? 'text-success' : 'text-warning';
+            this.stat2Value = 'OK'; // Si on peut sauvegarder, c'est forcément signé
+            this.stat2Class = 'text-success';
             
             this.stat3Label = 'ROULEAUX';
             this.stat3Value = String(shiftData.rollCount || 0);

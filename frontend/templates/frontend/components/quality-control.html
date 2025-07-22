@@ -9,11 +9,11 @@
                             <i class="bi bi-clipboard-check me-2"></i>Prod. en cours
                         </h6>
                         <span class="text-muted d-flex align-items-center">
-                            <strong :class="getMoyenneClass('micrometry', (micrometry.averageLeft + micrometry.averageRight) / 2)" x-text="((micrometry.averageLeft + micrometry.averageRight) / 2).toFixed(1) || '--'"></strong>&nbsp;mg/min
+                            <strong :class="getMoyenneClass('micrometry', (micrometry.averageLeft + micrometry.averageRight) / 2)" x-text="micrometry.averageLeft !== null && micrometry.averageRight !== null ? ((micrometry.averageLeft + micrometry.averageRight) / 2).toFixed(1) : '--'"></strong>&nbsp;mg/min
                             <span class="mx-2">|</span>
-                            <strong :class="getMoyenneClass('surfaceMass', (surfaceMass.averageLeft + surfaceMass.averageRight) / 2)" x-text="surfaceMass.averageLeft && surfaceMass.averageRight ? formatMoyenne((surfaceMass.averageLeft + surfaceMass.averageRight) / 2, 'surfaceMass') : '--'"></strong>&nbsp;g/25cm²
+                            <strong :class="getMoyenneClass('surfaceMass', (surfaceMass.averageLeft + surfaceMass.averageRight) / 2)" x-text="surfaceMass.averageLeft !== null && surfaceMass.averageRight !== null ? formatMoyenne((surfaceMass.averageLeft + surfaceMass.averageRight) / 2, 'surfaceMass') : '--'"></strong>&nbsp;g/25cm²
                             <span class="mx-2">|</span>
-                            <strong :class="getMoyenneClass('dryExtract', dryExtract.value)" x-text="dryExtract.value ? parseFloat(dryExtract.value).toFixed(2) : '--'"></strong>&nbsp;%
+                            <strong :class="getMoyenneClass('dryExtract', dryExtract.value)" x-text="dryExtract.value !== null ? parseFloat(dryExtract.value).toFixed(2) : '--'"></strong>&nbsp;%
                         </span>
                     </div>
                     <!-- Badge QC -->

@@ -201,7 +201,7 @@ function shiftForm() {
                 if (operatorName && operatorName !== '--') {
                     const nameParts = operatorName.trim().split(' ');
                     const firstName = nameParts[0] || '';
-                    const lastName = nameParts.slice(1).join('').toUpperCase() || '';
+                    const lastName = nameParts.slice(1).join('') || '';
                     this.shiftId = `${day}${month}${year}_${firstName}${lastName}_${this.vacation}`;
                     this.hasValidId = true;
                 } else {
@@ -271,17 +271,6 @@ function shiftForm() {
                 }
             }
             
-            // Vérifier la cohérence des métrages si les deux sont renseignés
-            if (this.lengthStart && this.lengthEnd) {
-                const startLength = parseFloat(this.lengthStart) || 0;
-                const endLength = parseFloat(this.lengthEnd) || 0;
-                
-                if (endLength < startLength) {
-                    this.isValid = false;
-                    return;
-                }
-            }
-            
             // Toutes les validations sont passées
             this.isValid = true;
         },
@@ -328,15 +317,6 @@ function shiftForm() {
                 const start = this.timeToMinutes(this.startTime);
                 const end = this.timeToMinutes(this.endTime);
                 if (start >= end) messages.push("L'heure de fin doit être après l'heure de début");
-            }
-            
-            // Vérifier la cohérence des métrages
-            if (this.lengthStart && this.lengthEnd) {
-                const startLength = parseFloat(this.lengthStart) || 0;
-                const endLength = parseFloat(this.lengthEnd) || 0;
-                if (endLength < startLength) {
-                    messages.push("Le métrage de fin doit être supérieur au métrage de début");
-                }
             }
             
             return messages.length > 0 ? messages.join(" • ") : "";

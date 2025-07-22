@@ -50,6 +50,7 @@ class SessionSerializer(serializers.Serializer):
     lost_time_entries = serializers.JSONField(required=False, allow_null=True)
     temps_total = serializers.CharField(required=False, allow_null=True, allow_blank=True)
     has_startup_time = serializers.BooleanField(required=False, allow_null=True, default=False)
+    last_roll_save_time = serializers.DateTimeField(required=False, allow_null=True)
     
     def update(self, instance, validated_data):
         """Met à jour la session avec les données validées."""

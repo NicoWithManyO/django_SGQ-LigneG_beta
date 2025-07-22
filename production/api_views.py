@@ -151,8 +151,8 @@ class ShiftViewSet(viewsets.ModelViewSet):
             response_data['roll_count'] = shift.rolls.count()
             response_data['total_lost_time_minutes'] = int(shift.lost_time.total_seconds() / 60) if shift.lost_time else 0
             
-            # Nettoyer la session après sauvegarde réussie
-            self._clean_session(request)
+            # Préparer la session pour le prochain poste
+            self._prepare_next_shift(request, shift)
             
             return Response(
                 response_data,
@@ -169,6 +169,55 @@ class ShiftViewSet(viewsets.ModelViewSet):
                 {'error': f'Erreur lors de la création du poste: {str(e)}'},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+    
+    def _prepare_next_shift(self, request, saved_shift):
+        """Prépare la session pour le prochain poste après sauvegarde."""
+        # Récupérer les valeurs nécessaires avant de nettoyer
+        machine_started_end = request.session.get('machine_started_end', False)
+        length_end = request.session.get('length_end', '')
+        
+        # Nettoyer toute la session
+        self._clean_session(request)
+        
+        # Déterminer la vacation suivante
+        vacation_map = {
+            'Matin': 'ApresMidi',
+            'ApresMidi': 'Nuit',
+            'Nuit': 'Matin',
+            'Journee': 'Journee'  # Journée reste Journée
+        }
+        next_vacation = vacation_map.get(saved_shift.vacation, 'Matin')
+        
+        # Préparer les données du prochain poste
+        from datetime import date
+        request.session['shift_date'] = date.today().strftime('%Y-%m-%d')
+        request.session['vacation'] = next_vacation
+        
+        # Définir les heures par défaut selon la vacation
+        default_hours = {
+            'Matin': ('04:00', '12:00'),
+            'ApresMidi': ('12:00', '20:00'),
+            'Nuit': ('20:00', '04:00'),
+            'Journee': ('07:30', '15:30')
+        }
+        
+        if next_vacation in default_hours:
+            request.session['start_time'] = default_hours[next_vacation][0]
+            request.session['end_time'] = default_hours[next_vacation][1]
+        
+        # Transférer le métrage si la machine était démarrée en fin
+        if machine_started_end and length_end:
+            request.session['machine_started_start'] = True
+            request.session['length_start'] = length_end
+        else:
+            request.session['machine_started_start'] = False
+            request.session['length_start'] = ''
+        
+        # Machine démarrée en fin par défaut
+        request.session['machine_started_end'] = True
+        
+        # Sauvegarder la session
+        request.session.save()
     
     def _clean_session(self, request):
         """Nettoie les données de session après sauvegarde du poste."""
@@ -189,7 +238,7 @@ class ShiftViewSet(viewsets.ModelViewSet):
             'checklist_signature',
             'checklist_signature_time',
             'lost_time_entries',
-            'roll_data',
+            # 'roll_data',  # NE PAS nettoyer les données du rouleau en cours !
             'quality_control',
             'qc_status',
             'has_startup_time'

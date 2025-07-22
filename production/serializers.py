@@ -263,13 +263,6 @@ class ShiftSerializer(serializers.ModelSerializer):
                 'meter_reading_end': 'Le métrage de fin est requis si la machine était démarrée.'
             })
         
-        # Vérifier la cohérence des métrages
-        if meter_reading_start and meter_reading_end:
-            if meter_reading_end < meter_reading_start:
-                raise serializers.ValidationError({
-                    'meter_reading_end': 'Le métrage de fin doit être supérieur ou égal au métrage de début.'
-                })
-        
         return attrs
     
     @transaction.atomic

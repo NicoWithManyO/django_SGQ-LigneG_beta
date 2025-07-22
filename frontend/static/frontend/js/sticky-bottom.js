@@ -667,42 +667,11 @@ function stickyBottom() {
                 // Debug: afficher les données envoyées
                 console.log('Données à envoyer:', rollData);
                 
-                // Envoyer les données à l'API
-                const response = await fetch('/api/rolls/', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': window.sessionData?.csrf_token || document.querySelector('[name=csrfmiddlewaretoken]')?.value
-                    },
-                    body: JSON.stringify(rollData)
-                });
+                // Envoyer les données à l'API via le module api
+                const response = await api.post('/api/rolls/', rollData);
                 
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    console.error('Erreur API:', errorData);
-                    console.error('Données envoyées:', rollData);
-                    
-                    // Afficher les détails de l'erreur
-                    if (errorData.defects && Array.isArray(errorData.defects)) {
-                        console.error('Erreurs défauts:', errorData.defects);
-                        errorData.defects.forEach((err, index) => {
-                            console.error(`Défaut ${index}:`, err);
-                        });
-                    }
-                    
-                    // Afficher toutes les erreurs
-                    Object.keys(errorData).forEach(key => {
-                        if (key !== 'defects') {
-                            console.error(`Erreur ${key}:`, errorData[key]);
-                        }
-                    });
-                    
-                    throw new Error(`Erreur HTTP: ${response.status}`);
-                }
-                
-                const savedRoll = await response.json();
-                
-                // Message de succès
+                // La réponse est déjà en JSON avec api.post
+                const savedRoll = response;
                 console.log('Rouleau sauvegardé avec succès:', savedRoll);
                 
                 // Mettre à jour la session avec les données retournées par le backend
