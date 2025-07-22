@@ -110,7 +110,7 @@ Le SGQ Ligne G est un système de pilotage de production en temps réel pour l'i
 - **Architecture** : Applications modulaires par domaine métier
 - **API REST** : Pour intégrations futures avec ERP/MES
 
-Pour les développeurs : consulter [TECHNICAL_GUIDE.md](TECHNICAL_GUIDE.md)
+Pour les développeurs : consulter [docs/TECHNICAL_GUIDE.md](docs/TECHNICAL_GUIDE.md)
 
 ## 📞 Support
 
