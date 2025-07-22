@@ -101,6 +101,17 @@ Le SGQ Ligne G est un système de pilotage de production en temps réel pour l'i
 - **Résolution minimale** : 1024x768 (optimal : 1920x1080)
 - **Formation** : 2h pour les opérateurs, 4h pour les superviseurs
 
+## 🔧 Stack Technique
+
+- **Framework Web** : Django 5.2 avec interface responsive
+- **Interactivité** : Alpine.js pour une réactivité temps réel
+- **Design** : Bootstrap 5 personnalisé aux couleurs de l'entreprise
+- **Base de données** : PostgreSQL pour la robustesse en production
+- **Architecture** : Applications modulaires par domaine métier
+- **API REST** : Pour intégrations futures avec ERP/MES
+
+Pour les développeurs : consulter [TECHNICAL_GUIDE.md](TECHNICAL_GUIDE.md)
+
 ## 📞 Support
 
 Pour toute question ou demande d'évolution :
