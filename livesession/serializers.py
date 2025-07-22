@@ -15,8 +15,8 @@ class SessionSerializer(serializers.Serializer):
     end_time = serializers.TimeField(required=False, allow_null=True)
     
     # États machine
-    machine_started_start = serializers.BooleanField(required=False, allow_null=True, default=False)
-    machine_started_end = serializers.BooleanField(required=False, allow_null=True, default=False)
+    machine_started_start = serializers.BooleanField(required=False, allow_null=True)
+    machine_started_end = serializers.BooleanField(required=False, allow_null=True)
     length_start = serializers.CharField(required=False, allow_null=True, allow_blank=True)
     length_end = serializers.CharField(required=False, allow_null=True, allow_blank=True)
     

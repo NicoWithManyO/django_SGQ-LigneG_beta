@@ -9,8 +9,8 @@ function shiftForm() {
         vacation: '',
         startTime: '',
         endTime: '',
-        machineStartedStart: false,
-        machineStartedEnd: false,
+        machineStartedStart: null,
+        machineStartedEnd: null,
         lengthStart: '',
         lengthEnd: '',
         comment: '',
@@ -25,6 +25,7 @@ function shiftForm() {
         // Handlers pour éviter les doubles listeners
         shiftSaveHandlers: null,
         isSavingShift: false,
+        isInitializing: true, // Flag pour éviter la sauvegarde pendant le chargement
         
         // Initialisation
         init() {
@@ -34,6 +35,13 @@ function shiftForm() {
             // Générer l'ID au chargement après que le DOM soit mis à jour
             this.$nextTick(() => {
                 this.generateShiftId();
+                // Marquer la fin de l'initialisation après un court délai
+                setTimeout(() => {
+                    // Si les valeurs sont toujours null, les mettre à false
+                    if (this.machineStartedStart === null) this.machineStartedStart = false;
+                    if (this.machineStartedEnd === null) this.machineStartedEnd = false;
+                    this.isInitializing = false;
+                }, 100);
             });
             
             // Watchers individuels pour les champs qui affectent shiftId
@@ -78,6 +86,12 @@ function shiftForm() {
             // Sauvegarder avec un mapping des noms de propriétés
             let saveTimeout = null;
             const saveToSessionWithMapping = () => {
+                // Ne pas sauvegarder pendant l'initialisation
+                if (this.isInitializing) {
+                    console.log('Skipping save during initialization');
+                    return;
+                }
+                
                 if (saveTimeout) clearTimeout(saveTimeout);
                 saveTimeout = setTimeout(() => {
                     const dataToSave = {
@@ -92,6 +106,10 @@ function shiftForm() {
                         length_end: this.lengthEnd,
                         comment: this.comment
                     };
+                    console.log('Saving to session:', {
+                        machine_started_start: dataToSave.machine_started_start,
+                        machine_started_end: dataToSave.machine_started_end
+                    });
                     this.saveToSession(dataToSave);
                 }, 300);
             };
@@ -131,8 +149,18 @@ function shiftForm() {
                 this.vacation = String(window.sessionData.vacation || '');
                 this.startTime = String(window.sessionData.start_time || '');
                 this.endTime = String(window.sessionData.end_time || '');
-                this.machineStartedStart = window.sessionData.machine_started_start || false;
-                this.machineStartedEnd = window.sessionData.machine_started_end || false;
+                // Pour les booléens, ne pas utiliser || false car false || false = false
+                console.log('Loading machine states from session:', {
+                    start: window.sessionData.machine_started_start,
+                    end: window.sessionData.machine_started_end
+                });
+                // Charger les valeurs booléennes seulement si elles existent
+                if (window.sessionData.machine_started_start !== undefined) {
+                    this.machineStartedStart = window.sessionData.machine_started_start;
+                }
+                if (window.sessionData.machine_started_end !== undefined) {
+                    this.machineStartedEnd = window.sessionData.machine_started_end;
+                }
                 this.lengthStart = String(window.sessionData.length_start || '');
                 this.lengthEnd = String(window.sessionData.length_end || '');
                 this.comment = String(window.sessionData.comment || '');
@@ -463,18 +491,17 @@ function shiftForm() {
                                 console.log('Données du prochain poste:', response.next_shift_data);
                                 
                                 // Sauvegarder les données du prochain poste en session
+                                // Sauvegarder dans les clés directes pour compatibilité
                                 const nextShiftData = {
-                                    shift_form: {
-                                        shift_date: response.next_shift_data.shift_date,
-                                        vacation: response.next_shift_data.vacation,
-                                        start_time: response.next_shift_data.start_time,
-                                        end_time: response.next_shift_data.end_time,
-                                        machine_started_start: response.next_shift_data.machine_started_start,
-                                        machine_started_end: response.next_shift_data.machine_started_end,
-                                        length_start: response.next_shift_data.length_start || '',
-                                        operator_id: response.next_shift_data.operator_id || '',
-                                        comment: response.next_shift_data.comment || ''
-                                    }
+                                    shift_date: response.next_shift_data.shift_date,
+                                    vacation: response.next_shift_data.vacation,
+                                    start_time: response.next_shift_data.start_time,
+                                    end_time: response.next_shift_data.end_time,
+                                    machine_started_start: response.next_shift_data.machine_started_start,
+                                    machine_started_end: response.next_shift_data.machine_started_end,
+                                    length_start: response.next_shift_data.length_start || '',
+                                    operator_id: response.next_shift_data.operator_id || '',
+                                    comment: response.next_shift_data.comment || ''
                                 };
                                 
                                 // Sauvegarder en session via l'API
