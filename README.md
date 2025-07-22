@@ -11,10 +11,11 @@ Le SGQ Ligne G est un système de pilotage de production en temps réel pour l'i
 - **Pilotage temps réel** : TRS et indicateurs de performance instantanés
 - **Traçabilité totale** : Chaque rouleau est tracé de A à Z
 - **Détection précoce** : Alertes immédiates sur les dérives qualité
+- **Longueur cible flexible** : De 1m à illimité, adaptation automatique de l'interface
 
 ### Pour la Qualité
 - **Conformité garantie** : Validation automatique selon les spécifications produit
-- **Contrôles intégrés** : Grille 12x7 avec seuils d'alerte configurables
+- **Contrôles adaptatifs** : Mesures d'épaisseur à 1m (si <3m) ou tous les 5m à partir de 3m
 - **Historique complet** : Analyse des tendances et causes racines
 - **Certification facilitée** : Données structurées pour les audits ISO
 
@@ -23,6 +24,14 @@ Le SGQ Ligne G est un système de pilotage de production en temps réel pour l'i
 - **Analyse des temps perdus** : Identification des gisements d'amélioration
 - **ROI mesurable** : Réduction des rebuts et optimisation du rendement
 - **Reporting automatisé** : Exports pour analyses et présentations
+
+## 📸 Aperçu de l'Interface
+
+![Interface principale](screenshot-interface.png)
+*Interface principale avec contrôle qualité, zone rouleau et indicateurs temps réel*
+
+![Zone rouleau détaillée](screenshot-roll-zone.png)
+*Zone rouleau avec validation des épaisseurs et détection des défauts*
 
 ## 🚀 Fonctionnalités Clés
 
@@ -52,11 +61,14 @@ Le SGQ Ligne G est un système de pilotage de production en temps réel pour l'i
 - Calcul automatique du TRS
 - Objectifs et écarts visualisés
 
-### 5. Interface Intuitive
-- **Navigation optimisée** : Conçue avec et pour les opérateurs
-- **Codes couleur universels** : Compréhension immédiate
-- **Mobilité** : Accessible sur tablette pour les rondes
-- **Multilingue** : Adaptable selon les besoins
+### 5. Interface Intuitive et Ergonomique
+- **Guidage intelligent** : L'opérateur est accompagné pas à pas tout au long du processus
+- **Navigation fluide** : Enchaînement logique des écrans suivant le flux de production
+- **Codes couleur universels** : Vert/Orange/Rouge pour une compréhension immédiate
+- **Ergonomie étudiée** : Zones cliquables larges, contrastes optimisés, lisibilité maximale
+- **Validation progressive** : Impossible de passer à l'étape suivante sans compléter la précédente
+- **Retours visuels immédiats** : Chaque action est confirmée visuellement
+- **Mobilité** : Interface responsive adaptée tablette pour les rondes terrain
 
 ## 💡 Cas d'Usage Concrets
 
@@ -81,13 +93,6 @@ Le SGQ Ligne G est un système de pilotage de production en temps réel pour l'i
 - **Validation métier** : Règles de gestion intégrées
 - **Audit trail** : Historique complet des modifications
 - **Droits d'accès** : Par rôle (Opérateur, Superviseur, Qualité)
-
-## 📈 Retour sur Investissement
-
-- **-30% de rebuts** : Détection précoce des dérives
-- **+15% de TRS** : Réduction des temps perdus non déclarés
-- **100% de traçabilité** : Zéro litige client sur la qualité
-- **-50% temps administratif** : Automatisation des rapports
 
 ## 🔧 Prérequis Techniques
 
