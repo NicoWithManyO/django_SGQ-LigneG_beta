@@ -27,10 +27,10 @@ Le SGQ Ligne G est un système de pilotage de production en temps réel pour l'i
 
 ## 📸 Aperçu de l'Interface
 
-![Interface principale](screenshot-interface.png)
+![Interface principale](docs/images/screenshot-interface.png)
 *Interface principale avec contrôle qualité, zone rouleau et indicateurs temps réel*
 
-![Zone rouleau détaillée](screenshot-roll-zone.png)
+![Zone rouleau détaillée](docs/images/screenshot-roll-zone.png)
 *Zone rouleau avec validation des épaisseurs et détection des défauts*
 
 ## 🚀 Fonctionnalités Clés
