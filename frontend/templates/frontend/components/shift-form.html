@@ -35,8 +35,16 @@
     <div class="row form-row mb-4">
         <div class="col-12 d-flex align-items-center shift-id-status">
             <i class="bi status-icon me-2"
-               :class="hasValidId ? 'bi-check-circle-fill' : 'bi-exclamation-triangle-fill text-warning'"
-               :style="hasValidId ? 'color: #198754;' : ''">
+               :class="{
+                   'bi-check-circle text-muted': idStatus === 'empty',
+                   'bi-check-circle-fill text-success': idStatus === 'valid',
+                   'bi-exclamation-triangle-fill text-warning': idStatus === 'duplicate'
+               }"
+               :title="{
+                   'empty': 'Données insuffisantes',
+                   'valid': 'ID unique et valide',
+                   'duplicate': 'Cet ID existe déjà !'
+               }[idStatus]">
             </i>
             <span class="text-secondary small">ID Poste : <span class="shift-id-value" x-text="shiftId || '--'"></span></span>
         </div>

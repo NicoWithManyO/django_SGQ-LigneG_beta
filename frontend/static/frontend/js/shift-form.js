@@ -17,6 +17,7 @@ function shiftForm() {
         shiftId: null,
         isValid: false,
         hasValidId: false, // Pour l'icône ID Poste uniquement
+        idStatus: 'empty', // 'empty', 'valid', 'duplicate'
         qcStatus: 'pending', // Statut du contrôle qualité
         checklistSigned: false, // Statut de signature de la checklist
         hasStartupTime: false, // Indique si du temps de démarrage a été déclaré
@@ -74,13 +75,33 @@ function shiftForm() {
             this.$watch('lengthStart', () => this.validateForm());
             this.$watch('lengthEnd', () => this.validateForm());
             
-            // Initialiser la sauvegarde automatique pour tous les champs
-            this.initAutoSave([
-                'operatorId', 'shiftDate', 'vacation',
-                'startTime', 'endTime',
-                'machineStartedStart', 'machineStartedEnd',
-                'lengthStart', 'lengthEnd', 'comment'
-            ]);
+            // Sauvegarder avec un mapping des noms de propriétés
+            let saveTimeout = null;
+            const saveToSessionWithMapping = () => {
+                if (saveTimeout) clearTimeout(saveTimeout);
+                saveTimeout = setTimeout(() => {
+                    const dataToSave = {
+                        operator_id: this.operatorId,
+                        shift_date: this.shiftDate,
+                        vacation: this.vacation,
+                        start_time: this.startTime,
+                        end_time: this.endTime,
+                        machine_started_start: this.machineStartedStart,
+                        machine_started_end: this.machineStartedEnd,
+                        length_start: this.lengthStart,
+                        length_end: this.lengthEnd,
+                        comment: this.comment
+                    };
+                    this.saveToSession(dataToSave);
+                }, 300);
+            };
+            
+            // Watchers pour sauvegarder avec le bon mapping
+            ['operatorId', 'shiftDate', 'vacation', 'startTime', 'endTime',
+             'machineStartedStart', 'machineStartedEnd', 'lengthStart', 'lengthEnd', 'comment'
+            ].forEach(field => {
+                this.$watch(field, saveToSessionWithMapping);
+            });
             
             // Écouter les changements du contrôle qualité
             window.addEventListener('quality-control-updated', (e) => {
@@ -186,7 +207,7 @@ function shiftForm() {
         },
         
         // Générer l'ID du poste
-        generateShiftId() {
+        async generateShiftId() {
             if (this.operatorId && this.shiftDate && this.vacation) {
                 // Format: JJMMAA_PrenomNom_Vacation
                 const date = new Date(this.shiftDate);
@@ -204,29 +225,50 @@ function shiftForm() {
                     const lastName = nameParts.slice(1).join('') || '';
                     this.shiftId = `${day}${month}${year}_${firstName}${lastName}_${this.vacation}`;
                     this.hasValidId = true;
+                    
+                    // Vérifier l'unicité de l'ID
+                    try {
+                        const response = await api.get('/api/shifts/check-id/', {
+                            shift_id: this.shiftId
+                        });
+                        
+                        if (response.exists) {
+                            this.idStatus = 'duplicate';
+                            this.hasValidId = false;
+                        } else {
+                            this.idStatus = 'valid';
+                            this.hasValidId = true;
+                        }
+                    } catch (error) {
+                        console.error('Erreur vérification ID:', error);
+                        // En cas d'erreur, on considère comme valide
+                        this.idStatus = 'valid';
+                    }
                 } else {
                     this.shiftId = null;
                     this.hasValidId = false;
+                    this.idStatus = 'empty';
                 }
             } else {
                 this.shiftId = null;
                 this.hasValidId = false;
+                this.idStatus = 'empty';
             }
             
             // Valider après génération de l'ID
             this.validateForm();
-            
-            // Sauvegarder l'ID en session s'il a changé
-            // Commenté temporairement - cause erreur 400
-            // if (this.shiftId) {
-            //     this.saveToSession({ shift_id: this.shiftId });
-            // }
         },
         
         // Valider le formulaire complet
         validateForm() {
             // Vérifier les champs obligatoires de base
             if (!this.shiftId || !this.startTime || !this.endTime) {
+                this.isValid = false;
+                return;
+            }
+            
+            // Vérifier que l'ID n'est pas dupliqué
+            if (this.idStatus === 'duplicate') {
                 this.isValid = false;
                 return;
             }
@@ -292,6 +334,9 @@ function shiftForm() {
             if (!this.vacation) messages.push("Sélectionner la vacation");
             if (!this.startTime) messages.push("Saisir l'heure de début");
             if (!this.endTime) messages.push("Saisir l'heure de fin");
+            
+            // Vérifier l'ID dupliqué
+            if (this.idStatus === 'duplicate') messages.push("Cet ID de poste existe déjà");
             
             // Vérifier le contrôle qualité
             if (this.qcStatus === 'pending') messages.push("Compléter le contrôle qualité");
@@ -412,6 +457,30 @@ function shiftForm() {
                         
                         if (response && response.id) {
                             console.log('Poste sauvegardé avec succès:', response);
+                            
+                            // Si le backend a renvoyé les données du prochain poste
+                            if (response.next_shift_data) {
+                                console.log('Données du prochain poste:', response.next_shift_data);
+                                
+                                // Sauvegarder les données du prochain poste en session
+                                const nextShiftData = {
+                                    shift_form: {
+                                        shift_date: response.next_shift_data.shift_date,
+                                        vacation: response.next_shift_data.vacation,
+                                        start_time: response.next_shift_data.start_time,
+                                        end_time: response.next_shift_data.end_time,
+                                        machine_started_start: response.next_shift_data.machine_started_start,
+                                        machine_started_end: response.next_shift_data.machine_started_end,
+                                        length_start: response.next_shift_data.length_start || '',
+                                        operator_id: response.next_shift_data.operator_id || '',
+                                        comment: response.next_shift_data.comment || ''
+                                    }
+                                };
+                                
+                                // Sauvegarder en session via l'API
+                                await api.saveToSession(nextShiftData);
+                                console.log('Données du prochain poste sauvegardées en session');
+                            }
                             
                             // Ne PAS fermer la modal - laisser l'utilisateur voir le succès
                             // La modal gère son propre état maintenant

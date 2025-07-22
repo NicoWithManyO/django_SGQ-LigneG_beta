@@ -1,6 +1,7 @@
 from rest_framework import viewsets, status
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
+from rest_framework.decorators import action, api_view
 from django.db import transaction
 from .models import Roll, Shift
 from .serializers import RollSerializer, ShiftSerializer
@@ -26,7 +27,7 @@ class RollViewSet(viewsets.ModelViewSet):
         
         # Filtrer par session si disponible
         if self.request.session.session_key:
-            queryset = queryset.for_session(self.request.session.session_key)
+            queryset = queryset.filter(session_key=self.request.session.session_key)
         
         # Prefetch les relations pour optimiser
         queryset = queryset.prefetch_related(
@@ -68,9 +69,13 @@ class RollViewSet(viewsets.ModelViewSet):
             
             # Sérialiser la réponse
             response_serializer = self.get_serializer(roll)
+            response_data = response_serializer.data
+            
+            # Ajouter l'heure de création pour le timer
+            response_data['created_at'] = roll.created_at.isoformat()
             
             return Response(
-                response_serializer.data,
+                response_data,
                 status=status.HTTP_201_CREATED
             )
             
@@ -84,6 +89,24 @@ class RollViewSet(viewsets.ModelViewSet):
                 {'error': 'Erreur lors de la création du rouleau'},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+    
+    @action(detail=False, methods=['get'])
+    def check_id(self, request):
+        """Vérifie si un roll_id existe déjà."""
+        roll_id = request.query_params.get('roll_id')
+        
+        if not roll_id:
+            return Response(
+                {'error': 'roll_id parameter is required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        exists = Roll.objects.filter(roll_id=roll_id).exists()
+        
+        return Response({
+            'exists': exists,
+            'roll_id': roll_id
+        })
 
 
 class ShiftViewSet(viewsets.ModelViewSet):
@@ -152,7 +175,10 @@ class ShiftViewSet(viewsets.ModelViewSet):
             response_data['total_lost_time_minutes'] = int(shift.lost_time.total_seconds() / 60) if shift.lost_time else 0
             
             # Préparer la session pour le prochain poste
-            self._prepare_next_shift(request, shift)
+            next_shift_data = self._prepare_next_shift(request, shift)
+            
+            # Ajouter les données du prochain poste dans la réponse
+            response_data['next_shift_data'] = next_shift_data
             
             return Response(
                 response_data,
@@ -172,9 +198,9 @@ class ShiftViewSet(viewsets.ModelViewSet):
     
     def _prepare_next_shift(self, request, saved_shift):
         """Prépare la session pour le prochain poste après sauvegarde."""
-        # Récupérer les valeurs nécessaires avant de nettoyer
-        machine_started_end = request.session.get('machine_started_end', False)
-        length_end = request.session.get('length_end', '')
+        # Utiliser les données du poste sauvé (pas de la session)
+        machine_started_end = saved_shift.started_at_end
+        meter_reading_end = saved_shift.meter_reading_end
         
         # Nettoyer toute la session
         self._clean_session(request)
@@ -190,8 +216,7 @@ class ShiftViewSet(viewsets.ModelViewSet):
         
         # Préparer les données du prochain poste
         from datetime import date
-        request.session['shift_date'] = date.today().strftime('%Y-%m-%d')
-        request.session['vacation'] = next_vacation
+        today = date.today()
         
         # Définir les heures par défaut selon la vacation
         default_hours = {
@@ -201,23 +226,30 @@ class ShiftViewSet(viewsets.ModelViewSet):
             'Journee': ('07:30', '15:30')
         }
         
-        if next_vacation in default_hours:
-            request.session['start_time'] = default_hours[next_vacation][0]
-            request.session['end_time'] = default_hours[next_vacation][1]
+        start_time = default_hours.get(next_vacation, ('', ''))[0]
+        end_time = default_hours.get(next_vacation, ('', ''))[1]
         
-        # Transférer le métrage si la machine était démarrée en fin
-        if machine_started_end and length_end:
-            request.session['machine_started_start'] = True
-            request.session['length_start'] = length_end
-        else:
-            request.session['machine_started_start'] = False
-            request.session['length_start'] = ''
+        # Données du prochain poste
+        next_shift_data = {
+            'shift_date': today.strftime('%Y-%m-%d'),
+            'vacation': next_vacation,
+            'start_time': start_time,
+            'end_time': end_time,
+            'machine_started_start': bool(machine_started_end and meter_reading_end),
+            'length_start': str(meter_reading_end) if (machine_started_end and meter_reading_end) else '',
+            'machine_started_end': True,
+            'operator_id': '',  # Pas d'opérateur
+            'comment': ''
+        }
         
-        # Machine démarrée en fin par défaut
-        request.session['machine_started_end'] = True
+        # Sauvegarder en session
+        for key, value in next_shift_data.items():
+            request.session[key] = value
         
-        # Sauvegarder la session
         request.session.save()
+        
+        # Retourner les données pour la réponse
+        return next_shift_data
     
     def _clean_session(self, request):
         """Nettoie les données de session après sauvegarde du poste."""
@@ -241,10 +273,69 @@ class ShiftViewSet(viewsets.ModelViewSet):
             # 'roll_data',  # NE PAS nettoyer les données du rouleau en cours !
             'quality_control',
             'qc_status',
-            'has_startup_time'
+            'has_startup_time',
+            # Nettoyer aussi les données de session du formulaire
+            'shift_form'
         ]
         
         for key in keys_to_remove:
             request.session.pop(key, None)
         
         request.session.save()
+    
+    @action(detail=False, methods=['get'])
+    def check_id(self, request):
+        """Vérifie si un shift_id existe déjà."""
+        shift_id = request.query_params.get('shift_id')
+        
+        if not shift_id:
+            return Response(
+                {'error': 'shift_id parameter is required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        exists = Shift.objects.filter(shift_id=shift_id).exists()
+        
+        return Response({
+            'exists': exists,
+            'shift_id': shift_id
+        })
+
+
+# Vues API simples pour la vérification d'unicité
+@api_view(['GET'])
+def check_roll_id(request):
+    """Vérifie si un roll_id existe déjà."""
+    roll_id = request.query_params.get('roll_id')
+    
+    if not roll_id:
+        return Response(
+            {'error': 'roll_id parameter is required'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    exists = Roll.objects.filter(roll_id=roll_id).exists()
+    
+    return Response({
+        'exists': exists,
+        'roll_id': roll_id
+    })
+
+
+@api_view(['GET'])
+def check_shift_id(request):
+    """Vérifie si un shift_id existe déjà."""
+    shift_id = request.query_params.get('shift_id')
+    
+    if not shift_id:
+        return Response(
+            {'error': 'shift_id parameter is required'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    exists = Shift.objects.filter(shift_id=shift_id).exists()
+    
+    return Response({
+        'exists': exists,
+        'shift_id': shift_id
+    })

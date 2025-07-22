@@ -4,6 +4,7 @@ function stickyBottom() {
         // État
         rollNumber: '',
         rollId: '',
+        rollIdStatus: 'empty', // 'empty', 'valid', 'duplicate'
         tubeMass: '',
         length: '',
         totalMass: '',
@@ -129,12 +130,33 @@ function stickyBottom() {
         },
         
         // Calculer l'ID du rouleau
-        calculateRollId() {
+        async calculateRollId() {
             // Si le rouleau n'est pas conforme, utiliser l'OF de découpe
             if (!this.isRollConform && this.cuttingOrder) {
                 this.rollId = RollCalculations.generateCuttingRollId(this.cuttingOrder, true) || '';
             } else {
                 this.rollId = RollCalculations.generateRollId(this.currentFO, this.rollNumber) || '';
+            }
+            
+            // Vérifier l'unicité si on a un ID
+            if (this.rollId) {
+                try {
+                    const response = await api.get('/api/rolls/check-id/', {
+                        roll_id: this.rollId
+                    });
+                    
+                    if (response.exists) {
+                        this.rollIdStatus = 'duplicate';
+                    } else {
+                        this.rollIdStatus = 'valid';
+                    }
+                } catch (error) {
+                    console.error('Erreur vérification ID rouleau:', error);
+                    // En cas d'erreur, on considère comme valide
+                    this.rollIdStatus = 'valid';
+                }
+            } else {
+                this.rollIdStatus = 'empty';
             }
         },
         
@@ -438,11 +460,12 @@ function stickyBottom() {
         
         // Configuration du bouton de sauvegarde
         get saveButtonConfig() {
-            // Pas de poste valide ou pas d'ID rouleau
-            if (!this.hasValidShift || !this.rollId) {
+            // Pas de poste valide ou pas d'ID rouleau ou ID dupliqué
+            if (!this.hasValidShift || !this.rollId || this.rollIdStatus === 'duplicate') {
                 let tooltip = [];
                 if (!this.hasValidShift) tooltip.push("Données du poste incomplètes");
                 if (!this.rollId) tooltip.push("ID rouleau manquant");
+                if (this.rollIdStatus === 'duplicate') tooltip.push("Cet ID rouleau existe déjà");
                 
                 return { 
                     enabled: false, 
@@ -684,12 +707,13 @@ function stickyBottom() {
                 window.dispatchEvent(new CustomEvent('roll-saved', {
                     detail: {
                         roll: savedRoll,
-                        isNonConform: detail.isNonConform
+                        isNonConform: detail.isNonConform,
+                        createdAt: savedRoll.created_at
                     }
                 }));
                 
                 // Réinitialiser le formulaire
-                this.resetForm();
+                await this.resetForm();
                 
             } catch (error) {
                 console.error('Erreur lors de la sauvegarde du rouleau:', error);
@@ -730,7 +754,7 @@ function stickyBottom() {
         },
         
         // Réinitialiser le formulaire
-        resetForm() {
+        async resetForm() {
             // Incrémenter le numéro de rouleau
             const nextNumber = parseInt(this.rollNumber) + 1 || 1;
             this.rollNumber = nextNumber.toString();
@@ -761,18 +785,26 @@ function stickyBottom() {
                 };
             }
             
-            // Sauvegarder en session avec les données vidées
+            // Sauvegarder TOUT en session en une seule fois
             const resetData = {
+                roll_number: this.rollNumber,
+                tube_mass: this.tubeMass,
+                roll_length: this.length,
+                total_mass: this.totalMass,
+                next_tube_mass: this.nextTubeMass,
                 roll_data: {
                     thicknesses: [],
                     nokThicknesses: [],
                     defects: []
                 }
             };
-            api.saveToSession(resetData);
             
-            // Sauvegarder en session
-            this.saveToSession();
+            await api.saveToSession(resetData);
+            
+            // Mettre à jour la session locale aussi
+            if (window.sessionData) {
+                window.sessionData.roll_number = this.rollNumber;
+            }
         }
     };
 }

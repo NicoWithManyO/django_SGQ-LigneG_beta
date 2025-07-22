@@ -16,8 +16,8 @@ function rollTimer() {
             this.startTimer();
             
             // Écouter l'événement de sauvegarde du rouleau
-            window.addEventListener('roll-saved', () => {
-                this.resetTimer();
+            window.addEventListener('roll-saved', (event) => {
+                this.resetTimer(event.detail.createdAt);
             });
             
             // Mettre à jour immédiatement l'affichage
@@ -38,11 +38,12 @@ function rollTimer() {
             });
         },
         
-        // Réinitialiser le timer
-        resetTimer() {
-            console.log('Timer reset - nouveau save rouleau');
-            this.lastSaveTime = new Date().toISOString();
-            this.saveToSession();
+        // Réinitialiser le timer avec l'heure du backend
+        resetTimer(createdAt) {
+            console.log('Timer reset - nouveau save rouleau', createdAt);
+            this.lastSaveTime = createdAt || new Date().toISOString();
+            // Plus besoin de sauver en session
+            // this.saveToSession();
             this.updateDisplay();
         },
         

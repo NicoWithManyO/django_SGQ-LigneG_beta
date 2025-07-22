@@ -29,7 +29,17 @@
                     <div class="info-item">
                         <div class="info-label">ID Rouleau</div>
                         <div class="info-value">
-                            <i class="bi bi-check-circle-fill text-success me-1 icon-sm"></i>
+                            <i class="bi me-1 icon-sm"
+                               :class="{
+                                   'bi-check-circle text-muted': rollIdStatus === 'empty',
+                                   'bi-check-circle-fill text-success': rollIdStatus === 'valid',
+                                   'bi-exclamation-triangle-fill text-warning': rollIdStatus === 'duplicate'
+                               }"
+                               :title="{
+                                   'empty': 'Données insuffisantes',
+                                   'valid': 'ID unique et valide',
+                                   'duplicate': 'Cet ID existe déjà !'
+                               }[rollIdStatus]"></i>
                             <span class="text-white" x-text="rollId || '--'">3165_005</span>
                         </div>
                     </div>

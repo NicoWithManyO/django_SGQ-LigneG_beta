@@ -65,6 +65,9 @@ class SessionSerializer(serializers.Serializer):
                     instance[key] = value.isoformat()
                 elif key in ['start_time', 'end_time'] and value:
                     instance[key] = value.strftime('%H:%M')
+                elif key == 'last_roll_save_time' and value:
+                    # Sauvegarder comme string ISO pour la session
+                    instance[key] = value.isoformat() if hasattr(value, 'isoformat') else value
                 else:
                     instance[key] = value
         instance.save()  # Important pour persister
