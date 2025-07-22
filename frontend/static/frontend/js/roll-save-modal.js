@@ -18,6 +18,38 @@ function rollSaveModal() {
         isSaving: false,
         modalInstance: null,
         
+        // Type de sauvegarde
+        saveType: 'roll', // 'roll' ou 'shift'
+        
+        // Données pour le poste
+        shiftTitle: 'Sauvegarder le poste',
+        shiftQuestion: 'Confirmez-vous la sauvegarde du poste ?',
+        shiftConfirmText: 'Sauvegarder le poste',
+        shiftConfirmEvent: '',
+        shiftCancelEvent: '',
+        
+        // Labels dynamiques pour réutiliser la même structure
+        stat1Label: 'ÉPAISSEURS',
+        stat1Value: 'OK',
+        stat1Class: 'text-success',
+        stat2Label: 'GRAMMAGE', 
+        stat2Value: 'OK',
+        stat2Class: 'text-success',
+        stat3Label: 'DÉFAUTS',
+        stat3Value: '0',
+        stat3Class: 'text-success',
+        stat4Label: 'NOK',
+        stat4Value: '0/3',
+        stat4Class: 'text-success',
+        
+        // Infos dynamiques
+        info1Label: 'ID Rouleau :',
+        info1Value: '--',
+        info2Label: 'Longueur :',
+        info2Value: '-- m',
+        info3Label: 'Grammage :',
+        info3Value: '-- g/m²',
+        
         // Initialisation
         init() {
             // Récupérer l'instance Bootstrap de la modal
@@ -33,14 +65,29 @@ function rollSaveModal() {
                 this.show();
             });
             
+            // Écouter l'événement générique pour toutes les sauvegardes
+            window.addEventListener('show-save-modal', (event) => {
+                this.isSaved = false; // Réinitialiser l'état
+                this.saveType = 'shift';
+                this.updateShiftData(event.detail);
+                this.show();
+            });
+            
             // Réinitialiser quand la modal se ferme
             modalElement?.addEventListener('hidden.bs.modal', () => {
                 this.isSaved = false;
                 this.isSaving = false;
+                this.saveType = 'roll';
             });
             
             // Écouter le succès de la sauvegarde
             window.addEventListener('roll-saved', () => {
+                this.isSaving = false;
+                this.isSaved = true;
+            });
+            
+            // Écouter le succès de la sauvegarde du poste
+            window.addEventListener('shift-saved', () => {
                 this.isSaving = false;
                 this.isSaved = true;
             });
@@ -51,10 +98,22 @@ function rollSaveModal() {
                 this.isSaved = false;
             });
             
+            // Écouter les erreurs de sauvegarde du poste
+            window.addEventListener('shift-save-error', () => {
+                this.isSaving = false;
+                this.isSaved = false;
+            });
+            
+            // Écouter l'événement pour fermer la modal
+            window.addEventListener('hide-save-modal', () => {
+                this.hide();
+            });
+            
         },
         
-        // Mettre à jour les données de la modal
+        // Mettre à jour les données de la modal pour un rouleau
         updateModalData(data) {
+            this.saveType = 'roll';
             this.isNonConform = data.isNonConform || false;
             this.isRollConform = !data.isNonConform; // Inverse de isNonConform
             this.rollId = data.rollId || '';
@@ -67,6 +126,70 @@ function rollSaveModal() {
             this.defectCount = data.defectCount || 0;
             this.nokCount = data.nokCount || 0;
             this.maxNok = data.maxNok || 3;
+            
+            // Mettre à jour les labels pour un rouleau
+            this.stat1Label = 'ÉPAISSEURS';
+            this.stat1Value = this.hasAllThicknesses ? 'OK' : 'NOK';
+            this.stat1Class = this.hasAllThicknesses ? 'text-success' : 'text-danger';
+            
+            this.stat2Label = 'GRAMMAGE';
+            this.stat2Value = this.isWeightOk ? 'OK' : 'NOK';
+            this.stat2Class = this.isWeightOk ? 'text-success' : 'text-danger';
+            
+            this.stat3Label = 'DÉFAUTS';
+            this.stat3Value = String(this.defectCount);
+            this.stat3Class = this.defectCount === 0 ? 'text-success' : 'text-warning';
+            
+            this.stat4Label = 'NOK';
+            this.stat4Value = `${this.nokCount}/${this.maxNok}`;
+            this.stat4Class = this.nokCount === 0 ? 'text-success' : (this.nokCount <= this.maxNok ? 'text-warning' : 'text-danger');
+            
+            // Infos du rouleau
+            this.info1Label = 'ID Rouleau :';
+            this.info1Value = this.rollId || '--';
+            this.info2Label = 'Longueur :';
+            this.info2Value = `${this.length || '--'} m`;
+            this.info3Label = 'Grammage :';
+            this.info3Value = this.weight || '-- g/m²';
+        },
+        
+        // Mettre à jour les données de la modal pour un poste
+        updateShiftData(data) {
+            this.saveType = 'shift';
+            this.shiftTitle = data.title || 'Sauvegarder le poste';
+            this.shiftQuestion = 'Confirmez-vous la sauvegarde du poste ?';
+            this.shiftConfirmText = data.confirmText || 'Sauvegarder le poste';
+            this.shiftConfirmEvent = data.confirmEvent || '';
+            this.shiftCancelEvent = data.cancelEvent || '';
+            
+            // Utiliser les données structurées
+            const shiftData = data.shiftData || {};
+            this.isRollConform = true; // Toujours conforme pour un poste
+            
+            // Statuts
+            this.stat1Label = 'CONTRÔLE Q.';
+            this.stat1Value = shiftData.qcCompleted ? 'OK' : 'À FAIRE';
+            this.stat1Class = shiftData.qcCompleted ? 'text-success' : 'text-warning';
+            
+            this.stat2Label = 'CHECKLIST';
+            this.stat2Value = shiftData.checklistSigned ? 'OK' : 'À SIGNER';
+            this.stat2Class = shiftData.checklistSigned ? 'text-success' : 'text-warning';
+            
+            this.stat3Label = 'ROULEAUX';
+            this.stat3Value = String(shiftData.rollCount || 0);
+            this.stat3Class = 'text-info';
+            
+            this.stat4Label = 'TEMPS PERDU';
+            this.stat4Value = `${shiftData.lostTime || 0} min`;
+            this.stat4Class = 'text-info';
+            
+            // Infos du poste
+            this.info1Label = 'ID Poste :';
+            this.info1Value = shiftData.shiftId || '--';
+            this.info2Label = 'Date :';
+            this.info2Value = shiftData.date || '--';
+            this.info3Label = 'Vacation :';
+            this.info3Value = shiftData.vacation || '--';
         },
         
         // Afficher la modal
@@ -80,6 +203,13 @@ function rollSaveModal() {
         hide() {
             if (this.modalInstance) {
                 this.modalInstance.hide();
+                
+                // Si c'est un poste sauvegardé, recharger la page
+                if (this.saveType === 'shift' && this.isSaved) {
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 300);
+                }
             }
         },
         
@@ -89,6 +219,15 @@ function rollSaveModal() {
             if (this.isSaving || this.isSaved) {
                 return;
             }
+            
+            // Si c'est un poste, émettre l'événement approprié
+            if (this.saveType === 'shift' && this.shiftConfirmEvent) {
+                this.isSaving = true;
+                window.dispatchEvent(new CustomEvent(this.shiftConfirmEvent));
+                return;
+            }
+            
+            // Sinon, comportement normal pour les rouleaux
             
             this.isSaving = true;
             
@@ -119,6 +258,14 @@ function rollSaveModal() {
                 this.isSaving = false;
                 // TODO: Afficher un message d'erreur à l'utilisateur
             }
+        },
+        
+        // Annuler
+        cancelSave() {
+            if (this.saveType === 'shift' && this.shiftCancelEvent) {
+                window.dispatchEvent(new CustomEvent(this.shiftCancelEvent));
+            }
+            this.hide();
         }
     };
 }

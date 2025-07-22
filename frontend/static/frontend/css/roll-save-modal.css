@@ -42,6 +42,13 @@
     z-index: 0;
 }
 
+/* Image de fond pour save poste */
+.modal-top-section.shift-save::before {
+    background-image: url('/static/frontend/img/usine.jpg');
+    background-size: cover;
+    opacity: 0.3;
+}
+
 .modal-top-section > * {
     position: relative;
     z-index: 1;

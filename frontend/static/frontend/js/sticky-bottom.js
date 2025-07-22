@@ -579,7 +579,7 @@ function stickyBottom() {
                         }
                         
                         thicknesses.push({
-                            meter_position: row + 1, // row est 0-based, meter_position est 1-based
+                            meter_position: row, // row correspond directement à la position en mètres
                             measurement_point: measurementPoint,
                             thickness_value: parseFloat(thickness.value),
                             is_catchup: false,
@@ -612,7 +612,7 @@ function stickyBottom() {
                         
                         // Ajouter l'épaisseur NOK (elle sera marquée hors tolérance)
                         thicknesses.push({
-                            meter_position: row + 1, // row est 0-based, meter_position est 1-based
+                            meter_position: row, // row correspond directement à la position en mètres
                             measurement_point: measurementPoint,
                             thickness_value: parseFloat(nokThickness.value),
                             is_catchup: false,
@@ -627,28 +627,40 @@ function stickyBottom() {
                 
                 // Récupérer les défauts depuis la session
                 const defects = [];
+                console.log('Session roll_data:', window.sessionData?.roll_data);
                 if (window.sessionData?.roll_data?.defects) {
+                    console.log('Défauts trouvés dans la session:', window.sessionData.roll_data.defects);
+                    console.log('Nombre de défauts:', window.sessionData.roll_data.defects.length);
                     for (const defect of window.sessionData.roll_data.defects) {
-                        if (defect.type) {
-                            // Mapper la position
-                            let sidePosition = 'C'; // Centre par défaut
-                            if (defect.col === 0 || defect.col === 1) {
-                                sidePosition = 'G'; // Gauche
-                            } else if (defect.col === 4 || defect.col === 5) {
-                                sidePosition = 'D'; // Droite
+                        console.log('Défaut individuel:', defect);
+                        console.log('typeId du défaut:', defect.typeId);
+                        if (defect.typeId) {
+                            // Mapper la position selon la colonne
+                            let sidePosition = 'center'; // Centre par défaut
+                            
+                            // Mapper selon le nom de la colonne (G1, C1, D1, G2, C2, D2)
+                            if (defect.col && typeof defect.col === 'string') {
+                                if (defect.col.startsWith('G')) {
+                                    sidePosition = 'left'; // Gauche
+                                } else if (defect.col.startsWith('D')) {
+                                    sidePosition = 'right'; // Droite
+                                } else if (defect.col.startsWith('C')) {
+                                    sidePosition = 'center'; // Centre
+                                }
                             }
                             
                             defects.push({
-                                defect_type_id: defect.type,
+                                defect_type_id: parseInt(defect.typeId), // S'assurer que c'est un entier
                                 meter_position: defect.row,
                                 side_position: sidePosition,
-                                comment: null
+                                comment: defect.comment || '' // Utiliser une chaîne vide au lieu de null
                             });
                         }
                     }
                 }
                 
                 if (defects.length > 0) {
+                    console.log('Défauts à envoyer:', defects);
                     rollData.defects = defects;
                 }
                 
@@ -668,6 +680,23 @@ function stickyBottom() {
                 if (!response.ok) {
                     const errorData = await response.json();
                     console.error('Erreur API:', errorData);
+                    console.error('Données envoyées:', rollData);
+                    
+                    // Afficher les détails de l'erreur
+                    if (errorData.defects && Array.isArray(errorData.defects)) {
+                        console.error('Erreurs défauts:', errorData.defects);
+                        errorData.defects.forEach((err, index) => {
+                            console.error(`Défaut ${index}:`, err);
+                        });
+                    }
+                    
+                    // Afficher toutes les erreurs
+                    Object.keys(errorData).forEach(key => {
+                        if (key !== 'defects') {
+                            console.error(`Erreur ${key}:`, errorData[key]);
+                        }
+                    });
+                    
                     throw new Error(`Erreur HTTP: ${response.status}`);
                 }
                 

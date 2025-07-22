@@ -1,9 +1,11 @@
 from decimal import Decimal
+from datetime import timedelta
 from django.db import transaction
-from django.db.models import Avg, Q
-from .models import Roll
+from django.db.models import Avg, Q, Sum
+from .models import Roll, Shift
 from quality.models import RollThickness, RollDefect
 from catalog.models import ProfileTemplate
+from wcm.models import LostTimeEntry
 
 
 class RollService:
@@ -249,3 +251,229 @@ class RollService:
 
 # Instance singleton du service
 roll_service = RollService()
+
+
+class ShiftService:
+    """Service contenant toute la logique métier pour les postes."""
+    
+    @staticmethod
+    def calculate_lost_time(lost_time_entries):
+        """
+        Calcule le temps perdu total à partir des entrées.
+        Retourne un timedelta.
+        """
+        if not lost_time_entries:
+            return timedelta(0)
+        
+        total_minutes = sum(entry.duration for entry in lost_time_entries)
+        return timedelta(minutes=total_minutes)
+    
+    @staticmethod
+    def calculate_availability_time(start_time, end_time, lost_time, vacation='Journee'):
+        """
+        Calcule le temps de disponibilité.
+        Temps disponible = Temps d'ouverture - Temps perdu
+        """
+        if not start_time or not end_time:
+            return None
+        
+        # Calculer le temps d'ouverture
+        from datetime import datetime, date
+        
+        # Pour vacation Nuit, l'heure de fin est le jour suivant
+        if vacation == 'Nuit':
+            # Créer des datetime pour calculer la durée
+            start_dt = datetime.combine(date.today(), start_time)
+            end_dt = datetime.combine(date.today() + timedelta(days=1), end_time)
+        else:
+            start_dt = datetime.combine(date.today(), start_time)
+            end_dt = datetime.combine(date.today(), end_time)
+        
+        opening_time = end_dt - start_dt
+        
+        # Soustraire le temps perdu
+        if lost_time:
+            availability_time = opening_time - lost_time
+        else:
+            availability_time = opening_time
+        
+        return availability_time if availability_time.total_seconds() > 0 else timedelta(0)
+    
+    @staticmethod
+    def calculate_production_totals(rolls):
+        """
+        Calcule les totaux de production à partir des rouleaux.
+        Retourne un dict avec: total_length, ok_length, nok_length, raw_waste_length
+        """
+        if not rolls:
+            return {
+                'total_length': 0,
+                'ok_length': 0,
+                'nok_length': 0,
+                'raw_waste_length': 0
+            }
+        
+        totals = {
+            'total_length': 0,
+            'ok_length': 0,
+            'nok_length': 0,
+            'raw_waste_length': 0
+        }
+        
+        for roll in rolls:
+            if roll.length:
+                totals['total_length'] += roll.length
+                
+                # Répartir selon le statut
+                if roll.status == 'CONFORME':
+                    totals['ok_length'] += roll.length
+                else:
+                    totals['nok_length'] += roll.length
+                
+                # TODO: Calculer raw_waste_length selon la logique métier
+        
+        return totals
+    
+    @staticmethod
+    def calculate_shift_averages(rolls):
+        """
+        Calcule les moyennes du poste à partir des rouleaux.
+        Retourne un dict avec: avg_thickness_left, avg_thickness_right, avg_grammage
+        """
+        if not rolls:
+            return {
+                'avg_thickness_left_shift': None,
+                'avg_thickness_right_shift': None,
+                'avg_grammage_shift': None
+            }
+        
+        # Collecter les valeurs non nulles
+        thickness_left_values = []
+        thickness_right_values = []
+        grammage_values = []
+        
+        for roll in rolls:
+            if roll.avg_thickness_left is not None:
+                thickness_left_values.append(roll.avg_thickness_left)
+            if roll.avg_thickness_right is not None:
+                thickness_right_values.append(roll.avg_thickness_right)
+            if roll.grammage_calc is not None:
+                grammage_values.append(roll.grammage_calc)
+        
+        # Calculer les moyennes
+        averages = {}
+        
+        if thickness_left_values:
+            averages['avg_thickness_left_shift'] = round(
+                sum(thickness_left_values) / len(thickness_left_values), 2
+            )
+        else:
+            averages['avg_thickness_left_shift'] = None
+        
+        if thickness_right_values:
+            averages['avg_thickness_right_shift'] = round(
+                sum(thickness_right_values) / len(thickness_right_values), 2
+            )
+        else:
+            averages['avg_thickness_right_shift'] = None
+        
+        if grammage_values:
+            averages['avg_grammage_shift'] = round(
+                sum(grammage_values) / len(grammage_values), 1
+            )
+        else:
+            averages['avg_grammage_shift'] = None
+        
+        return averages
+    
+    @transaction.atomic
+    def create_shift_with_associations(self, validated_data, session_data):
+        """
+        Crée un poste complet avec toutes ses associations et calculs.
+        
+        Args:
+            validated_data: Données validées du serializer
+            session_data: Données de session (session_key, checklist_responses, etc.)
+        
+        Returns:
+            Shift: Le poste créé
+        """
+        # Extraire les données nested du serializer
+        checklist_responses_data = validated_data.pop('checklist_responses', [])
+        
+        # Créer le poste
+        shift = Shift.objects.create(**validated_data)
+        
+        # Créer les réponses de checklist depuis la session
+        if session_data.get('checklist_responses'):
+            from catalog.models import WcmChecklistItem
+            
+            for item_id, response_value in session_data['checklist_responses'].items():
+                if response_value:
+                    try:
+                        item = WcmChecklistItem.objects.get(id=item_id)
+                        from wcm.models import ChecklistResponse
+                        
+                        # response_value peut être une string ou un dict
+                        if isinstance(response_value, str):
+                            response = response_value
+                            comment = ''
+                        else:
+                            response = response_value.get('response', '')
+                            comment = response_value.get('comment', '')
+                        
+                        ChecklistResponse.objects.create(
+                            shift=shift,
+                            item=item,
+                            response=response,
+                            comment=comment
+                        )
+                    except WcmChecklistItem.DoesNotExist:
+                        pass
+        
+        # Associer les temps perdus existants
+        session_key = session_data.get('session_key')
+        if session_key:
+            lost_time_entries = LostTimeEntry.objects.filter(
+                session_key=session_key,
+                shift__isnull=True
+            )
+            lost_time_entries.update(shift=shift)
+            
+            # Calculer le temps perdu total
+            shift.lost_time = self.calculate_lost_time(lost_time_entries)
+        else:
+            shift.lost_time = timedelta(0)
+        
+        # Calculer le temps de disponibilité
+        shift.availability_time = self.calculate_availability_time(
+            shift.start_time,
+            shift.end_time,
+            shift.lost_time,
+            shift.vacation
+        )
+        
+        # Récupérer les rouleaux du poste
+        rolls = Roll.objects.filter(shift_id_str=shift.shift_id)
+        
+        # Calculer les totaux de production
+        production_totals = self.calculate_production_totals(rolls)
+        shift.total_length = production_totals['total_length']
+        shift.ok_length = production_totals['ok_length']
+        shift.nok_length = production_totals['nok_length']
+        shift.raw_waste_length = production_totals['raw_waste_length']
+        
+        # Calculer les moyennes
+        averages = self.calculate_shift_averages(rolls)
+        shift.avg_thickness_left_shift = averages['avg_thickness_left_shift']
+        shift.avg_thickness_right_shift = averages['avg_thickness_right_shift']
+        shift.avg_grammage_shift = averages['avg_grammage_shift']
+        
+        # Sauvegarder les changements
+        shift.save()
+        
+        return shift
+
+
+# Instance singleton du service
+shift_service = ShiftService()

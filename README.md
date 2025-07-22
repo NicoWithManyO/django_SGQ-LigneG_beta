@@ -15,6 +15,7 @@ Système de gestion de production pour la ligne de fibrage, conforme aux normes 
 - **Interface à onglets** : Système d'onglets pour les profils (Specs&Params et KPI/TRS)
 - **Validation en temps réel** : Épaisseurs et grammage validés selon le profil avec codes couleur
 - **Badge de conformité dynamique** : Affichage temps réel du statut de conformité du rouleau
+- **Sauvegarde rouleau** : Persistance complète des épaisseurs (OK et NOK) et défauts avec création automatique des OF
 
 ## 🛠 Environnement technique
 

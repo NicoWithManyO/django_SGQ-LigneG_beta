@@ -1,8 +1,9 @@
 from rest_framework import serializers
 from django.db import transaction
-from .models import Roll
+from .models import Roll, Shift
 from quality.models import RollThickness, RollDefect
 from catalog.models import QualityDefectType
+from wcm.models import ChecklistResponse
 
 
 class RollThicknessSerializer(serializers.ModelSerializer):
@@ -154,3 +155,137 @@ class RollSerializer(serializers.ModelSerializer):
         ).data
         
         return data
+
+
+class ChecklistResponseSerializer(serializers.ModelSerializer):
+    """Serializer pour les réponses de checklist."""
+    
+    item_id = serializers.IntegerField(write_only=True, required=False)
+    item_text = serializers.CharField(source='item.text', read_only=True)
+    
+    class Meta:
+        model = ChecklistResponse
+        fields = [
+            'item_id',
+            'item_text',
+            'response',
+            'comment'
+        ]
+
+
+class ShiftSerializer(serializers.ModelSerializer):
+    """Serializer principal pour les postes."""
+    
+    checklist_responses = ChecklistResponseSerializer(many=True, required=False)
+    operator_name = serializers.CharField(source='operator.full_name', read_only=True)
+    
+    # Statistiques calculées
+    roll_count = serializers.IntegerField(read_only=True)
+    total_lost_time_minutes = serializers.IntegerField(read_only=True)
+    
+    class Meta:
+        model = Shift
+        fields = [
+            'id',
+            'shift_id',
+            'date',
+            'operator',
+            'operator_name',
+            'vacation',
+            'start_time',
+            'end_time',
+            'availability_time',
+            'lost_time',
+            'total_length',
+            'ok_length',
+            'nok_length',
+            'raw_waste_length',
+            'avg_thickness_left_shift',
+            'avg_thickness_right_shift',
+            'avg_grammage_shift',
+            'started_at_beginning',
+            'meter_reading_start',
+            'started_at_end',
+            'meter_reading_end',
+            'checklist_signed',
+            'checklist_signed_time',
+            'operator_comments',
+            'checklist_responses',
+            'roll_count',
+            'total_lost_time_minutes',
+            'created_at',
+            'updated_at'
+        ]
+        read_only_fields = [
+            'shift_id',  # Généré automatiquement
+            'availability_time',
+            'lost_time',
+            'total_length',
+            'ok_length',
+            'nok_length',
+            'raw_waste_length',
+            'avg_thickness_left_shift',
+            'avg_thickness_right_shift',
+            'avg_grammage_shift',
+            'roll_count',
+            'total_lost_time_minutes',
+            'created_at',
+            'updated_at'
+        ]
+    
+    def validate(self, attrs):
+        """Validation globale du poste."""
+        # Vérifier la cohérence des heures (sauf pour vacation Nuit)
+        vacation = attrs.get('vacation')
+        start_time = attrs.get('start_time')
+        end_time = attrs.get('end_time')
+        
+        if vacation != 'Nuit' and start_time and end_time:
+            if start_time >= end_time:
+                raise serializers.ValidationError({
+                    'end_time': "L'heure de fin doit être après l'heure de début (sauf vacation Nuit)."
+                })
+        
+        # Vérifier la cohérence machine/métrage
+        started_at_beginning = attrs.get('started_at_beginning')
+        meter_reading_start = attrs.get('meter_reading_start')
+        
+        if started_at_beginning and not meter_reading_start:
+            raise serializers.ValidationError({
+                'meter_reading_start': 'Le métrage de début est requis si la machine était démarrée.'
+            })
+        
+        started_at_end = attrs.get('started_at_end')
+        meter_reading_end = attrs.get('meter_reading_end')
+        
+        if started_at_end and not meter_reading_end:
+            raise serializers.ValidationError({
+                'meter_reading_end': 'Le métrage de fin est requis si la machine était démarrée.'
+            })
+        
+        # Vérifier la cohérence des métrages
+        if meter_reading_start and meter_reading_end:
+            if meter_reading_end < meter_reading_start:
+                raise serializers.ValidationError({
+                    'meter_reading_end': 'Le métrage de fin doit être supérieur ou égal au métrage de début.'
+                })
+        
+        return attrs
+    
+    @transaction.atomic
+    def create(self, validated_data):
+        """Création du poste avec ses relations."""
+        # Extraire les données nested
+        checklist_responses_data = validated_data.pop('checklist_responses', [])
+        
+        # Créer le poste
+        shift = Shift.objects.create(**validated_data)
+        
+        # Créer les réponses de checklist
+        for response_data in checklist_responses_data:
+            ChecklistResponse.objects.create(
+                shift=shift,
+                **response_data
+            )
+        
+        return shift

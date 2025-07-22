@@ -5,8 +5,15 @@
             <!-- Header -->
             <div class="modal-header border-0 pb-0">
                 <h5 class="modal-title w-100 text-center" id="rollSaveModalLabel">
-                    <span x-show="!isNonConform">Sauvegarder le rouleau</span>
-                    <span x-show="isNonConform">Envoyer vers découpe</span>
+                    <template x-if="saveType === 'shift'">
+                        <span x-text="shiftTitle">Sauvegarder le poste</span>
+                    </template>
+                    <template x-if="saveType === 'roll'">
+                        <span>
+                            <span x-show="!isNonConform">Sauvegarder le rouleau</span>
+                            <span x-show="isNonConform">Envoyer vers découpe</span>
+                        </span>
+                    </template>
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -14,100 +21,133 @@
             <!-- Body -->
             <div class="modal-body text-center">
                 <!-- Section avec background -->
-                <div class="modal-top-section">
-                    <!-- Question -->
-                    <h6 class="modal-question">
-                        <span x-show="!isNonConform">Confirmez-vous la sauvegarde du rouleau ?</span>
-                        <span x-show="isNonConform">Confirmez-vous l'envoi vers découpe ?</span>
-                    </h6>
+                <div class="modal-top-section" :class="saveType === 'shift' ? 'shift-save' : ''">
+                    <!-- Question (seulement pour les rouleaux) -->
+                    <template x-if="saveType === 'roll'">
+                        <h6 class="modal-question">
+                            <span x-show="!isNonConform">Confirmez-vous la sauvegarde du rouleau ?</span>
+                            <span x-show="isNonConform">Confirmez-vous l'envoi vers découpe ?</span>
+                        </h6>
+                    </template>
                 </div>
                 
                 <!-- Statut global de conformité -->
                 <div class="text-center py-3">
-                    <span class="badge" :class="isRollConform ? 'badge-conforme' : 'badge-non-conforme'">
-                        <i class="bi me-1" :class="isRollConform ? 'bi-check-circle' : 'bi-x-circle'"></i>
-                        <span x-text="isRollConform ? 'CONFORME' : 'NON CONFORME'">--</span>
-                    </span>
+                    <template x-if="saveType === 'roll'">
+                        <span class="badge" :class="isRollConform ? 'badge-conforme' : 'badge-non-conforme'">
+                            <i class="bi me-1" :class="isRollConform ? 'bi-check-circle' : 'bi-x-circle'"></i>
+                            <span x-text="isRollConform ? 'CONFORME' : 'NON CONFORME'">--</span>
+                        </span>
+                    </template>
+                    <template x-if="saveType === 'shift'">
+                        <span class="badge border border-secondary text-secondary bg-transparent" style="padding: 0.75rem 1.5rem; font-size: 1.5rem; font-weight: 600;">
+                            FIN DE POSTE
+                        </span>
+                    </template>
                 </div>
                 
-                <!-- Statut de conformité -->
+                <!-- Statut de conformité - Utilise les propriétés dynamiques -->
                 <div class="conformity-status mb-3">
                     <div class="status-grid">
                         <div class="status-item">
-                            <div class="status-label">ÉPAISSEURS</div>
-                            <div class="status-value" :class="hasAllThicknesses ? 'text-success' : 'text-danger'">
-                                <span x-text="hasAllThicknesses ? 'OK' : 'NOK'">--</span>
+                            <div class="status-label" x-text="stat1Label">ÉPAISSEURS</div>
+                            <div class="status-value" :class="stat1Class">
+                                <span x-text="stat1Value">--</span>
                             </div>
                         </div>
                         <div class="status-item">
-                            <div class="status-label">GRAMMAGE</div>
-                            <div class="status-value" :class="isWeightOk ? 'text-success' : 'text-danger'">
-                                <span x-text="isWeightOk ? 'OK' : 'NOK'">--</span>
+                            <div class="status-label" x-text="stat2Label">GRAMMAGE</div>
+                            <div class="status-value" :class="stat2Class">
+                                <span x-text="stat2Value">--</span>
                             </div>
                         </div>
                         <div class="status-item">
-                            <div class="status-label">DÉFAUTS</div>
-                            <div class="status-value" :class="defectCount === 0 ? 'text-success' : 'text-warning'">
-                                <span x-text="defectCount || '0'">0</span>
+                            <div class="status-label" x-text="stat3Label">DÉFAUTS</div>
+                            <div class="status-value" :class="stat3Class">
+                                <span x-text="stat3Value">0</span>
                             </div>
                         </div>
                         <div class="status-item">
-                            <div class="status-label">NOK</div>
-                            <div class="status-value" :class="nokCount === 0 ? 'text-success' : (nokCount <= maxNok ? 'text-warning' : 'text-danger')">
-                                <span x-text="nokCount || '0'">0</span>/<span x-text="maxNok || '3'">3</span>
+                            <div class="status-label" x-text="stat4Label">NOK</div>
+                            <div class="status-value" :class="stat4Class">
+                                <span x-text="stat4Value">0/3</span>
                             </div>
                         </div>
                     </div>
                 </div>
                 
-                <!-- Informations du rouleau -->
+                <!-- Informations - Utilise les propriétés dynamiques -->
                 <div class="roll-info-grid">
                     <div class="info-row">
-                        <span class="info-label">ID Rouleau :</span>
-                        <span class="info-value" x-text="rollId || '--'">--</span>
+                        <span class="info-label" x-text="info1Label">ID Rouleau :</span>
+                        <span class="info-value" x-text="info1Value">--</span>
                     </div>
                     <div class="info-row">
-                        <span class="info-label">Longueur :</span>
-                        <span class="info-value"><span x-text="length || '--'">--</span> m</span>
+                        <span class="info-label" x-text="info2Label">Longueur :</span>
+                        <span class="info-value" x-text="info2Value">-- m</span>
                     </div>
                     <div class="info-row">
-                        <span class="info-label">Grammage :</span>
-                        <span class="info-value" :class="weightClass" x-text="weight || '-- g/m²'">-- g/m²</span>
+                        <span class="info-label" x-text="info3Label">Grammage :</span>
+                        <span class="info-value" x-text="info3Value">-- g/m²</span>
                     </div>
                 </div>
-                
             </div>
             
             <!-- Footer -->
             <div class="modal-footer border-0 justify-content-between">
                 <!-- État avant sauvegarde -->
-                <template x-if="!isSaved">
+                <template x-if="saveType === 'roll' && !isSaved">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
                         <i class="bi bi-x-circle me-2"></i>Annuler
                     </button>
                 </template>
                 
-                <!-- État après sauvegarde -->
-                <template x-if="isSaved">
+                <!-- État après sauvegarde pour rouleau -->
+                <template x-if="saveType === 'roll' && isSaved">
                     <span class="text-success fw-bold">
                         <i class="bi bi-check-circle-fill me-2"></i>Rouleau sauvegardé !
+                    </span>
+                </template>
+                
+                <!-- État avant sauvegarde pour poste -->
+                <template x-if="saveType === 'shift' && !isSaved">
+                    <button type="button" class="btn btn-secondary" @click="cancelSave()">
+                        <i class="bi bi-x-circle me-2"></i>Annuler
+                    </button>
+                </template>
+                
+                <!-- État après sauvegarde pour poste -->
+                <template x-if="saveType === 'shift' && isSaved">
+                    <span class="text-success fw-bold">
+                        <i class="bi bi-check-circle-fill me-2"></i>Poste sauvegardé !
                     </span>
                 </template>
                 
                 <!-- Bouton principal -->
                 <button type="button" 
                         class="btn" 
-                        :class="isSaved ? 'btn-secondary' : (isNonConform ? 'btn-warning' : 'btn-primary')"
+                        :class="isSaved ? 'btn-secondary' : (saveType === 'shift' ? 'btn-primary' : (isNonConform ? 'btn-warning' : 'btn-primary'))"
                         :disabled="isSaving"
                         @click="isSaved ? hide() : confirmSave()">
-                    <template x-if="!isSaved">
+                    <template x-if="saveType === 'shift' && !isSaved">
+                        <span>
+                            <i class="bi bi-check-circle me-2"></i>
+                            <span x-text="shiftConfirmText">Sauvegarder le poste</span>
+                        </span>
+                    </template>
+                    <template x-if="saveType === 'shift' && isSaved">
+                        <span>
+                            <i class="bi bi-x-circle me-2"></i>Fermer
+                        </span>
+                    </template>
+                    <template x-if="saveType === 'roll' && !isSaved">
                         <span>
                             <i class="bi me-2" :class="isNonConform ? 'bi-scissors' : 'bi-check-circle'"></i>
                             <span x-show="!isNonConform">Sauvegarder</span>
                             <span x-show="isNonConform">Vers découpe</span>
                         </span>
                     </template>
-                    <template x-if="isSaved">
+                    <template x-if="saveType === 'roll' && isSaved">
                         <span>
                             <i class="bi bi-x-circle me-2"></i>Fermer
                         </span>

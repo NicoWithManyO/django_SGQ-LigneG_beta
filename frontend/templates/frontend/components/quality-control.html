@@ -13,7 +13,7 @@
                             <span class="mx-2">|</span>
                             <strong :class="getMoyenneClass('surfaceMass', (surfaceMass.averageLeft + surfaceMass.averageRight) / 2)" x-text="surfaceMass.averageLeft && surfaceMass.averageRight ? formatMoyenne((surfaceMass.averageLeft + surfaceMass.averageRight) / 2, 'surfaceMass') : '--'"></strong>&nbsp;g/25cm²
                             <span class="mx-2">|</span>
-                            <strong :class="getMoyenneClass('dryExtract', dryExtract.value)" x-text="dryExtract.value ? dryExtract.value.toFixed(2) : '--'"></strong>&nbsp;%
+                            <strong :class="getMoyenneClass('dryExtract', dryExtract.value)" x-text="dryExtract.value ? parseFloat(dryExtract.value).toFixed(2) : '--'"></strong>&nbsp;%
                         </span>
                     </div>
                     <!-- Badge QC -->

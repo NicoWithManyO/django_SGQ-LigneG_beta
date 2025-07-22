@@ -21,6 +21,10 @@ function shiftForm() {
         checklistSigned: false, // Statut de signature de la checklist
         hasStartupTime: false, // Indique si du temps de démarrage a été déclaré
         
+        // Handlers pour éviter les doubles listeners
+        shiftSaveHandlers: null,
+        isSavingShift: false,
+        
         // Initialisation
         init() {
             // Charger les données de session
@@ -170,10 +174,8 @@ function shiftForm() {
                 lengthEnd: 'length_end'
             };
             
-            // Ajouter l'ID du poste s'il existe
-            if (this.shiftId) {
-                mappedData.shift_id = this.shiftId;
-            }
+            // Ne pas sauvegarder shift_id en session car ce n'est pas un champ valide
+            // L'ID est généré côté frontend uniquement
             
             Object.keys(data).forEach(key => {
                 const mappedKey = fieldMapping[key] || key;
@@ -367,11 +369,227 @@ function shiftForm() {
         
         // Sauvegarder le poste
         async saveShift() {
-            if (!this.isValid) return;
+            if (!this.isValid || this.isSavingShift) return;
             
-            // À FAIRE: Implémenter la sauvegarde du poste
-            console.log('Sauvegarde du poste avec ID:', this.shiftId);
-            alert('Fonctionnalité à implémenter : Sauvegarde du poste');
+            this.isSavingShift = true;
+            
+            // Récupérer toutes les données du poste depuis la session
+            const shiftData = {
+                date: this.shiftDate,
+                operator: this.operatorId,
+                vacation: this.vacation,
+                start_time: this.startTime,
+                end_time: this.endTime,
+                started_at_beginning: this.machineStartedStart,
+                meter_reading_start: this.machineStartedStart ? parseFloat(this.lengthStart) || null : null,
+                started_at_end: this.machineStartedEnd,
+                meter_reading_end: this.machineStartedEnd ? parseFloat(this.lengthEnd) || null : null,
+                operator_comments: this.comment || ''
+            };
+            
+            // Récupérer les stats
+            const stats = this.getShiftStatistics();
+            
+            // Préparer les données structurées pour la modal
+            const modalData = {
+                title: 'Confirmer la sauvegarde du poste',
+                confirmText: 'Sauvegarder le poste',
+                confirmEvent: 'confirm-shift-save',
+                cancelEvent: 'cancel-shift-save',
+                // Données structurées pour la modal
+                shiftData: {
+                    shiftId: this.shiftId,
+                    date: new Date(this.shiftDate).toLocaleDateString('fr-FR'),
+                    vacation: this.vacation,
+                    qcCompleted: this.qcStatus === 'completed',
+                    checklistSigned: this.checklistSigned,
+                    rollCount: stats.rollCount,
+                    lostTime: stats.lostTime
+                }
+            };
+            
+            // Nettoyer les anciens handlers s'ils existent
+            if (this.shiftSaveHandlers) {
+                window.removeEventListener('confirm-shift-save', this.shiftSaveHandlers.confirm);
+                window.removeEventListener('cancel-shift-save', this.shiftSaveHandlers.cancel);
+            }
+            
+            // Créer les nouveaux handlers
+            this.shiftSaveHandlers = {
+                confirm: async () => {
+                    // Retirer immédiatement les listeners
+                    window.removeEventListener('confirm-shift-save', this.shiftSaveHandlers.confirm);
+                    window.removeEventListener('cancel-shift-save', this.shiftSaveHandlers.cancel);
+                    this.shiftSaveHandlers = null;
+                    
+                    try {
+                        console.log('Début sauvegarde poste avec données:', shiftData);
+                        
+                        // Sauvegarder le poste
+                        const response = await api.post('/api/shifts/', shiftData);
+                        
+                        console.log('Réponse API:', response);
+                        
+                        if (response && response.id) {
+                            console.log('Poste sauvegardé avec succès:', response);
+                            
+                            // Ne PAS fermer la modal - laisser l'utilisateur voir le succès
+                            // La modal gère son propre état maintenant
+                            
+                            // Émettre un événement pour notifier les autres composants
+                            window.dispatchEvent(new CustomEvent('shift-saved', {
+                                detail: { shift: response }
+                            }));
+                            
+                            // Recharger la page quand l'utilisateur ferme la modal
+                            // Sera fait par la modal elle-même
+                        } else {
+                            console.error('Réponse API négative:', response);
+                            throw new Error('Erreur lors de la sauvegarde');
+                        }
+                    } catch (error) {
+                        console.error('Erreur sauvegarde poste:', error);
+                        
+                        // Fermer la modal
+                        window.dispatchEvent(new CustomEvent('hide-save-modal'));
+                        
+                        // Déterminer le message d'erreur
+                        let errorMessage = 'Erreur inconnue';
+                        if (error.response && error.response.data) {
+                            errorMessage = error.response.data.error || JSON.stringify(error.response.data);
+                        } else if (error.message) {
+                            errorMessage = error.message;
+                        }
+                        
+                        alert(`Erreur lors de la sauvegarde du poste: ${errorMessage}`);
+                        this.isSavingShift = false;
+                    }
+                },
+                cancel: () => {
+                    window.removeEventListener('confirm-shift-save', this.shiftSaveHandlers.confirm);
+                    window.removeEventListener('cancel-shift-save', this.shiftSaveHandlers.cancel);
+                    this.shiftSaveHandlers = null;
+                    this.isSavingShift = false;
+                }
+            };
+            
+            // Ajouter les nouveaux listeners
+            window.addEventListener('confirm-shift-save', this.shiftSaveHandlers.confirm);
+            window.addEventListener('cancel-shift-save', this.shiftSaveHandlers.cancel);
+            
+            // Afficher la modal
+            window.dispatchEvent(new CustomEvent('show-save-modal', { 
+                detail: modalData 
+            }));
+        },
+        
+        // Construire le résumé du poste pour la modal
+        buildShiftSummary(shiftData) {
+            // Récupérer le nom de l'opérateur
+            const operatorSelect = document.getElementById('operator-select');
+            const operatorName = operatorSelect?.options[operatorSelect.selectedIndex]?.text || 'Non défini';
+            
+            // Récupérer les statistiques depuis la session
+            const stats = this.getShiftStatistics();
+            
+            let html = '<div class="shift-summary">';
+            
+            // Informations principales
+            html += '<h6 class="mb-3">Informations du poste</h6>';
+            html += '<table class="table table-sm">';
+            html += `<tr><td><strong>ID Poste:</strong></td><td>${this.shiftId}</td></tr>`;
+            html += `<tr><td><strong>Date:</strong></td><td>${new Date(shiftData.date).toLocaleDateString('fr-FR')}</td></tr>`;
+            html += `<tr><td><strong>Opérateur:</strong></td><td>${operatorName}</td></tr>`;
+            html += `<tr><td><strong>Vacation:</strong></td><td>${shiftData.vacation}</td></tr>`;
+            html += `<tr><td><strong>Horaires:</strong></td><td>${shiftData.start_time} - ${shiftData.end_time}</td></tr>`;
+            html += '</table>';
+            
+            // État machine
+            html += '<h6 class="mb-3 mt-3">État machine</h6>';
+            html += '<table class="table table-sm">';
+            html += `<tr><td><strong>Début de poste:</strong></td><td>${shiftData.started_at_beginning ? 'Machine démarrée' : 'Machine arrêtée'}</td></tr>`;
+            if (shiftData.meter_reading_start) {
+                html += `<tr><td><strong>Métrage début:</strong></td><td>${shiftData.meter_reading_start} m</td></tr>`;
+            }
+            html += `<tr><td><strong>Fin de poste:</strong></td><td>${shiftData.started_at_end ? 'Machine démarrée' : 'Machine arrêtée'}</td></tr>`;
+            if (shiftData.meter_reading_end) {
+                html += `<tr><td><strong>Métrage fin:</strong></td><td>${shiftData.meter_reading_end} m</td></tr>`;
+            }
+            html += '</table>';
+            
+            // Statistiques de production
+            html += '<h6 class="mb-3 mt-3">Production</h6>';
+            html += '<table class="table table-sm">';
+            html += `<tr><td><strong>Rouleaux créés:</strong></td><td>${stats.rollCount}</td></tr>`;
+            html += `<tr><td><strong>Longueur totale:</strong></td><td>${stats.totalLength} m</td></tr>`;
+            html += `<tr><td><strong>Temps perdu:</strong></td><td>${stats.lostTime} min</td></tr>`;
+            html += '</table>';
+            
+            // Validation
+            html += '<h6 class="mb-3 mt-3">Validation</h6>';
+            html += '<table class="table table-sm">';
+            html += `<tr><td><strong>Contrôle qualité:</strong></td><td>${this.qcStatus === 'completed' ? '✓ Complété' : '⚠ Non complété'}</td></tr>`;
+            html += `<tr><td><strong>Checklist:</strong></td><td>${this.checklistSigned ? '✓ Signée' : '⚠ Non signée'}</td></tr>`;
+            html += '</table>';
+            
+            // Commentaires
+            if (shiftData.operator_comments) {
+                html += '<h6 class="mb-3 mt-3">Commentaires</h6>';
+                html += `<p class="text-muted">${shiftData.operator_comments}</p>`;
+            }
+            
+            html += '</div>';
+            
+            return html;
+        },
+        
+        // Obtenir les statistiques du poste
+        getShiftStatistics() {
+            // Compter les rouleaux depuis la session
+            let rollCount = 0;
+            let totalLength = 0;
+            
+            // Si on a des données de rouleaux dans la session
+            if (window.sessionData && window.sessionData.rolls) {
+                rollCount = window.sessionData.rolls.length;
+                totalLength = window.sessionData.rolls.reduce((sum, roll) => {
+                    return sum + (parseFloat(roll.length) || 0);
+                }, 0);
+            }
+            
+            // Temps perdu
+            let lostTime = 0;
+            if (window.sessionData && window.sessionData.lost_time_entries) {
+                lostTime = window.sessionData.lost_time_entries.reduce((sum, entry) => {
+                    return sum + (parseInt(entry.duration) || 0);
+                }, 0);
+            }
+            
+            return {
+                rollCount,
+                totalLength: totalLength.toFixed(1),
+                lostTime
+            };
+        },
+        
+        // Réinitialiser le formulaire
+        resetForm() {
+            this.operatorId = '';
+            this.shiftDate = '';
+            this.vacation = '';
+            this.startTime = '';
+            this.endTime = '';
+            this.machineStartedStart = false;
+            this.machineStartedEnd = false;
+            this.lengthStart = '';
+            this.lengthEnd = '';
+            this.comment = '';
+            this.shiftId = null;
+            this.isValid = false;
+            this.hasValidId = false;
+            this.qcStatus = 'pending';
+            this.checklistSigned = false;
+            this.hasStartupTime = false;
         }
     };
 }
