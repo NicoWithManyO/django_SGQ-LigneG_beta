@@ -500,7 +500,7 @@ function shiftForm() {
                                     machine_started_start: response.next_shift_data.machine_started_start,
                                     machine_started_end: response.next_shift_data.machine_started_end,
                                     length_start: response.next_shift_data.length_start || '',
-                                    operator_id: response.next_shift_data.operator_id || '',
+                                    operator_id: response.next_shift_data.operator_id || null,  // null au lieu de ''
                                     comment: response.next_shift_data.comment || ''
                                 };
                                 

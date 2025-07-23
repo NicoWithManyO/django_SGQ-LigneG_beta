@@ -203,9 +203,23 @@ class RollService:
             )
             thickness_objects.append(thickness)
         
-        # Créer les défauts
+        # Créer les défauts (en évitant les doublons dans la liste)
         defect_objects = []
+        seen_defects = set()
         for defect_data in defects_data:
+            # Créer une clé unique pour détecter les doublons
+            defect_key = (
+                defect_data.get('defect_type_id') or defect_data.get('defect_type'),
+                defect_data.get('meter_position'),
+                defect_data.get('side_position')
+            )
+            
+            # Ignorer si on a déjà vu ce défaut
+            if defect_key in seen_defects:
+                continue
+                
+            seen_defects.add(defect_key)
+            
             defect = RollDefect.objects.create(
                 roll=roll,
                 **defect_data
@@ -393,7 +407,7 @@ class ShiftService:
         
         Args:
             validated_data: Données validées du serializer
-            session_data: Données de session (session_key, checklist_responses, etc.)
+            session_data: Données de session (session_key, checklist_responses, quality_control, etc.)
         
         Returns:
             Shift: Le poste créé
@@ -474,6 +488,17 @@ class ShiftService:
         
         # Sauvegarder les changements
         shift.save()
+        
+        # Créer les contrôles qualité si présents dans la session
+        if session_data.get('quality_control'):
+            from quality.services import quality_control_service
+            try:
+                quality_control_service.create_controls_from_session(shift, session_data)
+            except Exception as e:
+                # Logger l'erreur mais ne pas faire échouer la création du poste
+                import logging
+                logger = logging.getLogger(__name__)
+                logger.error(f"Erreur création contrôles qualité: {str(e)}", exc_info=True)
         
         return shift
 

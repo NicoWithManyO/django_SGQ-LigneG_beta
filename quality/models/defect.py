@@ -5,9 +5,12 @@ class RollDefect(models.Model):
     """Défauts constatés sur les rouleaux."""
     
     POSITION_SIDE_CHOICES = [
-        ('left', 'Gauche'),
-        ('center', 'Centre'),
-        ('right', 'Droite'),
+        ('GG', 'Gauche Gauche'),
+        ('GC', 'Gauche Centre'),
+        ('GD', 'Gauche Droite'),
+        ('DG', 'Droite Gauche'),
+        ('DC', 'Droite Centre'),
+        ('DD', 'Droite Droite'),
     ]
     
     # Relations
@@ -32,10 +35,10 @@ class RollDefect(models.Model):
     )
     
     side_position = models.CharField(
-        max_length=10,
+        max_length=10,  # Garder 10 pour la migration
         choices=POSITION_SIDE_CHOICES,
-        verbose_name="Côté",
-        help_text="Position latérale du défaut"
+        verbose_name="Position transversale",
+        help_text="Position transversale du défaut sur la laize"
     )
     
     # Détails

@@ -659,16 +659,25 @@ function stickyBottom() {
                         console.log('typeId du défaut:', defect.typeId);
                         if (defect.typeId) {
                             // Mapper la position selon la colonne
-                            let sidePosition = 'center'; // Centre par défaut
+                            let sidePosition = 'DC'; // Droite Centre par défaut
                             
                             // Mapper selon le nom de la colonne (G1, C1, D1, G2, C2, D2)
                             if (defect.col && typeof defect.col === 'string') {
-                                if (defect.col.startsWith('G')) {
-                                    sidePosition = 'left'; // Gauche
-                                } else if (defect.col.startsWith('D')) {
-                                    sidePosition = 'right'; // Droite
-                                } else if (defect.col.startsWith('C')) {
-                                    sidePosition = 'center'; // Centre
+                                // Côté gauche (colonnes 1)
+                                if (defect.col === 'G1') {
+                                    sidePosition = 'GG'; // Gauche Gauche
+                                } else if (defect.col === 'C1') {
+                                    sidePosition = 'GC'; // Gauche Centre
+                                } else if (defect.col === 'D1') {
+                                    sidePosition = 'GD'; // Gauche Droite
+                                }
+                                // Côté droit (colonnes 2)
+                                else if (defect.col === 'G2') {
+                                    sidePosition = 'DG'; // Droite Gauche
+                                } else if (defect.col === 'C2') {
+                                    sidePosition = 'DC'; // Droite Centre
+                                } else if (defect.col === 'D2') {
+                                    sidePosition = 'DD'; // Droite Droite
                                 }
                             }
                             
@@ -684,6 +693,7 @@ function stickyBottom() {
                 
                 if (defects.length > 0) {
                     console.log('Défauts à envoyer:', defects);
+                    console.log('Défauts détaillés:', JSON.stringify(defects, null, 2));
                     rollData.defects = defects;
                 }
                 

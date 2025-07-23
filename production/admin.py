@@ -1,6 +1,21 @@
 from django.contrib import admin
 from django.utils.html import format_html
 from .models import Shift, Roll, CurrentProfile
+from quality.models import RollThickness, RollDefect
+
+
+class RollInline(admin.TabularInline):
+    """Inline pour afficher les rouleaux d'un poste."""
+    model = Roll
+    extra = 0
+    fields = ['roll_id', 'fabrication_order', 'length', 'grammage_calc', 'status', 'destination']
+    readonly_fields = ['roll_id', 'grammage_calc']
+    ordering = ['-created_at']
+    classes = ['collapse']  # Dépliable par défaut
+    
+    def has_add_permission(self, request, obj=None):
+        """Désactive l'ajout via l'admin."""
+        return False
 
 
 @admin.register(Shift)
@@ -47,7 +62,37 @@ class ShiftAdmin(admin.ModelAdmin):
     readonly_fields = ['shift_id', 'availability_time', 'lost_time', 'raw_waste_length',
                       'avg_thickness_left_shift', 'avg_thickness_right_shift', 'avg_grammage_shift']
     
-    inlines = []  # Pour ajouter les rolls en ligne si nécessaire
+    inlines = [RollInline]  # Afficher les rouleaux du poste
+
+
+class RollThicknessInline(admin.TabularInline):
+    """Inline pour afficher les épaisseurs d'un rouleau."""
+    model = RollThickness
+    extra = 0
+    fields = ['meter_position', 'measurement_point', 'thickness_value', 'is_within_tolerance', 'created_at']
+    readonly_fields = ['meter_position', 'measurement_point', 'thickness_value', 'is_within_tolerance', 'created_at']
+    ordering = ['meter_position', 'measurement_point']
+    classes = ['collapse']  # Dépliable par défaut
+    can_delete = False
+    
+    def has_add_permission(self, request, obj=None):
+        """Désactive l'ajout via l'admin."""
+        return False
+
+
+class RollDefectInline(admin.TabularInline):
+    """Inline pour afficher les défauts d'un rouleau."""
+    model = RollDefect
+    extra = 0
+    fields = ['defect_type', 'meter_position', 'side_position', 'created_at']
+    readonly_fields = ['defect_type', 'meter_position', 'side_position', 'created_at']
+    ordering = ['-created_at']
+    classes = ['collapse']  # Dépliable par défaut
+    can_delete = False
+    
+    def has_add_permission(self, request, obj=None):
+        """Désactive l'ajout via l'admin."""
+        return False
 
 
 @admin.register(Roll)
@@ -87,6 +132,8 @@ class RollAdmin(admin.ModelAdmin):
     )
     
     readonly_fields = ['roll_id', 'net_mass', 'grammage_calc']
+    
+    inlines = [RollThicknessInline, RollDefectInline]
     
     def status_display(self, obj):
         """Affiche le statut avec couleur."""

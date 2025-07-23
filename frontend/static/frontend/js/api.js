@@ -24,7 +24,21 @@ const api = {
     async handleResponse(response) {
         if (!response.ok) {
             console.error(`Erreur API: ${response.status} ${response.statusText}`);
-            throw new Error(`Erreur API: ${response.status}`);
+            // Essayer de récupérer le détail de l'erreur
+            try {
+                const errorData = await response.clone().json();
+                console.error('Détail de l\'erreur:', errorData);
+                throw new Error(`Erreur API: ${response.status} - ${JSON.stringify(errorData)}`);
+            } catch (e) {
+                // Si on ne peut pas parser le JSON, essayer de lire comme texte
+                try {
+                    const errorText = await response.clone().text();
+                    console.error('Erreur en texte:', errorText);
+                } catch (e2) {
+                    // Ignorer
+                }
+                throw new Error(`Erreur API: ${response.status}`);
+            }
         }
         return response;
     },

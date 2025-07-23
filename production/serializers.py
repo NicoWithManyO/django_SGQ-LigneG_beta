@@ -45,6 +45,15 @@ class RollDefectSerializer(serializers.ModelSerializer):
             'side_position',
             'comment'
         ]
+    
+    def validate_side_position(self, value):
+        """Valide que la position est correcte."""
+        valid_positions = ['GG', 'GC', 'GD', 'DG', 'DC', 'DD']
+        if value not in valid_positions:
+            raise serializers.ValidationError(
+                f"Position invalide '{value}'. Doit être parmi : {', '.join(valid_positions)}"
+            )
+        return value
 
 
 class RollSerializer(serializers.ModelSerializer):

@@ -27,6 +27,10 @@ class QualityControlService:
             'session_key': session_data.get('session_key', ''),
         }
         
+        # Ajouter l'opérateur s'il existe sur le shift
+        if shift.operator:
+            controls_data['created_by'] = shift.operator
+        
         # Mapper les données depuis la structure frontend
         if 'micrometry' in qc_data:
             micro = qc_data['micrometry']
@@ -67,9 +71,12 @@ class QualityControlService:
             extract = qc_data['dryExtract']
             if 'value' in extract and extract['value'] is not None:
                 controls_data['dry_extract'] = Decimal(str(extract['value']))
+            if 'timestamp' in extract and extract['timestamp'] is not None:
+                controls_data['dry_extract_time'] = extract['timestamp']
             if 'sample' in extract and extract['sample'] is not None:
                 controls_data['loi_given'] = bool(extract['sample'])
-            # TODO: Gérer les timestamps dry_extract_time et loi_time
+            if 'loiTimestamp' in extract and extract['loiTimestamp'] is not None:
+                controls_data['loi_time'] = extract['loiTimestamp']
         
         # Déterminer la validité globale
         controls_data['is_valid'] = qc_data.get('status', 'pending') != 'failed'

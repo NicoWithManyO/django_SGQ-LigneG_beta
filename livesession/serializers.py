@@ -7,7 +7,7 @@ class SessionSerializer(serializers.Serializer):
     profile_id = serializers.IntegerField(required=False, allow_null=True)
     
     # Données du poste
-    shift_id = serializers.IntegerField(required=False, allow_null=True)
+    shift_id = serializers.CharField(required=False, allow_null=True, allow_blank=True)
     operator_id = serializers.IntegerField(required=False, allow_null=True)
     shift_date = serializers.DateField(required=False, allow_null=True)
     vacation = serializers.CharField(required=False, allow_null=True, allow_blank=True)
