@@ -50,12 +50,22 @@ class SessionSerializer(serializers.Serializer):
     # Temps perdus
     lost_time_entries = serializers.JSONField(required=False, allow_null=True)
     temps_total = serializers.CharField(required=False, allow_null=True, allow_blank=True)
-    has_startup_time = serializers.BooleanField(required=False, allow_null=True, default=False)
+    has_startup_time = serializers.BooleanField(required=False, allow_null=True)
     last_roll_save_time = serializers.DateTimeField(required=False, allow_null=True)
+    
+    # Compteurs de production (longueurs enroulées)
+    wound_length_ok = serializers.DecimalField(max_digits=10, decimal_places=2, required=False, allow_null=True)
+    wound_length_nok = serializers.DecimalField(max_digits=10, decimal_places=2, required=False, allow_null=True)
+    wound_length_total = serializers.DecimalField(max_digits=10, decimal_places=2, required=False, allow_null=True)
     
     def update(self, instance, validated_data):
         """Met à jour la session avec les données validées."""
         # instance = request.session
+        
+        # Convertir les Decimal en float pour éviter les erreurs de sérialisation
+        for key in ['wound_length_ok', 'wound_length_nok', 'wound_length_total', 'belt_speed_mpm']:
+            if key in validated_data and validated_data[key] is not None:
+                validated_data[key] = float(validated_data[key])
         for key, value in validated_data.items():
             if value is None:
                 # Supprimer de la session si None

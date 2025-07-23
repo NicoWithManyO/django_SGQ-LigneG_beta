@@ -469,6 +469,14 @@ class ProfileTemplate(models.Model):
         help_text="Vitesse tapis convertie en m/min (calculée automatiquement)"
     )
     
+    oee_target = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        default=85.00,
+        verbose_name="Objectif TRS (%)",
+        help_text="Objectif de Taux de Rendement Synthétique (OEE) en pourcentage"
+    )
+    
     # Métadonnées
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

@@ -16,6 +16,7 @@ def production(request):
     
     # Récupérer les données de session
     session_data = {
+        'shift_id': request.session.get('shift_id', ''),
         'operator_id': request.session.get('operator_id', ''),
         'shift_date': request.session.get('shift_date', ''),
         'vacation': request.session.get('vacation', ''),
@@ -52,6 +53,10 @@ def production(request):
         'last_roll_save_time': request.session.get('last_roll_save_time'),
         # Vitesse du tapis
         'belt_speed_mpm': request.session.get('belt_speed_mpm'),
+        # Compteurs de production
+        'wound_length_ok': request.session.get('wound_length_ok', 0),
+        'wound_length_nok': request.session.get('wound_length_nok', 0),
+        'wound_length_total': request.session.get('wound_length_total', 0),
     }
     
     # Préparer les données des opérateurs pour JS

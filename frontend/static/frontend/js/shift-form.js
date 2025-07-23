@@ -266,6 +266,8 @@ function shiftForm() {
                         } else {
                             this.idStatus = 'valid';
                             this.hasValidId = true;
+                            // Sauvegarder le shift_id en session
+                            await api.saveToSession({ shift_id: this.shiftId });
                         }
                     } catch (error) {
                         console.error('Erreur vérification ID:', error);

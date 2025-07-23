@@ -185,6 +185,16 @@ class Shift(models.Model):
         help_text="Observations de l'opérateur"
     )
     
+    # Champ temporaire pour compatibilité avec la base de données
+    wound_length_end = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        default=0,
+        verbose_name="Longueur enroulée fin (temporaire)"
+    )
+    
     # Métadonnées
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

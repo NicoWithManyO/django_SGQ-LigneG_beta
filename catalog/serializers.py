@@ -49,7 +49,7 @@ class ProfileTemplateSerializer(serializers.ModelSerializer):
         model = ProfileTemplate
         fields = [
             'id', 'name', 'description', 'is_active', 'is_default',
-            'belt_speed_m_per_minute', 'created_at', 'updated_at',
+            'belt_speed_m_per_minute', 'oee_target', 'created_at', 'updated_at',
             'profilespecvalue_set', 'profileparamvalue_set'
         ]
 

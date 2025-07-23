@@ -7,20 +7,29 @@ function kpiDashboard() {
         availabilityDetails: '480 min | 480 min',
         productionCapacity: '',
         beltSpeed: 0.29, // METTRE ICI LA VITESSE DU PROFIL EN M/MIN
+        performanceRate: '--',
+        qualityRate: '--',
+        trsRate: '--',
+        productionStats: null,
+        oeeTarget: 85, // Valeur par défaut
+        productionDisplay: 'Pas de données', // Propriété réactive pour l'affichage
+        qualityDisplay: 'Pas de données', // Propriété réactive pour l'affichage qualité
         
         init() {
-            console.log('KPI init, sessionData:', window.sessionData);
-            console.log('Belt speed in session:', window.sessionData?.belt_speed_mpm);
             
             // Essayer de récupérer la vitesse plusieurs fois
             const checkSpeed = () => {
                 const profileEl = document.querySelector('[x-data*="profile()"]');
                 if (profileEl && profileEl.__x) {
                     const profileData = profileEl.__x.$data;
-                    if (profileData.selectedProfile && profileData.selectedProfile.belt_speed_m_per_minute) {
-                        this.beltSpeed = parseFloat(profileData.selectedProfile.belt_speed_m_per_minute);
-                        console.log('Got speed from profile component:', this.beltSpeed, 'm/min');
-                        this.updateProductionCapacity();
+                    if (profileData.selectedProfile) {
+                        if (profileData.selectedProfile.belt_speed_m_per_minute) {
+                            this.beltSpeed = parseFloat(profileData.selectedProfile.belt_speed_m_per_minute);
+                            this.updateProductionCapacity();
+                        }
+                        if (profileData.selectedProfile.oee_target) {
+                            this.oeeTarget = parseFloat(profileData.selectedProfile.oee_target);
+                        }
                         return true;
                     }
                 }
@@ -48,11 +57,9 @@ function kpiDashboard() {
                 if (window.sessionData?.lost_time_entries && Array.isArray(window.sessionData.lost_time_entries)) {
                     totalLostTime = window.sessionData.lost_time_entries.reduce((sum, entry) => {
                         const duration = parseInt(entry.duration) || 0;
-                        console.log('Lost time entry:', entry, 'duration:', duration);
                         return sum + duration;
                     }, 0);
                 }
-                console.log('Total lost time calculated:', totalLostTime);
                 
                 // TD = TO - TPD
                 this.availableTime = Math.max(0, this.openingTime - totalLostTime);
@@ -61,17 +68,10 @@ function kpiDashboard() {
                 this.availabilityDetails = `${this.availableTime} min | ${this.openingTime} min`;
                 this.updateProductionCapacity();
                 
-                console.log('KPI calculated:', {
-                    TO: this.openingTime,
-                    TPD: totalLostTime,
-                    TD: this.availableTime,
-                    rate: this.availabilityRate
-                });
             }
             
             // Écouter les changements de temps perdus
             window.addEventListener('lost-time-updated', (e) => {
-                console.log('lost-time-updated event:', e.detail);
                 // Utiliser le total en minutes directement si disponible
                 const totalLostTime = e.detail.total || 0;
                 
@@ -80,18 +80,11 @@ function kpiDashboard() {
                     ((this.availableTime / this.openingTime) * 100).toFixed(1) : '100.0';
                 this.availabilityDetails = `${this.availableTime} min | ${this.openingTime} min`;
                 this.updateProductionCapacity();
-                
-                console.log('KPI updated from event:', {
-                    TO: this.openingTime,
-                    TPD: totalLostTime,
-                    TD: this.availableTime,
-                    rate: this.availabilityRate
-                });
+                this.calculateTRS();
             });
             
             // Écouter les changements de session (heures)
-            window.addEventListener('session-updated', () => {
-                console.log('session-updated, recalculating KPIs');
+            window.addEventListener('session-updated', (e) => {
                 // Recharger sessionData depuis window
                 const startTime = window.sessionData?.start_time;
                 const endTime = window.sessionData?.end_time;
@@ -117,51 +110,93 @@ function kpiDashboard() {
                     
                     // Mettre à jour la production aussi
                     this.updateProductionCapacity();
-                    
-                    console.log('KPI recalculated on session update:', {
-                        TO: this.openingTime,
-                        TPD: totalLostTime,
-                        TD: this.availableTime,
-                        rate: this.availabilityRate
-                    });
+                    this.calculateTRS();
+                }
+                
+                // Recalculer aussi si les longueurs changent
+                if (e.detail && (e.detail.length_start !== undefined || e.detail.length_end !== undefined)) {
+                    // Recalculer tout car les longueurs affectent la production nette
+                    this.calculateQualityFromSession();
+                    this.calculatePerformance();
+                    this.updateProductionDisplay();
+                    this.updateQualityDisplay();
                 }
             });
             
             // Récupérer la vitesse directement
             this.updateBeltSpeed();
             
+            // Ne rien faire ici - les compteurs viennent de la session serveur
+            // Ils sont déjà dans window.sessionData grâce à frontend/views.py
+            
+            // Calculer la qualité initiale depuis la session
+            this.calculateQualityFromSession();
+            
+            // Calculer la performance initiale
+            this.calculatePerformance();
+            
+            // Mettre à jour les affichages
+            this.updateProductionDisplay();
+            this.updateQualityDisplay();
+            
+            // Charger les stats de production si on a un shift_id
+            if (window.sessionData?.shift_id) {
+                this.loadProductionStats();
+            }
+            
             // Écouter les changements de profil
             window.addEventListener('profile-changed', (e) => {
-                console.log('Profile changed event:', e.detail);
                 if (e.detail.beltSpeed) {
                     this.beltSpeed = parseFloat(e.detail.beltSpeed);
-                    console.log('Belt speed from profile change:', this.beltSpeed, 'm/min');
                     this.updateProductionCapacity();
+                }
+                if (e.detail.oeeTarget) {
+                    this.oeeTarget = parseFloat(e.detail.oeeTarget);
                 }
             });
             
             // Écouter quand le profil est chargé
             window.addEventListener('profile-loaded', (e) => {
-                console.log('Profile loaded event:', e.detail);
                 if (e.detail.beltSpeed) {
                     this.beltSpeed = e.detail.beltSpeed;
-                    console.log('Belt speed from profile loaded:', this.beltSpeed, 'm/min');
                     this.updateProductionCapacity();
                 }
+                if (e.detail.oeeTarget) {
+                    this.oeeTarget = parseFloat(e.detail.oeeTarget);
+                }
+            });
+            
+            // Écouter la création de rouleaux pour mettre à jour les stats
+            window.addEventListener('roll-created', () => {
+                // Recalculer la qualité et performance avec les nouvelles données session
+                this.calculateQualityFromSession();
+                this.calculatePerformance();
+                this.updateProductionDisplay();
+                this.updateQualityDisplay();
+                
+                // Recharger aussi depuis l'API si on a un shift_id
+                if (window.sessionData?.shift_id) {
+                    this.loadProductionStats();
+                }
+            });
+            
+            // Écouter les changements de session pour les métrages
+            window.addEventListener('session-data-changed', () => {
+                // Recalculer tout car cela peut affecter tous les KPIs
+                this.calculateQualityFromSession();
+                this.calculatePerformance();
+                this.updateProductionDisplay();
+                this.updateQualityDisplay();
             });
         },
         
         updateBeltSpeed() {
-            console.log('updateBeltSpeed called, checking session...');
-            console.log('belt_speed_mpm in session:', window.sessionData?.belt_speed_mpm);
             
             // Récupérer la vitesse depuis la session (déjà en m/min)
             if (window.sessionData && window.sessionData.belt_speed_mpm) {
                 this.beltSpeed = parseFloat(window.sessionData.belt_speed_mpm);
-                console.log('Belt speed from session:', this.beltSpeed, 'm/min');
                 this.updateProductionCapacity();
             } else {
-                console.log('No belt speed found in session');
             }
         },
         
@@ -177,6 +212,160 @@ function kpiDashboard() {
             const toLength = Math.round(this.openingTime * this.beltSpeed);
             
             this.productionCapacity = `${tdLength} m | ${toLength} m`;
+            
+            // Toujours recalculer la performance quand la capacité change
+            this.calculatePerformance();
+        },
+        
+        async loadProductionStats() {
+            const shiftId = window.sessionData?.shift_id;
+            if (!shiftId) return;
+            
+            try {
+                const response = await fetch(`/api/shifts/${shiftId}/stats/`);
+                if (response.ok) {
+                    this.productionStats = await response.json();
+                    
+                    // Mettre à jour la qualité
+                    if (this.productionStats.has_data) {
+                        this.qualityRate = this.productionStats.quality_rate.toFixed(1);
+                        this.calculatePerformance();
+                    }
+                }
+            } catch (error) {
+                console.error('Erreur chargement stats:', error);
+            }
+        },
+        
+        calculateQualityFromSession() {
+            // Calculer la qualité depuis les données session
+            const woundLengthOk = parseFloat(window.sessionData?.wound_length_ok || 0);
+            const woundLengthNok = parseFloat(window.sessionData?.wound_length_nok || 0);
+            const woundLengthTotal = woundLengthOk + woundLengthNok;
+            
+            // Utiliser la production nette pour vérifier qu'il y a de la production
+            const netProduction = this.getNetProduction();
+            
+            if (woundLengthTotal > 0) {
+                // La qualité est le ratio OK/Total
+                const quality = (woundLengthOk / woundLengthTotal) * 100;
+                this.qualityRate = quality.toFixed(1);
+            } else if (netProduction > 0) {
+                // Si pas de rouleaux mais de la production, considérer 100% OK
+                this.qualityRate = '100.0';
+            } else {
+                this.qualityRate = '--';
+            }
+            
+            // Mettre à jour l'affichage aussi
+            this.updateQualityDisplay();
+            // Recalculer le TRS car la qualité a changé
+            this.calculateTRS();
+        },
+        
+        calculatePerformance() {
+            if (!this.beltSpeed || this.availableTime === 0) {
+                this.performanceRate = '--';
+                this.calculateTRS();
+                return;
+            }
+            
+            // Production théorique = temps disponible × vitesse
+            const theoreticalProduction = this.availableTime * this.beltSpeed;
+            
+            // Production réelle nette
+            let actualProduction = this.getNetProduction();
+            
+            // Si on a aussi des stats de l'API, prendre le max (pour gérer les rouleaux déjà en base)
+            if (this.productionStats && this.productionStats.has_data) {
+                const apiProduction = this.productionStats.production.total_length;
+                actualProduction = Math.max(actualProduction, apiProduction);
+            }
+            
+            // Si pas de production ou production négative, afficher --
+            if (actualProduction <= 0 && !this.productionStats?.has_data) {
+                this.performanceRate = '--';
+            } else if (theoreticalProduction > 0) {
+                // Performance = (production réelle / production théorique) × 100
+                const performance = (actualProduction / theoreticalProduction) * 100;
+                // Afficher la vraie valeur sans limitation
+                this.performanceRate = Math.max(0, performance).toFixed(1);
+            } else {
+                this.performanceRate = '--';
+            }
+            
+            this.calculateTRS();
+            this.updateProductionDisplay();
+        },
+        
+        calculateTRS() {
+            // TRS = Disponibilité × Performance × Qualité
+            const availability = parseFloat(this.availabilityRate) || 0;
+            const performance = parseFloat(this.performanceRate) || 0;
+            const quality = parseFloat(this.qualityRate) || 0;
+            
+            // Si un des taux n'est pas calculable, afficher --
+            if (this.performanceRate === '--' || this.qualityRate === '--') {
+                this.trsRate = '--';
+            } else {
+                const trs = (availability * performance * quality) / 10000; // Division par 10000 car on multiplie 3 pourcentages
+                this.trsRate = trs.toFixed(1);
+            }
+        },
+        
+        updateProductionDisplay() {
+            // Mettre à jour la propriété réactive
+            const actualProduction = this.getNetProduction();
+            const woundLengthTotal = parseFloat(window.sessionData?.wound_length_total || 0);
+            
+            if (actualProduction > 0) {
+                this.productionDisplay = Math.round(actualProduction) + ' m produits';
+            } else if (woundLengthTotal > 0) {
+                // Si on a des rouleaux mais production nette <= 0
+                this.productionDisplay = Math.round(woundLengthTotal) + ' m enroulés';
+            } else {
+                this.productionDisplay = 'Pas de données';
+            }
+        },
+        
+        getNetProduction() {
+            // Calculer la production nette une seule fois
+            let netProduction = parseFloat(window.sessionData?.wound_length_total || 0);
+            
+            // Soustraire la longueur début (déjà enroulée du poste précédent)
+            if (window.sessionData?.length_start) {
+                netProduction -= parseFloat(window.sessionData.length_start);
+            }
+            
+            // Ajouter la longueur fin (production du poste pas encore coupée)
+            if (window.sessionData?.length_end) {
+                netProduction += parseFloat(window.sessionData.length_end);
+            }
+            
+            return netProduction;
+        },
+        
+        updateQualityDisplay() {
+            const woundLengthOk = parseFloat(window.sessionData?.wound_length_ok || 0);
+            const woundLengthNok = parseFloat(window.sessionData?.wound_length_nok || 0);
+            const woundLengthTotal = woundLengthOk + woundLengthNok;
+            
+            if (woundLengthTotal > 0) {
+                // Si on a des rouleaux, afficher les valeurs réelles OK/NOK
+                this.qualityDisplay = Math.round(woundLengthOk) + ' m OK | ' + Math.round(woundLengthNok) + ' m NOK';
+            } else {
+                // Si pas de rouleaux, vérifier la production nette
+                const netProduction = this.getNetProduction();
+                if (netProduction > 0) {
+                    // Production sans rouleaux = tout est potentiellement OK
+                    this.qualityDisplay = Math.round(netProduction) + ' m OK | 0 m NOK';
+                } else if (this.productionStats && this.productionStats.has_data) {
+                    // Fallback sur les stats API
+                    this.qualityDisplay = this.productionStats.production.conforming_rolls + ' OK / ' + this.productionStats.production.total_rolls + ' rouleaux';
+                } else {
+                    this.qualityDisplay = 'Pas de données';
+                }
+            }
         }
     };
 }
@@ -265,6 +454,14 @@ function kpiDashboard() {
                                 <tr style="background-color: transparent;">
                                     <td style="background-color: transparent;">&nbsp;</td>
                                 </tr>
+                                <tr style="background-color: transparent;">
+                                    <td class="text-secondary align-middle" style="font-size: 0.8rem; background-color: transparent;">
+                                        <div x-show="selectedProfile && selectedProfile.oee_target">
+                                            <h6 class="text-muted small mt-2">OBJECTIF TRS</h6>
+                                            <span x-text="(selectedProfile?.oee_target || 85) + '%'"></span>
+                                        </div>
+                                    </td>
+                                </tr>
                             </tbody>
                         </table>
                     </div>
@@ -333,44 +530,19 @@ function kpiDashboard() {
                 <!-- Performance -->
                 <div class="kpi-card kpi-performance">
                     <div class="kpi-header">
-                        <span class="kpi-title">PERFORMANCE</span>
+                        <span class="kpi-title">PERF</span>
                         <div class="kpi-icon">
                             <i class="bi bi-lightning-charge"></i>
                         </div>
                     </div>
                     <div class="kpi-value">
-                        88.5<span class="kpi-unit">%</span>
+                        <span x-text="performanceRate"></span><span class="kpi-unit">%</span>
                     </div>
                     <div class="kpi-details">
-                        <span class="kpi-trend down">
-                            <i class="bi bi-arrow-down"></i> -1.2%
-                        </span>
-                        <span>vs objectif</span>
+                        <span x-text="productionDisplay"></span>
                     </div>
                     <div class="kpi-progress">
-                        <div class="kpi-progress-bar" style="width: 88.5%"></div>
-                    </div>
-                </div>
-
-                <!-- TRS/OEE -->
-                <div class="kpi-card kpi-oee">
-                    <div class="kpi-header">
-                        <span class="kpi-title">TRS / OEE</span>
-                        <div class="kpi-icon">
-                            <i class="bi bi-speedometer2"></i>
-                        </div>
-                    </div>
-                    <div class="kpi-value">
-                        85.2<span class="kpi-unit">%</span>
-                    </div>
-                    <div class="kpi-details">
-                        <span class="kpi-trend up">
-                            <i class="bi bi-arrow-up"></i> +2.3%
-                        </span>
-                        <span>vs hier</span>
-                    </div>
-                    <div class="kpi-progress">
-                        <div class="kpi-progress-bar" style="width: 85.2%"></div>
+                        <div class="kpi-progress-bar" :style="'width: ' + performanceRate + '%'"></div>
                     </div>
                 </div>
 
@@ -383,83 +555,39 @@ function kpiDashboard() {
                         </div>
                     </div>
                     <div class="kpi-value">
-                        98.0<span class="kpi-unit">%</span>
+                        <span x-text="qualityRate"></span><span class="kpi-unit">%</span>
                     </div>
                     <div class="kpi-details">
-                        <span>49 OK / 50 rouleaux</span>
+                        <span x-text="qualityDisplay"></span>
                     </div>
                     <div class="kpi-progress">
-                        <div class="kpi-progress-bar" style="width: 98%"></div>
+                        <div class="kpi-progress-bar" :style="'width: ' + qualityRate + '%'"></div>
                     </div>
                 </div>
 
-                <!-- Ligne 2 : KPIs opérationnels -->
-                <!-- Productivité -->
-                <div class="kpi-card kpi-productivity">
+                <!-- TRS/OEE -->
+                <div class="kpi-card kpi-oee">
                     <div class="kpi-header">
-                        <span class="kpi-title">PRODUCTIVITÉ</span>
+                        <span class="kpi-title">TRS / OEE</span>
                         <div class="kpi-icon">
-                            <i class="bi bi-graph-up"></i>
+                            <i class="bi bi-speedometer2"></i>
                         </div>
                     </div>
                     <div class="kpi-value">
-                        1250<span class="kpi-unit">m/h</span>
+                        <span x-text="trsRate"></span><span class="kpi-unit">%</span>
                     </div>
                     <div class="kpi-details">
-                        <span class="kpi-trend up">
-                            <i class="bi bi-arrow-up"></i> +5%
+                        <span :class="parseFloat(trsRate) >= oeeTarget ? 'kpi-trend up' : 'kpi-trend down'">
+                            <i :class="parseFloat(trsRate) >= oeeTarget ? 'bi bi-arrow-up' : 'bi bi-arrow-down'"></i>
+                            <span x-text="(parseFloat(trsRate) - oeeTarget).toFixed(1) + '%'"></span>
                         </span>
-                        <span>vs moyenne</span>
+                        <span x-text="'obj. ' + oeeTarget + '%'"></span>
+                    </div>
+                    <div class="kpi-progress">
+                        <div class="kpi-progress-bar" :style="'width: ' + trsRate + '%'"></div>
                     </div>
                 </div>
 
-                <!-- Taux de rebut -->
-                <div class="kpi-card kpi-scrap">
-                    <div class="kpi-header">
-                        <span class="kpi-title">TAUX DE REBUT</span>
-                        <div class="kpi-icon">
-                            <i class="bi bi-exclamation-triangle"></i>
-                        </div>
-                    </div>
-                    <div class="kpi-value">
-                        2.0<span class="kpi-unit">%</span>
-                    </div>
-                    <div class="kpi-details">
-                        <span>1 NOK / 50 rouleaux</span>
-                    </div>
-                </div>
-
-                <!-- Card MTBF -->
-                <div class="kpi-card kpi-mtbf">
-                    <div class="kpi-header">
-                        <span class="kpi-title">MTBF</span>
-                        <div class="kpi-icon">
-                            <i class="bi bi-clock-history"></i>
-                        </div>
-                    </div>
-                    <div class="kpi-value">
-                        <span x-text="kpiCalculations.calculateMTBF({shift_duration: openingTime, total_lost_time: openingTime - availableTime, breakdown_count: 0}).value"></span><span class="kpi-unit" x-text="kpiCalculations.calculateMTBF({shift_duration: openingTime, total_lost_time: openingTime - availableTime, breakdown_count: 0}).unit"></span>
-                    </div>
-                    <div class="kpi-details">
-                        <span>Temps moyen entre pannes</span>
-                    </div>
-                </div>
-
-                <!-- Card Rendement -->
-                <div class="kpi-card kpi-yield">
-                    <div class="kpi-header">
-                        <span class="kpi-title">Rendement</span>
-                        <div class="kpi-icon">
-                            <i class="bi bi-graph-up-arrow"></i>
-                        </div>
-                    </div>
-                    <div class="kpi-value">
-                        <span x-text="kpiCalculations.calculateMaterialYield({raw_material_kg: 100, finished_product_kg: 95}).value"></span><span class="kpi-unit">%</span>
-                    </div>
-                    <div class="kpi-details">
-                        <span>Rendement matière</span>
-                    </div>
-                </div>
 
             </div>
         </div>

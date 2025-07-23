@@ -127,19 +127,9 @@ const dataLoader = {
     
     // Charger les réponses checklist (pas de cache)
     async loadChecklistResponses() {
-        const shiftId = window.sessionData?.shift_id;
-        if (!shiftId) return [];
-        
-        try {
-            const response = await fetch(`/api/checklist-responses/?shift_id=${shiftId}`);
-            if (response.ok) {
-                return await response.json();
-            }
-        } catch (error) {
-            console.error('Erreur chargement réponses:', error);
-        }
-        
-        return [];
+        // Les réponses checklist sont déjà dans la session
+        // Pas besoin de faire un appel API
+        return window.sessionData?.checklist_responses || {};
     },
     
     // Vider le cache (utile au changement de shift)

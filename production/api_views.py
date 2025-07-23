@@ -276,7 +276,11 @@ class ShiftViewSet(viewsets.ModelViewSet):
             'qc_status',
             'has_startup_time',
             # Nettoyer aussi les données de session du formulaire
-            'shift_form'
+            'shift_form',
+            # Réinitialiser les compteurs de production
+            'wound_length_ok',
+            'wound_length_nok',
+            'wound_length_total'
         ]
         
         for key in keys_to_remove:
@@ -301,6 +305,94 @@ class ShiftViewSet(viewsets.ModelViewSet):
             'exists': exists,
             'shift_id': shift_id
         })
+    
+    @action(detail=False, methods=['get'], url_path='(?P<shift_id>[^/]+)/stats')
+    def stats(self, request, shift_id=None):
+        """
+        Retourne les statistiques de production pour un poste.
+        
+        Calcule les indicateurs TRS/OEE:
+        - Disponibilité (déjà calculée côté frontend)
+        - Performance (production réelle vs théorique)
+        - Qualité (rouleaux conformes vs total)
+        """
+        try:
+            # Récupérer le shift
+            shift = Shift.objects.filter(shift_id=shift_id).first()
+            
+            if not shift:
+                # Si pas de shift sauvegardé, essayer de calculer depuis la session
+                from django.db.models import Sum, Count, Q
+                from .models import Roll
+                
+                # Récupérer les rouleaux de la session
+                session_key = request.session.session_key
+                rolls = Roll.objects.filter(
+                    Q(shift_id_str=shift_id) | Q(session_key=session_key)
+                )
+                
+                # Calculer les stats depuis les rouleaux
+                stats = rolls.aggregate(
+                    total_rolls=Count('id'),
+                    conforming_rolls=Count('id', filter=Q(status='CONFORME')),
+                    total_length=Sum('length') or 0,
+                    conforming_length=Sum('length', filter=Q(status='CONFORME')) or 0
+                )
+                
+                # Données de base
+                total_rolls = stats['total_rolls'] or 0
+                conforming_rolls = stats['conforming_rolls'] or 0
+                total_length = float(stats['total_length'] or 0)
+                conforming_length = float(stats['conforming_length'] or 0)
+                
+            else:
+                # Utiliser les données du shift sauvegardé
+                rolls = shift.rolls.all()
+                total_rolls = rolls.count()
+                conforming_rolls = rolls.filter(status='CONFORME').count()
+                total_length = float(shift.total_length or 0)
+                conforming_length = float(shift.ok_length or 0)
+                
+                # Ajouter la production enroulée si la machine était en marche
+                if shift.started_at_end and shift.meter_reading_end and shift.started_at_beginning and shift.meter_reading_start:
+                    # Production = métrage fin - métrage début
+                    wound_length = float(shift.meter_reading_end) - float(shift.meter_reading_start)
+                    if wound_length > 0:
+                        total_length += wound_length
+                        # On assume que la production enroulée est conforme
+                        conforming_length += wound_length
+            
+            # Calculer le taux de qualité
+            quality_rate = 0
+            if total_rolls > 0:
+                quality_rate = round((conforming_rolls / total_rolls) * 100, 1)
+            
+            # Pour la performance, on a besoin de la vitesse théorique et du temps disponible
+            # Ces valeurs doivent venir du frontend car elles dépendent du profil et des temps
+            
+            return Response({
+                'shift_id': shift_id,
+                'production': {
+                    'total_rolls': total_rolls,
+                    'conforming_rolls': conforming_rolls,
+                    'non_conforming_rolls': total_rolls - conforming_rolls,
+                    'total_length': total_length,
+                    'conforming_length': conforming_length,
+                    'non_conforming_length': total_length - conforming_length,
+                },
+                'quality_rate': quality_rate,
+                'has_data': total_rolls > 0
+            })
+            
+        except Exception as e:
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f"Erreur calcul stats shift {shift_id}: {str(e)}", exc_info=True)
+            
+            return Response(
+                {'error': f'Erreur lors du calcul des statistiques: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
 
 # Vues API simples pour la vérification d'unicité

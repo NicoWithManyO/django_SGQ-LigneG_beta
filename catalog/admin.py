@@ -205,7 +205,7 @@ class ProfileParamValueInline(admin.TabularInline):
 class ProfileTemplateAdmin(admin.ModelAdmin):
     """Administration des templates de profil."""
     
-    list_display = ['name', 'spec_count', 'param_count', 'belt_speed_display', 'is_default', 'is_active']
+    list_display = ['name', 'spec_count', 'param_count', 'belt_speed_display', 'oee_target', 'is_default', 'is_active']
     list_filter = ['is_active', 'is_default']
     search_fields = ['name', 'description']
     ordering = ['name']
@@ -216,6 +216,10 @@ class ProfileTemplateAdmin(admin.ModelAdmin):
         }),
         ('Configuration', {
             'fields': ('is_active', 'is_default')
+        }),
+        ('Objectifs', {
+            'fields': ('oee_target',),
+            'description': 'Objectif de performance pour ce profil'
         }),
         ('Paramètres calculés', {
             'fields': ('belt_speed_m_per_minute',),

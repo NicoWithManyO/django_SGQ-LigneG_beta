@@ -86,7 +86,9 @@ class Roll(models.Model):
     
     # Données de production
     roll_number = models.PositiveIntegerField(
-        verbose_name="N° Rouleau"
+        verbose_name="N° Rouleau",
+        null=True,
+        blank=True
     )
     
     length = models.DecimalField(

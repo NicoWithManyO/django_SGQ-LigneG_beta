@@ -244,14 +244,14 @@ function stickyBottom() {
         // Ouvrir la modal de données
         openDataModal() {
             // À FAIRE: Implémenter l'ouverture de la modal
-            console.log('Ouvrir modal données incomplètes');
+            // À FAIRE: Implémenter l'ouverture de la modal
         },
         
         // Annuler le rouleau
         cancelRoll() {
             if (confirm('Êtes-vous sûr de vouloir annuler ce rouleau ?')) {
                 // À FAIRE: Implémenter l'annulation
-                console.log('Annuler le rouleau');
+                // À FAIRE: Implémenter l'annulation du rouleau
             }
         },
         
@@ -259,7 +259,7 @@ function stickyBottom() {
         deleteRoll() {
             if (confirm('Êtes-vous sûr de vouloir supprimer ce rouleau ?')) {
                 // À FAIRE: Implémenter la suppression
-                console.log('Supprimer le rouleau');
+                // À FAIRE: Implémenter la suppression du rouleau
             }
         },
         
@@ -562,7 +562,7 @@ function stickyBottom() {
                         this.rollId,
                     shift_id_str: shiftId,
                     fabrication_order: this.getFabricationOrderId(),
-                    roll_number: parseInt(this.rollNumber) || null,
+                    roll_number: detail.isNonConform ? null : (parseInt(this.rollNumber) || null),
                     length: parseFloat(this.length) || null,
                     tube_mass: parseFloat(this.tubeMass) || null,
                     total_mass: parseFloat(this.totalMass) || null,
@@ -650,13 +650,8 @@ function stickyBottom() {
                 
                 // Récupérer les défauts depuis la session
                 const defects = [];
-                console.log('Session roll_data:', window.sessionData?.roll_data);
                 if (window.sessionData?.roll_data?.defects) {
-                    console.log('Défauts trouvés dans la session:', window.sessionData.roll_data.defects);
-                    console.log('Nombre de défauts:', window.sessionData.roll_data.defects.length);
                     for (const defect of window.sessionData.roll_data.defects) {
-                        console.log('Défaut individuel:', defect);
-                        console.log('typeId du défaut:', defect.typeId);
                         if (defect.typeId) {
                             // Mapper la position selon la colonne
                             let sidePosition = 'DC'; // Droite Centre par défaut
@@ -692,8 +687,6 @@ function stickyBottom() {
                 }
                 
                 if (defects.length > 0) {
-                    console.log('Défauts à envoyer:', defects);
-                    console.log('Défauts détaillés:', JSON.stringify(defects, null, 2));
                     rollData.defects = defects;
                 }
                 
@@ -705,12 +698,37 @@ function stickyBottom() {
                 
                 // La réponse est déjà en JSON avec api.post
                 const savedRoll = response;
-                console.log('Rouleau sauvegardé avec succès:', savedRoll);
                 
                 // Mettre à jour la session avec les données retournées par le backend
                 if (savedRoll.fabrication_order && window.sessionData) {
                     // Si le backend a créé/trouvé l'OF, mettre à jour la session
                     window.sessionData.fabrication_order_id = savedRoll.fabrication_order;
+                }
+                
+                // Mettre à jour les compteurs de longueur dans la session
+                const rollLength = parseFloat(savedRoll.length) || 0;
+                
+                if (rollLength > 0) {
+                    // Récupérer les compteurs actuels
+                    const currentOk = parseFloat(window.sessionData?.wound_length_ok || 0);
+                    const currentNok = parseFloat(window.sessionData?.wound_length_nok || 0);
+                    
+                    // Mettre à jour selon le statut du rouleau
+                    const updateData = {};
+                    if (savedRoll.status === 'CONFORME') {
+                        updateData.wound_length_ok = currentOk + rollLength;
+                        updateData.wound_length_nok = currentNok;
+                    } else {
+                        updateData.wound_length_ok = currentOk;
+                        updateData.wound_length_nok = currentNok + rollLength;
+                    }
+                    updateData.wound_length_total = updateData.wound_length_ok + updateData.wound_length_nok;
+                    
+                    // Sauvegarder dans la session
+                    await api.saveToSession(updateData);
+                    
+                    // Mettre à jour sessionData localement
+                    Object.assign(window.sessionData, updateData);
                 }
                 
                 // Émettre un événement de succès
@@ -722,8 +740,13 @@ function stickyBottom() {
                     }
                 }));
                 
+                // Émettre aussi roll-created pour mettre à jour les KPI
+                window.dispatchEvent(new CustomEvent('roll-created', {
+                    detail: { rollId: savedRoll.id }
+                }));
+                
                 // Réinitialiser le formulaire
-                await this.resetForm();
+                await this.resetForm(detail.isNonConform);
                 
             } catch (error) {
                 console.error('Erreur lors de la sauvegarde du rouleau:', error);
@@ -764,10 +787,12 @@ function stickyBottom() {
         },
         
         // Réinitialiser le formulaire
-        async resetForm() {
-            // Incrémenter le numéro de rouleau
-            const nextNumber = parseInt(this.rollNumber) + 1 || 1;
-            this.rollNumber = nextNumber.toString();
+        async resetForm(isNonConform = false) {
+            // Incrémenter le numéro de rouleau seulement si ce n'est pas un non conforme
+            if (!isNonConform) {
+                const nextNumber = parseInt(this.rollNumber) + 1 || 1;
+                this.rollNumber = nextNumber.toString();
+            }
             
             // Réinitialiser les masses et longueur
             this.tubeMass = this.nextTubeMass || '';

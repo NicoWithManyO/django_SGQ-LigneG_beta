@@ -53,6 +53,8 @@ const api = {
             });
             
             await this.handleResponse(response);
+            const responseData = await response.json();
+            
             // Mettre à jour window.sessionData après sauvegarde réussie
             if (window.sessionData) {
                 Object.assign(window.sessionData, data);
