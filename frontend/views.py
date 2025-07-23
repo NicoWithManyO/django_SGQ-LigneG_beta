@@ -50,6 +50,8 @@ def production(request):
         'has_startup_time': request.session.get('has_startup_time', False),
         # Timer dernier save rouleau
         'last_roll_save_time': request.session.get('last_roll_save_time'),
+        # Vitesse du tapis
+        'belt_speed_mpm': request.session.get('belt_speed_mpm'),
     }
     
     # Préparer les données des opérateurs pour JS

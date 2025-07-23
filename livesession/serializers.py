@@ -5,6 +5,7 @@ class SessionSerializer(serializers.Serializer):
     
     # Profil sélectionné
     profile_id = serializers.IntegerField(required=False, allow_null=True)
+    belt_speed_mpm = serializers.DecimalField(max_digits=6, decimal_places=2, required=False, allow_null=True)
     
     # Données du poste
     shift_id = serializers.CharField(required=False, allow_null=True, allow_blank=True)

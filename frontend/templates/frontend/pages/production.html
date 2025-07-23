@@ -52,9 +52,9 @@
                     <div class="accordion-item">
                         <h2 class="accordion-header">
                             <button class="accordion-button text-primary" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTemps" aria-expanded="true"
-                                    x-data="{ tempsTotal: window.sessionData?.temps_total || '0h00' }"
-                                    x-init="window.addEventListener('lost-time-updated', (e) => { tempsTotal = e.detail.tempsTotal; })">
-                                <i class="bi bi-clock me-2"></i> Déclaration de Temps :&nbsp;<span x-text="tempsTotal">0h00</span>
+                                    x-data="{ totalTime: window.sessionData?.temps_total || '0h00' }"
+                                    x-init="window.addEventListener('lost-time-updated', (e) => { totalTime = e.detail.totalTime; })">
+                                <i class="bi bi-clock me-2"></i> Déclaration de Temps :&nbsp;<span x-text="totalTime">0h00</span>
                             </button>
                         </h2>
                         <div id="collapseTemps" class="accordion-collapse collapse show">
@@ -162,6 +162,7 @@ window.operatorsData = {{ operators_json|safe }};
 <script src="{% static 'frontend/js/roll.js' %}"></script>
 <script src="{% static 'frontend/js/roll-save-modal.js' %}"></script>
 <script src="{% static 'frontend/js/roll-timer.js' %}"></script>
+<script src="{% static 'frontend/js/kpi-calculations.js' %}"></script>
 <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
 <script>
 // Attendre que Alpine soit prêt

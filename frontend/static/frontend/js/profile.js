@@ -39,8 +39,16 @@ function profile() {
             this.$watch('selectedProfileId', async () => {
                 await this.loadProfileDetails();
                 await this.setProfileActive();
-                this.saveToSession();
+                await this.saveToSession();
                 this.updateHeader();
+                
+                // Émettre un événement pour notifier que le profil a changé
+                window.dispatchEvent(new CustomEvent('profile-changed', {
+                    detail: { 
+                        profileId: this.selectedProfileId,
+                        beltSpeed: this.selectedProfile?.belt_speed_m_per_minute 
+                    }
+                }));
             });
             
             this.$watch('modes', () => {
@@ -87,6 +95,18 @@ function profile() {
                 const response = await fetch(`/api/profiles/${this.selectedProfileId}/`);
                 if (response.ok) {
                     this.selectedProfile = await response.json();
+                    console.log('Profile loaded:', this.selectedProfile);
+                    console.log('Profile param values:', this.selectedProfile.profileparamvalue_set);
+                    console.log('Belt speed m/min:', this.selectedProfile.belt_speed_m_per_minute);
+                    
+                    // Émettre un événement global avec la vitesse
+                    if (this.selectedProfile.belt_speed_m_per_minute) {
+                        window.dispatchEvent(new CustomEvent('profile-loaded', {
+                            detail: { 
+                                beltSpeed: parseFloat(this.selectedProfile.belt_speed_m_per_minute)
+                            }
+                        }));
+                    }
                 }
             } catch (error) {
                 console.error('Erreur chargement détails profil:', error);
@@ -106,10 +126,15 @@ function profile() {
         // Sauvegarder dans la session
         async saveToSession() {
             try {
-                await api.saveToSession({
+                const sessionData = {
                     selected_profile_id: this.selectedProfileId,
                     profile_modes: this.modes
-                });
+                };
+                
+                // Ne pas sauver la vitesse en session pour éviter l'erreur Decimal
+                // Elle sera récupérée directement du profil
+                
+                await api.saveToSession(sessionData);
             } catch (error) {
                 console.error('Erreur sauvegarde profil:', error);
             }

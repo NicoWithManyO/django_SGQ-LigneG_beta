@@ -1,3 +1,187 @@
+<script>
+function kpiDashboard() {
+    return {
+        availabilityRate: '100.0',
+        availableTime: 480,
+        openingTime: 480,
+        availabilityDetails: '480 min | 480 min',
+        productionCapacity: '',
+        beltSpeed: 0.29, // METTRE ICI LA VITESSE DU PROFIL EN M/MIN
+        
+        init() {
+            console.log('KPI init, sessionData:', window.sessionData);
+            console.log('Belt speed in session:', window.sessionData?.belt_speed_mpm);
+            
+            // Essayer de récupérer la vitesse plusieurs fois
+            const checkSpeed = () => {
+                const profileEl = document.querySelector('[x-data*="profile()"]');
+                if (profileEl && profileEl.__x) {
+                    const profileData = profileEl.__x.$data;
+                    if (profileData.selectedProfile && profileData.selectedProfile.belt_speed_m_per_minute) {
+                        this.beltSpeed = parseFloat(profileData.selectedProfile.belt_speed_m_per_minute);
+                        console.log('Got speed from profile component:', this.beltSpeed, 'm/min');
+                        this.updateProductionCapacity();
+                        return true;
+                    }
+                }
+                return false;
+            };
+            
+            // Essayer plusieurs fois
+            setTimeout(() => checkSpeed(), 500);
+            setTimeout(() => checkSpeed(), 1000);
+            setTimeout(() => checkSpeed(), 2000);
+            
+            // Calculer depuis sessionData
+            const startTime = window.sessionData?.start_time;
+            const endTime = window.sessionData?.end_time;
+            if (startTime && endTime) {
+                // Calculer la durée
+                const [startH, startM] = startTime.split(':').map(Number);
+                const [endH, endM] = endTime.split(':').map(Number);
+                let minutes = (endH * 60 + endM) - (startH * 60 + startM);
+                if (minutes < 0) minutes += 24 * 60; // Vacation de nuit
+                this.openingTime = minutes;
+                
+                // Calculer temps perdus depuis les entrées
+                let totalLostTime = 0;
+                if (window.sessionData?.lost_time_entries && Array.isArray(window.sessionData.lost_time_entries)) {
+                    totalLostTime = window.sessionData.lost_time_entries.reduce((sum, entry) => {
+                        const duration = parseInt(entry.duration) || 0;
+                        console.log('Lost time entry:', entry, 'duration:', duration);
+                        return sum + duration;
+                    }, 0);
+                }
+                console.log('Total lost time calculated:', totalLostTime);
+                
+                // TD = TO - TPD
+                this.availableTime = Math.max(0, this.openingTime - totalLostTime);
+                this.availabilityRate = this.openingTime > 0 ? 
+                    ((this.availableTime / this.openingTime) * 100).toFixed(1) : '100.0';
+                this.availabilityDetails = `${this.availableTime} min | ${this.openingTime} min`;
+                this.updateProductionCapacity();
+                
+                console.log('KPI calculated:', {
+                    TO: this.openingTime,
+                    TPD: totalLostTime,
+                    TD: this.availableTime,
+                    rate: this.availabilityRate
+                });
+            }
+            
+            // Écouter les changements de temps perdus
+            window.addEventListener('lost-time-updated', (e) => {
+                console.log('lost-time-updated event:', e.detail);
+                // Utiliser le total en minutes directement si disponible
+                const totalLostTime = e.detail.total || 0;
+                
+                this.availableTime = Math.max(0, this.openingTime - totalLostTime);
+                this.availabilityRate = this.openingTime > 0 ? 
+                    ((this.availableTime / this.openingTime) * 100).toFixed(1) : '100.0';
+                this.availabilityDetails = `${this.availableTime} min | ${this.openingTime} min`;
+                this.updateProductionCapacity();
+                
+                console.log('KPI updated from event:', {
+                    TO: this.openingTime,
+                    TPD: totalLostTime,
+                    TD: this.availableTime,
+                    rate: this.availabilityRate
+                });
+            });
+            
+            // Écouter les changements de session (heures)
+            window.addEventListener('session-updated', () => {
+                console.log('session-updated, recalculating KPIs');
+                // Recharger sessionData depuis window
+                const startTime = window.sessionData?.start_time;
+                const endTime = window.sessionData?.end_time;
+                if (startTime && endTime) {
+                    const [startH, startM] = startTime.split(':').map(Number);
+                    const [endH, endM] = endTime.split(':').map(Number);
+                    let minutes = (endH * 60 + endM) - (startH * 60 + startM);
+                    if (minutes < 0) minutes += 24 * 60;
+                    this.openingTime = minutes;
+                    
+                    // Recalculer le temps perdu depuis les entrées
+                    let totalLostTime = 0;
+                    if (window.sessionData?.lost_time_entries && Array.isArray(window.sessionData.lost_time_entries)) {
+                        totalLostTime = window.sessionData.lost_time_entries.reduce((sum, entry) => {
+                            return sum + (parseInt(entry.duration) || 0);
+                        }, 0);
+                    }
+                    
+                    this.availableTime = Math.max(0, this.openingTime - totalLostTime);
+                    this.availabilityRate = this.openingTime > 0 ? 
+                        ((this.availableTime / this.openingTime) * 100).toFixed(1) : '100.0';
+                    this.availabilityDetails = `${this.availableTime} min | ${this.openingTime} min`;
+                    
+                    // Mettre à jour la production aussi
+                    this.updateProductionCapacity();
+                    
+                    console.log('KPI recalculated on session update:', {
+                        TO: this.openingTime,
+                        TPD: totalLostTime,
+                        TD: this.availableTime,
+                        rate: this.availabilityRate
+                    });
+                }
+            });
+            
+            // Récupérer la vitesse directement
+            this.updateBeltSpeed();
+            
+            // Écouter les changements de profil
+            window.addEventListener('profile-changed', (e) => {
+                console.log('Profile changed event:', e.detail);
+                if (e.detail.beltSpeed) {
+                    this.beltSpeed = parseFloat(e.detail.beltSpeed);
+                    console.log('Belt speed from profile change:', this.beltSpeed, 'm/min');
+                    this.updateProductionCapacity();
+                }
+            });
+            
+            // Écouter quand le profil est chargé
+            window.addEventListener('profile-loaded', (e) => {
+                console.log('Profile loaded event:', e.detail);
+                if (e.detail.beltSpeed) {
+                    this.beltSpeed = e.detail.beltSpeed;
+                    console.log('Belt speed from profile loaded:', this.beltSpeed, 'm/min');
+                    this.updateProductionCapacity();
+                }
+            });
+        },
+        
+        updateBeltSpeed() {
+            console.log('updateBeltSpeed called, checking session...');
+            console.log('belt_speed_mpm in session:', window.sessionData?.belt_speed_mpm);
+            
+            // Récupérer la vitesse depuis la session (déjà en m/min)
+            if (window.sessionData && window.sessionData.belt_speed_mpm) {
+                this.beltSpeed = parseFloat(window.sessionData.belt_speed_mpm);
+                console.log('Belt speed from session:', this.beltSpeed, 'm/min');
+                this.updateProductionCapacity();
+            } else {
+                console.log('No belt speed found in session');
+            }
+        },
+        
+        updateProductionCapacity() {
+            // Ne pas afficher si pas de vitesse
+            if (!this.beltSpeed || this.beltSpeed === 0) {
+                this.productionCapacity = '';
+                return;
+            }
+            
+            // Calculer la longueur enroulable en fonction du temps disponible
+            const tdLength = Math.round(this.availableTime * this.beltSpeed);
+            const toLength = Math.round(this.openingTime * this.beltSpeed);
+            
+            this.productionCapacity = `${tdLength} m | ${toLength} m`;
+        }
+    };
+}
+</script>
+
 <!-- Composant Profil -->
 <div class="accordion-body bg-light" x-data="profile()" x-init="init()" 
      @profile-tab-changed.window="activeTab = $event.detail.tab">
@@ -122,46 +306,27 @@
 
         <!-- Contenu de l'onglet KPI/TRS -->
         <div class="profile-tab-content" :class="{ active: activeTab === 'kpi' }" x-show="activeTab === 'kpi'">
-            <div class="kpi-grid">
+            <div class="kpi-grid" x-data="kpiDashboard()">
                 <!-- Ligne 1 : KPIs principaux -->
-                <!-- TRS/OEE -->
-                <div class="kpi-card kpi-oee">
-                    <div class="kpi-header">
-                        <span class="kpi-title">TRS / OEE</span>
-                        <div class="kpi-icon">
-                            <i class="bi bi-speedometer2"></i>
-                        </div>
-                    </div>
-                    <div class="kpi-value">
-                        85.2<span class="kpi-unit">%</span>
-                    </div>
-                    <div class="kpi-details">
-                        <span class="kpi-trend up">
-                            <i class="bi bi-arrow-up"></i> +2.3%
-                        </span>
-                        <span>vs hier</span>
-                    </div>
-                    <div class="kpi-progress">
-                        <div class="kpi-progress-bar" style="width: 85.2%"></div>
-                    </div>
-                </div>
-
                 <!-- Disponibilité -->
                 <div class="kpi-card kpi-availability">
                     <div class="kpi-header">
-                        <span class="kpi-title">DISPONIBILITÉ</span>
+                        <span class="kpi-title">DISPO</span>
                         <div class="kpi-icon">
                             <i class="bi bi-clock-history"></i>
                         </div>
                     </div>
                     <div class="kpi-value">
-                        92.0<span class="kpi-unit">%</span>
+                        <span x-text="availabilityRate"></span><span class="kpi-unit">%</span>
                     </div>
                     <div class="kpi-details">
-                        <span>440 min / 480 min</span>
+                        <span x-text="availabilityDetails"></span>
+                    </div>
+                    <div class="kpi-details" style="color: #9ca3af;">
+                        <span x-text="productionCapacity" style="color: inherit;"></span>
                     </div>
                     <div class="kpi-progress">
-                        <div class="kpi-progress-bar" style="width: 92%"></div>
+                        <div class="kpi-progress-bar" :style="'width: ' + availabilityRate + '%'"></div>
                     </div>
                 </div>
 
@@ -184,6 +349,28 @@
                     </div>
                     <div class="kpi-progress">
                         <div class="kpi-progress-bar" style="width: 88.5%"></div>
+                    </div>
+                </div>
+
+                <!-- TRS/OEE -->
+                <div class="kpi-card kpi-oee">
+                    <div class="kpi-header">
+                        <span class="kpi-title">TRS / OEE</span>
+                        <div class="kpi-icon">
+                            <i class="bi bi-speedometer2"></i>
+                        </div>
+                    </div>
+                    <div class="kpi-value">
+                        85.2<span class="kpi-unit">%</span>
+                    </div>
+                    <div class="kpi-details">
+                        <span class="kpi-trend up">
+                            <i class="bi bi-arrow-up"></i> +2.3%
+                        </span>
+                        <span>vs hier</span>
+                    </div>
+                    <div class="kpi-progress">
+                        <div class="kpi-progress-bar" style="width: 85.2%"></div>
                     </div>
                 </div>
 
@@ -251,7 +438,7 @@
                         </div>
                     </div>
                     <div class="kpi-value">
-                        <span x-text="kpiCalculations.calculateMTBF(kpiData).value"></span><span class="kpi-unit" x-text="kpiCalculations.calculateMTBF(kpiData).unit"></span>
+                        <span x-text="kpiCalculations.calculateMTBF({shift_duration: openingTime, total_lost_time: openingTime - availableTime, breakdown_count: 0}).value"></span><span class="kpi-unit" x-text="kpiCalculations.calculateMTBF({shift_duration: openingTime, total_lost_time: openingTime - availableTime, breakdown_count: 0}).unit"></span>
                     </div>
                     <div class="kpi-details">
                         <span>Temps moyen entre pannes</span>
@@ -267,7 +454,7 @@
                         </div>
                     </div>
                     <div class="kpi-value">
-                        <span x-text="kpiCalculations.calculateMaterialYield(kpiData).value"></span><span class="kpi-unit">%</span>
+                        <span x-text="kpiCalculations.calculateMaterialYield({raw_material_kg: 100, finished_product_kg: 95}).value"></span><span class="kpi-unit">%</span>
                     </div>
                     <div class="kpi-details">
                         <span>Rendement matière</span>

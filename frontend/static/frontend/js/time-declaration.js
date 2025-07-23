@@ -7,7 +7,7 @@ function timeDeclaration() {
         duree: '',
         motifs: [],
         arrets: [],
-        tempsTotal: '0h00',
+        totalTime: '0h00',
         nombreArrets: 0,
         
         // Initialisation
@@ -28,7 +28,8 @@ function timeDeclaration() {
                     });
                     window.dispatchEvent(new CustomEvent('lost-time-updated', {
                         detail: { 
-                            tempsTotal: this.tempsTotal,
+                            totalTime: this.totalTime,
+                            total: this.arrets.reduce((sum, arret) => sum + arret.duration, 0), // Total en minutes
                             hasStartupTime: hasStartup
                         }
                     }));
@@ -130,27 +131,28 @@ function timeDeclaration() {
             // Convertir en heures et minutes
             const heures = Math.floor(totalMinutes / 60);
             const minutes = totalMinutes % 60;
-            this.tempsTotal = `${heures}h${minutes.toString().padStart(2, '0')}`;
+            this.totalTime = `${heures}h${minutes.toString().padStart(2, '0')}`;
             
             // Si le temps total a changé ou si le statut de démarrage a changé, émettre l'événement
-            if (this.tempsTotal !== window.sessionData?.temps_total || 
+            if (this.totalTime !== window.sessionData?.temps_total || 
                 hasStartupTime !== window.sessionData?.has_startup_time) {
-                this.emitTimeUpdate(hasStartupTime);
+                this.emitTimeUpdate(hasStartupTime, totalMinutes);
             }
         },
         
         // Émettre un événement de mise à jour
-        async emitTimeUpdate(hasStartupTime = false) {
+        async emitTimeUpdate(hasStartupTime = false, totalMinutes = 0) {
             window.dispatchEvent(new CustomEvent('lost-time-updated', {
                 detail: { 
-                    tempsTotal: this.tempsTotal,
+                    totalTime: this.totalTime,
+                    total: totalMinutes, // Total en minutes
                     hasStartupTime: hasStartupTime
                 }
             }));
             
             // Sauvegarder le temps total et le statut de démarrage dans la session
             await api.saveToSession({ 
-                temps_total: this.tempsTotal,
+                temps_total: this.totalTime,
                 has_startup_time: hasStartupTime
             });
         },
