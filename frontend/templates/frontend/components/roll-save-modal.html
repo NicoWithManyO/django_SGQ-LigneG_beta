@@ -15,7 +15,6 @@
                         </span>
                     </template>
                 </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             
             <!-- Body -->
@@ -90,10 +89,32 @@
                         <span class="info-label" x-text="info3Label">Grammage :</span>
                         <span class="info-value" x-text="info3Value">-- g/m²</span>
                     </div>
-                    <div class="info-row" x-show="info4Value">
+                    <div class="info-row" x-show="info4Value && saveType === 'roll'">
                         <span class="info-label" x-text="info4Label"></span>
                         <span class="info-value text-primary small w-100 text-center" style="font-style: italic;" x-html="info4Value"></span>
                     </div>
+                </div>
+                
+                <!-- Sélecteur d'humeur (uniquement pour sauvegarde poste) -->
+                <div class="mood-selector mt-3" x-show="saveType === 'shift'">
+                    <div class="mood-buttons d-flex justify-content-center gap-3">
+                        <button type="button" class="mood-btn" data-mood="unhappy" :class="{'selected': selectedMood === 'unhappy'}" @click="selectMood('unhappy')">
+                            <div class="mood-circle">
+                                <span class="mood-icon">☹️</span>
+                            </div>
+                        </button>
+                        <button type="button" class="mood-btn" data-mood="neutral" :class="{'selected': selectedMood === 'neutral'}" @click="selectMood('neutral')">
+                            <div class="mood-circle">
+                                <span class="mood-icon">😐</span>
+                            </div>
+                        </button>
+                        <button type="button" class="mood-btn" data-mood="happy" :class="{'selected': selectedMood === 'happy'}" @click="selectMood('happy')">
+                            <div class="mood-circle">
+                                <span class="mood-icon">😊</span>
+                            </div>
+                        </button>
+                    </div>
+                    <p class="text-muted small mt-2 mb-0">Information anonyme</p>
                 </div>
             </div>
             

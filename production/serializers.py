@@ -169,23 +169,23 @@ class RollSerializer(serializers.ModelSerializer):
 class ChecklistResponseSerializer(serializers.ModelSerializer):
     """Serializer pour les réponses de checklist."""
     
-    item_id = serializers.IntegerField(write_only=True, required=False)
-    item_text = serializers.CharField(source='item.text', read_only=True)
-    
     class Meta:
         model = ChecklistResponse
         fields = [
-            'item_id',
-            'item_text',
-            'response',
-            'comment'
+            'responses',
+            'operator_signature',
+            'operator_signature_date',
+            'management_visa',
+            'management_visa_date',
+            'created_at'
         ]
+        read_only_fields = ['created_at']
 
 
 class ShiftSerializer(serializers.ModelSerializer):
     """Serializer principal pour les postes."""
     
-    checklist_responses = ChecklistResponseSerializer(many=True, required=False)
+    checklist_response = ChecklistResponseSerializer(read_only=True)
     operator_name = serializers.CharField(source='operator.full_name', read_only=True)
     
     # Statistiques calculées
@@ -219,7 +219,7 @@ class ShiftSerializer(serializers.ModelSerializer):
             'checklist_signed',
             'checklist_signed_time',
             'operator_comments',
-            'checklist_responses',
+            'checklist_response',
             'roll_count',
             'total_lost_time_minutes',
             'created_at',
@@ -277,17 +277,10 @@ class ShiftSerializer(serializers.ModelSerializer):
     @transaction.atomic
     def create(self, validated_data):
         """Création du poste avec ses relations."""
-        # Extraire les données nested
-        checklist_responses_data = validated_data.pop('checklist_responses', [])
+        # La création des ChecklistResponse est gérée dans services.py
+        # via create_shift_from_session() pour avoir accès aux données de session
         
         # Créer le poste
         shift = Shift.objects.create(**validated_data)
-        
-        # Créer les réponses de checklist
-        for response_data in checklist_responses_data:
-            ChecklistResponse.objects.create(
-                shift=shift,
-                **response_data
-            )
         
         return shift

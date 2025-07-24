@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from catalog.models import WcmLostTimeReason
-from .models import LostTimeEntry, Mode
+from .models import LostTimeEntry, Mode, MoodCounter
 
 
 class WcmLostTimeReasonSerializer(serializers.ModelSerializer):
@@ -52,3 +52,22 @@ class ModeSerializer(serializers.ModelSerializer):
         model = Mode
         fields = ['id', 'name', 'description', 'is_enabled', 'is_active']
         read_only_fields = ['id']
+
+
+class MoodCounterIncrementSerializer(serializers.Serializer):
+    """Serializer pour l'incrémentation du compteur d'humeur"""
+    
+    mood = serializers.ChoiceField(
+        choices=['happy', 'neutral', 'unhappy', 'no_response'],
+        required=True,
+        help_text="Type d'humeur à incrémenter"
+    )
+
+
+class MoodCounterSerializer(serializers.ModelSerializer):
+    """Serializer pour le compteur d'humeur"""
+    
+    class Meta:
+        model = MoodCounter
+        fields = ['id', 'mood_type', 'count', 'updated_at']
+        read_only_fields = ['id', 'count', 'updated_at']

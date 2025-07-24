@@ -1,10 +1,16 @@
-from rest_framework import viewsets, permissions
+from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import action, api_view
 from rest_framework.response import Response
 from django.db.models import Sum
 from catalog.models import WcmLostTimeReason, WcmChecklistTemplate
-from .models import LostTimeEntry, Mode
-from .serializers import WcmLostTimeReasonSerializer, LostTimeEntrySerializer, ModeSerializer
+from .models import LostTimeEntry, Mode, MoodCounter
+from .serializers import (
+    WcmLostTimeReasonSerializer, 
+    LostTimeEntrySerializer, 
+    ModeSerializer,
+    MoodCounterSerializer,
+    MoodCounterIncrementSerializer
+)
 
 
 class WcmLostTimeReasonViewSet(viewsets.ReadOnlyModelViewSet):
@@ -136,3 +142,36 @@ class ModeViewSet(viewsets.ReadOnlyModelViewSet):
             'name': mode.name,
             'is_enabled': mode.is_enabled
         })
+
+
+@api_view(['POST'])
+def increment_mood_counter(request):
+    """Incrémenter le compteur d'humeur."""
+    serializer = MoodCounterIncrementSerializer(data=request.data)
+    
+    if serializer.is_valid():
+        mood_type = serializer.validated_data['mood']
+        
+        # Trouver ou créer le compteur pour ce type d'humeur
+        mood_counter, created = MoodCounter.objects.get_or_create(
+            mood_type=mood_type,
+            defaults={'count': 0}
+        )
+        
+        # Incrémenter le compteur
+        mood_counter.count += 1
+        mood_counter.save()
+        
+        # Retourner les données du compteur mis à jour
+        response_serializer = MoodCounterSerializer(mood_counter)
+        
+        return Response({
+            'success': True,
+            'message': f'Mood counter for {mood_type} incremented successfully',
+            'data': response_serializer.data
+        }, status=status.HTTP_200_OK)
+    
+    return Response({
+        'success': False,
+        'errors': serializer.errors
+    }, status=status.HTTP_400_BAD_REQUEST)

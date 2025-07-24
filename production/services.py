@@ -420,30 +420,31 @@ class ShiftService:
         
         # Créer les réponses de checklist depuis la session
         if session_data.get('checklist_responses'):
-            from catalog.models import WcmChecklistItem
+            from wcm.models import ChecklistResponse
             
+            # Créer un seul objet ChecklistResponse avec toutes les réponses
+            checklist_data = {}
+            
+            # Récupérer toutes les réponses valides
             for item_id, response_value in session_data['checklist_responses'].items():
                 if response_value:
-                    try:
-                        item = WcmChecklistItem.objects.get(id=item_id)
-                        from wcm.models import ChecklistResponse
-                        
-                        # response_value peut être une string ou un dict
-                        if isinstance(response_value, str):
-                            response = response_value
-                            comment = ''
-                        else:
-                            response = response_value.get('response', '')
-                            comment = response_value.get('comment', '')
-                        
-                        ChecklistResponse.objects.create(
-                            shift=shift,
-                            item=item,
-                            response=response,
-                            comment=comment
-                        )
-                    except WcmChecklistItem.DoesNotExist:
-                        pass
+                    # response_value est toujours une string ('ok', 'nok', 'na')
+                    checklist_data[item_id] = response_value
+            
+            if checklist_data:
+                # Récupérer les initiales depuis la session
+                signature_initials = session_data.get('checklist_signature', '')
+                
+                # Créer la réponse checklist
+                from django.utils import timezone
+                
+                ChecklistResponse.objects.create(
+                    shift=shift,
+                    operator=shift.operator,  # L'opérateur vient du shift
+                    responses=checklist_data,
+                    operator_signature=signature_initials,  # Juste les initiales
+                    operator_signature_date=timezone.now()
+                )
         
         # Associer les temps perdus existants
         session_key = session_data.get('session_key')

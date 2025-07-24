@@ -54,6 +54,7 @@ class MoodCounterAdmin(admin.ModelAdmin):
     
     list_display = ['mood_type', 'count', 'percentage_display', 'updated_at']
     ordering = ['mood_type']
+    readonly_fields = ['mood_type', 'count', 'updated_at']
     
     def has_add_permission(self, request):
         """Empêche l'ajout manuel."""
@@ -63,20 +64,16 @@ class MoodCounterAdmin(admin.ModelAdmin):
         """Empêche la suppression."""
         return False
     
+    def has_change_permission(self, request, obj=None):
+        """Empêche la modification directe."""
+        return False
+    
     def percentage_display(self, obj):
         """Affiche le pourcentage."""
         percentages = MoodCounter.get_percentages()
         percentage = percentages.get(obj.mood_type, 0)
         return f"{percentage}%"
     percentage_display.short_description = "Pourcentage"
-    
-    actions = ['reset_counters']
-    
-    def reset_counters(self, request, queryset):
-        """Réinitialise les compteurs sélectionnés."""
-        count = queryset.update(count=0)
-        self.message_user(request, f"{count} compteur(s) réinitialisé(s).")
-    reset_counters.short_description = "Réinitialiser les compteurs"
 
 
 
@@ -127,30 +124,86 @@ class LostTimeEntryAdmin(admin.ModelAdmin):
 class ChecklistResponseAdmin(admin.ModelAdmin):
     """Administration des réponses aux check-lists."""
     
-    list_display = ['shift', 'item', 'response_display', 'responded_by', 'created_at']
-    list_filter = ['response', 'created_at']
-    search_fields = ['shift__shift_id', 'item__text', 'comment']
+    list_display = ['shift', 'operator_signature', 'management_visa', 'created_at']
+    list_filter = ['created_at', 'management_visa']
+    search_fields = ['shift__shift_id', 'operator_signature', 'management_visa']
     date_hierarchy = 'created_at'
-    ordering = ['shift', 'item']
+    ordering = ['-created_at']
     autocomplete_fields = ['shift']
+    readonly_fields = ['created_at', 'updated_at', 'get_responses_display', 
+                      'operator', 'operator_signature_date']
     
     fieldsets = (
         ('Identification', {
-            'fields': ('shift', 'item')
+            'fields': ('shift',)
         }),
-        ('Réponse', {
-            'fields': ('response', 'comment', 'responded_by')
+        ('Signature opérateur', {
+            'fields': (
+                'operator',
+                'operator_signature', 
+                'operator_signature_date',
+            ),
+            'description': 'Signature automatique lors de la validation de la checklist'
+        }),
+        ('Réponses', {
+            'fields': ('get_responses_display',),
+            'classes': ('wide',)
+        }),
+        ('Visa management', {
+            'fields': (
+                'management_visa',
+                'management_visa_date'
+            ),
+            'description': 'À remplir par le management'
+        }),
+        ('Métadonnées', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
         }),
     )
     
-    def response_display(self, obj):
-        """Affiche la réponse avec couleur."""
-        colors = {
-            'ok': 'green',
-            'nok': 'red',
-            'na': 'gray'
-        }
-        color = colors.get(obj.response, 'black')
-        return format_html('<span style="color: {};">{}</span>', 
-                          color, obj.get_response_display())
-    response_display.short_description = "Réponse"
+    def get_responses_display(self, obj):
+        """Affiche les réponses comme des champs readonly."""
+        if not obj or not obj.responses:
+            return "Aucune réponse"
+            
+        from catalog.models import WcmChecklistItem
+        from django.utils.safestring import mark_safe
+        
+        html = '<table class="table table-bordered" style="width:100%">'
+        html += '<thead><tr><th>Item</th><th>Réponse</th></tr></thead><tbody>'
+        
+        for item_id, response in obj.responses.items():
+            try:
+                item = WcmChecklistItem.objects.get(id=item_id)
+                item_name = item.text
+            except WcmChecklistItem.DoesNotExist:
+                item_name = f"Item #{item_id} (supprimé)"
+            
+            # Couleur selon la réponse
+            colors = {
+                'ok': 'green',
+                'nok': 'red',
+                'na': 'gray'
+            }
+            color = colors.get(response, 'black')
+            
+            html += f'<tr>'
+            html += f'<td style="width:70%">{item_name}</td>'
+            html += f'<td style="color:{color};font-weight:bold;">{response.upper()}</td>'
+            html += f'</tr>'
+        
+        html += '</tbody></table>'
+        return mark_safe(html)
+    
+    get_responses_display.short_description = "Réponses checklist"
+    
+    def save_model(self, request, obj, form, change):
+        """Sauvegarde personnalisée pour gérer le visa management."""
+        if change:  # Modification d'un objet existant
+            # Si un visa management est ajouté et qu'il n'y a pas de date
+            if obj.management_visa and not obj.management_visa_date:
+                from django.utils import timezone
+                obj.management_visa_date = timezone.now()
+        
+        super().save_model(request, obj, form, change)

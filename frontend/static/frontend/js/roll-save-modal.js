@@ -18,6 +18,9 @@ function rollSaveModal() {
         isSaving: false,
         modalInstance: null,
         
+        // Sélecteur d'humeur
+        selectedMood: null,
+        
         // Type de sauvegarde
         saveType: 'roll', // 'roll' ou 'shift'
         
@@ -57,7 +60,10 @@ function rollSaveModal() {
             // Récupérer l'instance Bootstrap de la modal
             const modalElement = document.getElementById('rollSaveModal');
             if (modalElement) {
-                this.modalInstance = new bootstrap.Modal(modalElement);
+                this.modalInstance = new bootstrap.Modal(modalElement, {
+                    backdrop: 'static',  // Empêche la fermeture par clic sur le fond
+                    keyboard: false      // Empêche la fermeture par Escape
+                });
             }
             
             // Écouter l'événement d'ouverture de la modal
@@ -203,7 +209,7 @@ function rollSaveModal() {
             this.info3Label = 'Vacation :';
             this.info3Value = shiftData.vacation || '--';
             this.info4Label = '';
-            this.info4Value = 'Excellente journée';
+            this.info4Value = '';
         },
         
         // Afficher la modal
@@ -214,7 +220,30 @@ function rollSaveModal() {
         },
         
         // Masquer la modal
-        hide() {
+        async hide() {
+            // Si c'est un poste sauvegardé, enregistrer l'humeur (ou absence d'humeur)
+            if (this.saveType === 'shift' && this.isSaved) {
+                try {
+                    // Utiliser l'humeur sélectionnée ou 'no_response' si aucune
+                    const moodToSave = this.selectedMood || 'no_response';
+                    
+                    const response = await fetch('/api/mood-counter/increment/', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': utils.getCsrfToken()
+                        },
+                        body: JSON.stringify({ mood: moodToSave })
+                    });
+                    
+                    if (!response.ok) {
+                        console.error('Erreur lors de l\'enregistrement de l\'humeur');
+                    }
+                } catch (error) {
+                    console.error('Erreur réseau lors de l\'enregistrement de l\'humeur:', error);
+                }
+            }
+            
             if (this.modalInstance) {
                 this.modalInstance.hide();
                 
@@ -280,6 +309,12 @@ function rollSaveModal() {
                 window.dispatchEvent(new CustomEvent(this.shiftCancelEvent));
             }
             this.hide();
+        },
+        
+        // Sélectionner une humeur
+        selectMood(mood) {
+            // Toggle : si déjà sélectionné, désélectionner
+            this.selectedMood = this.selectedMood === mood ? null : mood;
         }
     };
 }

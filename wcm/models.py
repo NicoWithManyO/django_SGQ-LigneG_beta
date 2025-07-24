@@ -81,6 +81,22 @@ class MoodCounter(models.Model):
     
     def __str__(self):
         return f"{self.get_mood_type_display()} ({self.count})"
+    
+    @classmethod
+    def get_percentages(cls):
+        """Calcule les pourcentages pour chaque type d'humeur."""
+        counters = cls.objects.all()
+        total = sum(counter.count for counter in counters)
+        
+        if total == 0:
+            return {counter.mood_type: 0 for counter in counters}
+        
+        percentages = {}
+        for counter in counters:
+            percentage = round((counter.count / total) * 100, 1)
+            percentages[counter.mood_type] = percentage
+        
+        return percentages
 
 
 class LostTimeEntry(models.Model):
@@ -163,62 +179,70 @@ class LostTimeEntry(models.Model):
 
 
 class ChecklistResponse(models.Model):
-    """Réponses aux items de check-list."""
-    
-    RESPONSE_CHOICES = [
-        ('ok', 'OK'),
-        ('na', 'N/A'),
-        ('nok', 'NOK'),
-    ]
+    """Toutes les réponses de checklist pour un poste."""
     
     # Relations
-    shift = models.ForeignKey(
+    shift = models.OneToOneField(
         'production.Shift',
         on_delete=models.CASCADE,
-        related_name='checklist_responses',
+        related_name='checklist_response',
         verbose_name="Poste"
     )
     
-    item = models.ForeignKey(
-        'catalog.WcmChecklistItem',
-        on_delete=models.CASCADE,
-        verbose_name="Item de check-list"
+    operator = models.ForeignKey(
+        'planification.Operator',
+        on_delete=models.PROTECT,
+        related_name='checklist_responses',
+        verbose_name="Opérateur",
+        null=True  # Temporaire pour la migration
     )
     
-    # Réponse
-    response = models.CharField(
-        max_length=3,
-        choices=RESPONSE_CHOICES,
-        verbose_name="Réponse"
+    # Réponses stockées en JSON
+    responses = models.JSONField(
+        default=dict,
+        verbose_name="Réponses",
+        help_text="Format: {item_id: 'ok'/'nok'/'na'}"
     )
     
-    comment = models.TextField(
+    # Signature opérateur
+    operator_signature = models.CharField(
+        max_length=255,
         blank=True,
-        verbose_name="Commentaire",
-        help_text="Commentaire optionnel, obligatoire si NOK"
+        verbose_name="Signature opérateur (initiales)",
+        help_text="Initiales de l'opérateur"
+    )
+    
+    operator_signature_date = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name="Date signature opérateur"
+    )
+    
+    # Visa management
+    management_visa = models.CharField(
+        max_length=100,
+        blank=True,
+        verbose_name="Visa management",
+        help_text="Visa du responsable ayant validé la checklist"
+    )
+    
+    management_visa_date = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name="Date visa management"
     )
     
     # Traçabilité
-    responded_by = models.ForeignKey(
-        'planification.Operator',
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        verbose_name="Répondu par"
-    )
-    
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
     class Meta:
         verbose_name = "Réponse check-list"
         verbose_name_plural = "Réponses check-list"
-        ordering = ['shift', 'item']
-        unique_together = [['shift', 'item']]
+        ordering = ['-created_at']
         indexes = [
-            models.Index(fields=['shift', 'response']),
-            models.Index(fields=['item', 'response']),
+            models.Index(fields=['shift']),
         ]
     
     def __str__(self):
-        return f"{self.shift} - {self.item}: {self.get_response_display()}"
+        return f"Checklist - {self.shift}"

@@ -1,6 +1,12 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .api_views import WcmLostTimeReasonViewSet, LostTimeEntryViewSet, ModeViewSet, checklist_template_default
+from .api_views import (
+    WcmLostTimeReasonViewSet, 
+    LostTimeEntryViewSet, 
+    ModeViewSet, 
+    checklist_template_default,
+    increment_mood_counter
+)
 
 # Créer le router pour l'API
 router = DefaultRouter()
@@ -12,4 +18,5 @@ app_name = 'wcm'
 urlpatterns = [
     path('api/', include(router.urls)),
     path('api/checklist-template-default/', checklist_template_default, name='checklist-template-default'),
+    path('api/mood-counter/increment/', increment_mood_counter, name='mood-counter-increment'),
 ]
