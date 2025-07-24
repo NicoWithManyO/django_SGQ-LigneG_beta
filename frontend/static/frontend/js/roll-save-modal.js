@@ -49,6 +49,8 @@ function rollSaveModal() {
         info2Value: '-- m',
         info3Label: 'Grammage :',
         info3Value: '-- g/m²',
+        info4Label: '',
+        info4Value: '',
         
         // Initialisation
         init() {
@@ -151,6 +153,16 @@ function rollSaveModal() {
             this.info2Value = `${this.length || '--'} m`;
             this.info3Label = 'Grammage :';
             this.info3Value = this.weight || '-- g/m²';
+            
+            // Message conditionnel basé sur le statut des contrôles qualité
+            const qcStatus = window.sessionData?.quality_control?.status;
+            if (qcStatus === 'pending') {
+                this.info4Label = '';
+                this.info4Value = '<i class="bi bi-exclamation-triangle-fill me-1"></i>Attention, vous ne pourrez clore votre poste sans avoir renseigné les contrôles qualité';
+            } else {
+                this.info4Label = '';
+                this.info4Value = 'Courage...';
+            }
         },
         
         // Mettre à jour les données de la modal pour un poste
@@ -190,6 +202,8 @@ function rollSaveModal() {
             this.info2Value = shiftData.date || '--';
             this.info3Label = 'Vacation :';
             this.info3Value = shiftData.vacation || '--';
+            this.info4Label = '';
+            this.info4Value = 'Excellente journée';
         },
         
         // Afficher la modal

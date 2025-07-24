@@ -277,6 +277,41 @@ function stickyBottom() {
             }
         },
         
+        // Récupérer le prochain numéro de rouleau disponible
+        async fetchNextRollNumber() {
+            // Vérifier qu'on a un OF en cours
+            if (!this.currentFO) {
+                console.log('Aucun OF en cours sélectionné');
+                return;
+            }
+            
+            try {
+                // Appeler l'API pour récupérer le prochain numéro disponible
+                const response = await fetch(`/api/rolls/next-number/?of=${encodeURIComponent(this.currentFO)}`, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json',
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    
+                    if (data && data.next_number) {
+                        // Remplir le champ numéro de rouleau
+                        this.rollNumber = data.next_number.toString();
+                        
+                        // Afficher un message de succès (optionnel)
+                        console.log(`Prochain numéro disponible pour OF ${this.currentFO}: ${data.next_number}`);
+                    }
+                } else {
+                    console.error('Erreur lors de la récupération du prochain numéro');
+                }
+            } catch (error) {
+                console.error('Erreur lors de la récupération du prochain numéro:', error);
+            }
+        },
+        
         // Calculer la masse nette
         calculateNetMass() {
             const netMassValue = RollCalculations.calculateNetMass(this.totalMass, this.tubeMass);
@@ -803,10 +838,11 @@ function stickyBottom() {
             this.netMass = '';
             this.weight = '';
             
-            // Réinitialiser les compteurs
+            // Réinitialiser les compteurs et le statut de conformité
             this.hasAllThicknesses = false;
             this.defectCount = 0;
             this.nokCount = 0;
+            this.isRollConform = false; // Réinitialiser le statut de conformité
             
             // Émettre un événement pour réinitialiser les autres composants
             window.dispatchEvent(new CustomEvent('reset-roll-form'));

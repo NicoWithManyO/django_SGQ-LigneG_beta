@@ -397,6 +397,41 @@ function shiftForm() {
             return messages.length > 0 ? messages.join(" • ") : "";
         },
         
+        // Récupérer la longueur de fin du dernier poste
+        async fetchLastShiftEndLength() {
+            try {
+                // Appeler l'API pour récupérer le dernier poste
+                const response = await fetch('/api/shifts/last/', {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json',
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    
+                    // Si on a trouvé un poste avec une longueur de fin
+                    if (data && data.wound_length_end) {
+                        // Remplir le champ longueur début
+                        this.lengthStart = data.wound_length_end.toString();
+                        
+                        // Cocher automatiquement "Machine démarrée"
+                        this.machineStartedStart = true;
+                        
+                        // Afficher un message de succès (optionnel)
+                        console.log(`Longueur récupérée du poste ${data.shift_id}: ${data.wound_length_end}m`);
+                    } else {
+                        console.log('Aucun poste précédent trouvé avec une longueur de fin');
+                    }
+                } else {
+                    console.error('Erreur lors de la récupération du dernier poste');
+                }
+            } catch (error) {
+                console.error('Erreur lors de la récupération du dernier poste:', error);
+            }
+        },
+        
         // Définir les heures par défaut selon la vacation
         setDefaultHours() {
             switch(this.vacation) {

@@ -37,6 +37,46 @@ class RollViewSet(viewsets.ModelViewSet):
         
         return queryset.order_by('-created_at')
     
+    @action(detail=False, methods=['GET'], url_path='next-number')
+    def next_number(self, request):
+        """
+        Récupère le prochain numéro de rouleau disponible pour un OF donné.
+        
+        Trouve le premier numéro manquant dans la séquence.
+        """
+        of_number = request.query_params.get('of')
+        
+        if not of_number:
+            return Response(
+                {'detail': 'Paramètre OF manquant'}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Récupérer tous les numéros de rouleaux existants pour cet OF
+        existing_numbers = Roll.objects.filter(
+            roll_id__startswith=f"{of_number}_"
+        ).exclude(
+            roll_number__isnull=True
+        ).values_list('roll_number', flat=True).order_by('roll_number')
+        
+        # Convertir en liste d'entiers
+        existing_numbers = [int(num) for num in existing_numbers if num is not None]
+        
+        # Trouver le premier numéro manquant
+        next_number = 1
+        for num in existing_numbers:
+            if num == next_number:
+                next_number += 1
+            elif num > next_number:
+                # On a trouvé un trou dans la séquence
+                break
+        
+        return Response({
+            'of_number': of_number,
+            'next_number': next_number,
+            'existing_numbers': existing_numbers
+        })
+    
     def create(self, request):
         """
         Crée un nouveau rouleau avec ses mesures.
@@ -134,6 +174,29 @@ class ShiftViewSet(viewsets.ModelViewSet):
         )
         
         return queryset.order_by('-date', '-created_at')
+    
+    @action(detail=False, methods=['get'])
+    def last(self, request):
+        """
+        Récupère le dernier poste enregistré.
+        
+        Retourne la longueur enroulée en fin de poste (wound_length_end).
+        """
+        # Récupérer le dernier poste
+        last_shift = Shift.objects.order_by('-date', '-created_at').first()
+        
+        if last_shift:
+            # Retourner les données essentielles
+            # Utiliser meter_reading_end qui contient la valeur saisie par l'utilisateur
+            return Response({
+                'shift_id': last_shift.shift_id,
+                'date': last_shift.date,
+                'wound_length_end': last_shift.meter_reading_end,
+                'operator': f"{last_shift.operator.first_name} {last_shift.operator.last_name}" if last_shift.operator else None,
+                'vacation': last_shift.vacation
+            })
+        else:
+            return Response({'detail': 'Aucun poste trouvé'}, status=status.HTTP_404_NOT_FOUND)
     
     def create(self, request):
         """

@@ -12,6 +12,9 @@ function rollTimer() {
             // Charger depuis la session
             this.loadFromSession();
             
+            // Mettre à jour immédiatement l'affichage APRÈS avoir chargé les données
+            this.updateDisplay();
+            
             // Démarrer le timer
             this.startTimer();
             
@@ -19,9 +22,6 @@ function rollTimer() {
             window.addEventListener('roll-saved', (event) => {
                 this.resetTimer(event.detail.createdAt);
             });
-            
-            // Mettre à jour immédiatement l'affichage
-            this.updateDisplay();
         },
         
         // Charger depuis la session

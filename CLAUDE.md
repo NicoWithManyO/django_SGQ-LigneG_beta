@@ -34,7 +34,7 @@ python manage.py test catalog  # Run tests for specific app
 ## Project Architecture
 
 ### Technology Stack
-- **Backend**: Django 5.2.4 with Django REST Framework 3.15.2
+- **Backend**: Django 5.2.4 with Django REST Framework 3.16.0
 - **Frontend**: Server-side rendered Django templates with Alpine.js 3.x for reactivity
 - **CSS**: Bootstrap 5.3 with custom CSS variables, no build process required
 - **Database**: SQLite for development, PostgreSQL recommended for production
@@ -163,7 +163,7 @@ Main endpoints:
 ## Development Notes
 
 ### Missing Infrastructure
-- No explicit requirements.txt or dependency management file
+- Requirements.txt exists with minimal dependencies (Django, DRF, asgiref, sqlparse)
 - No configured test framework beyond basic Django tests
 - No linting/formatting configuration
 - No CI/CD pipeline
@@ -235,3 +235,60 @@ Key component interactions to maintain:
 ## Conception de composants
 
 - Utilise en priorité des trucs "intégré" bootstrap, en consultant la doc quand je te demande quelque chose. pour ne pas réinventer la roue quand c pas necessaire
+
+## Real-time KPI System
+
+### KPI Dashboard Architecture
+The KPI dashboard (`kpiDashboard()` in profile.html) calculates metrics in real-time:
+
+1. **Availability (DISPO)**: 
+   - Formula: (Available Time / Opening Time) × 100
+   - Available Time = Opening Time - Lost Time
+   
+2. **Performance (PERF)**:
+   - Formula: (Net Production / Theoretical Production) × 100
+   - Net Production = wound_length_total - length_start + length_end
+   - Theoretical Production = Available Time × Belt Speed
+
+3. **Quality (QUALITÉ)**:
+   - Formula: (OK Length / Total Length) × 100
+   - OK Length adjusted = wound_length_ok - length_start + length_end
+   - NOK Length remains unchanged
+
+4. **TRS**:
+   - Formula: (Availability × Performance × Quality) / 10000
+
+### Session Counters
+Production tracking uses three main counters stored in session:
+- `wound_length_ok`: Total OK length from all rolls
+- `wound_length_nok`: Total NOK length from all rolls
+- `wound_length_total`: Sum of OK and NOK lengths
+
+These counters are updated when rolls are saved and used for real-time KPI calculations.
+
+## Important Production Flows
+
+### Roll Creation Process
+1. Operator enters thickness measurements in 12x7 grid
+2. System validates against profile specifications (min/max/alerts)
+3. Defects are tracked with position and severity
+4. Roll conformity is calculated based on:
+   - All thickness measurements within tolerance
+   - No blocking defects
+   - NOK count below threshold
+5. Conform rolls go to production, non-conform to cutting
+
+### Shift Validation Requirements
+Before saving a shift, the system validates:
+1. Quality control form must be completed
+2. All required checklist items must be checked
+3. Machine state (start/end) must be recorded
+4. Operator must be identified with valid vacation type
+
+## Component CSS Customization
+
+Key Bootstrap customizations in use:
+- Custom color variables for production states (OK: success, NOK: danger, Alert: warning)
+- Larger touch targets for production floor usage (min 44px)
+- High contrast ratios for industrial lighting conditions
+- Sticky components for constant visibility during scrolling

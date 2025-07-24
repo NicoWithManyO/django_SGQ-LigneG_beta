@@ -772,6 +772,16 @@ function roll() {
             
             // Mettre à jour l'affichage
             this.updateEpaisseurDisplay();
+            
+            // Émettre un événement pour notifier que la conformité a changé
+            window.dispatchEvent(new CustomEvent('roll-updated', {
+                detail: {
+                    isConform: this.isConform,
+                    hasAllThicknesses: false,
+                    defectCount: 0,
+                    nokCount: 0
+                }
+            }));
         }
     };
 }

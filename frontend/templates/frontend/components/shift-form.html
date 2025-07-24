@@ -54,7 +54,10 @@
     <div class="row form-row">
         <div class="col-6">
             <label class="form-label text-end d-block">
-                <i class="bi bi-magic me-1 magic-icon text-warning"></i>
+                <i class="bi bi-magic me-1 magic-icon text-warning" 
+                   @click="fetchLastShiftEndLength()" 
+                   style="cursor: pointer;" 
+                   title="Récupérer la longueur du dernier poste"></i>
                 Prise de poste
             </label>
             <input type="time" class="form-control" id="start-time" name="start_time" x-model="startTime">
@@ -93,7 +96,6 @@
         <div class="col-6">
             <label class="form-label text-start" for="end-time">
                 Fin de poste
-                <i class="bi bi-magic ms-1 magic-icon text-warning"></i>
             </label>
             <input type="time" class="form-control" id="end-time" name="end_time" x-model="endTime">
         </div>

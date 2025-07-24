@@ -226,9 +226,9 @@ function kpiDashboard() {
                 if (response.ok) {
                     this.productionStats = await response.json();
                     
-                    // Mettre à jour la qualité
+                    // Ne pas écraser la qualité calculée en temps réel
                     if (this.productionStats.has_data) {
-                        this.qualityRate = this.productionStats.quality_rate.toFixed(1);
+                        // Juste recalculer la performance
                         this.calculatePerformance();
                     }
                 }
@@ -241,21 +241,38 @@ function kpiDashboard() {
             // Calculer la qualité depuis les données session
             const woundLengthOk = parseFloat(window.sessionData?.wound_length_ok || 0);
             const woundLengthNok = parseFloat(window.sessionData?.wound_length_nok || 0);
-            const woundLengthTotal = woundLengthOk + woundLengthNok;
             
-            // Utiliser la production nette pour vérifier qu'il y a de la production
-            const netProduction = this.getNetProduction();
+            // Récupérer les ajustements
+            const lengthStart = parseFloat(window.sessionData?.length_start || 0);
+            const lengthEnd = parseFloat(window.sessionData?.length_end || 0);
             
-            if (woundLengthTotal > 0) {
-                // La qualité est le ratio OK/Total
-                const quality = (woundLengthOk / woundLengthTotal) * 100;
+            // Ajuster la longueur OK avec les ajustements début/fin
+            const adjustedOk = Math.max(0, woundLengthOk - lengthStart + lengthEnd);
+            // NOK reste inchangé
+            const adjustedNok = woundLengthNok;
+            
+            // Total = OK ajusté + NOK
+            const total = adjustedOk + adjustedNok;
+            
+            if (total > 0) {
+                // Qualité = OK / Total
+                const quality = (adjustedOk / total) * 100;
                 this.qualityRate = quality.toFixed(1);
-            } else if (netProduction > 0) {
-                // Si pas de rouleaux mais de la production, considérer 100% OK
-                this.qualityRate = '100.0';
             } else {
                 this.qualityRate = '--';
             }
+            
+            console.log('Calcul qualité:', {
+                woundLengthOk,
+                woundLengthNok,
+                lengthStart,
+                lengthEnd,
+                adjustedOk,
+                adjustedNok,
+                total,
+                quality: total > 0 ? (adjustedOk / total) * 100 : 0,
+                qualityRate: this.qualityRate
+            });
             
             // Mettre à jour l'affichage aussi
             this.updateQualityDisplay();
@@ -276,11 +293,9 @@ function kpiDashboard() {
             // Production réelle nette
             let actualProduction = this.getNetProduction();
             
-            // Si on a aussi des stats de l'API, prendre le max (pour gérer les rouleaux déjà en base)
-            if (this.productionStats && this.productionStats.has_data) {
-                const apiProduction = this.productionStats.production.total_length;
-                actualProduction = Math.max(actualProduction, apiProduction);
-            }
+            
+            // NE PAS utiliser les stats API qui peuvent être obsolètes
+            // La production réelle doit être calculée depuis les données session en temps réel
             
             // Si pas de production ou production négative, afficher --
             if (actualProduction <= 0 && !this.productionStats?.has_data) {
@@ -350,14 +365,23 @@ function kpiDashboard() {
             const woundLengthNok = parseFloat(window.sessionData?.wound_length_nok || 0);
             const woundLengthTotal = woundLengthOk + woundLengthNok;
             
+            // Récupérer les ajustements
+            const lengthStart = parseFloat(window.sessionData?.length_start || 0);
+            const lengthEnd = parseFloat(window.sessionData?.length_end || 0);
+            
             if (woundLengthTotal > 0) {
-                // Si on a des rouleaux, afficher les valeurs réelles OK/NOK
-                this.qualityDisplay = Math.round(woundLengthOk) + ' m OK | ' + Math.round(woundLengthNok) + ' m NOK';
+                // Ajuster seulement la longueur OK avec les ajustements début/fin
+                const adjustedOk = Math.round(woundLengthOk - lengthStart + lengthEnd);
+                const adjustedNok = Math.round(woundLengthNok); // NOK reste inchangé
+                
+                // S'assurer que OK n'est pas négatif
+                const finalOk = Math.max(0, adjustedOk);
+                
+                this.qualityDisplay = finalOk + ' m OK | ' + adjustedNok + ' m NOK';
             } else {
-                // Si pas de rouleaux, vérifier la production nette
+                // Si pas de rouleaux, utiliser la production nette
                 const netProduction = this.getNetProduction();
                 if (netProduction > 0) {
-                    // Production sans rouleaux = tout est potentiellement OK
                     this.qualityDisplay = Math.round(netProduction) + ' m OK | 0 m NOK';
                 } else if (this.productionStats && this.productionStats.has_data) {
                     // Fallback sur les stats API
@@ -565,10 +589,10 @@ function kpiDashboard() {
                     </div>
                 </div>
 
-                <!-- TRS/OEE -->
+                <!-- TRS -->
                 <div class="kpi-card kpi-oee">
                     <div class="kpi-header">
-                        <span class="kpi-title">TRS / OEE</span>
+                        <span class="kpi-title">TRS</span>
                         <div class="kpi-icon">
                             <i class="bi bi-speedometer2"></i>
                         </div>
