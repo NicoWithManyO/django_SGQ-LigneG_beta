@@ -8,12 +8,17 @@ function kpiDashboard() {
         productionCapacity: '',
         beltSpeed: 0.29, // METTRE ICI LA VITESSE DU PROFIL EN M/MIN
         performanceRate: '--',
+        projectedPerformanceRate: '--', // Taux de performance projeté
         qualityRate: '--',
         trsRate: '--',
         productionStats: null,
         oeeTarget: 85, // Valeur par défaut
         productionDisplay: 'Pas de données', // Propriété réactive pour l'affichage
         qualityDisplay: 'Pas de données', // Propriété réactive pour l'affichage qualité
+        qualityOkDisplay: '-- m OK', // Affichage longueur OK
+        qualityNokDisplay: '-- m NOK', // Affichage longueur NOK
+        lastShiftTrs: null, // TRS du dernier poste
+        projectedTrsRate: '--', // TRS projeté
         
         init() {
             
@@ -144,6 +149,9 @@ function kpiDashboard() {
                 this.loadProductionStats();
             }
             
+            // Charger le TRS du dernier poste
+            this.loadLastShiftTrs();
+            
             // Écouter les changements de profil
             window.addEventListener('profile-changed', (e) => {
                 if (e.detail.beltSpeed) {
@@ -237,6 +245,20 @@ function kpiDashboard() {
             }
         },
         
+        async loadLastShiftTrs() {
+            try {
+                const response = await fetch('/api/shifts/last/');
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data && data.trs_oee !== undefined) {
+                        this.lastShiftTrs = parseFloat(data.trs_oee);
+                    }
+                }
+            } catch (error) {
+                console.error('Erreur chargement TRS dernier poste:', error);
+            }
+        },
+        
         calculateQualityFromSession() {
             // Calculer la qualité depuis les données session
             const woundLengthOk = parseFloat(window.sessionData?.wound_length_ok || 0);
@@ -300,17 +322,59 @@ function kpiDashboard() {
             // Si pas de production ou production négative, afficher --
             if (actualProduction <= 0 && !this.productionStats?.has_data) {
                 this.performanceRate = '--';
+                this.projectedPerformanceRate = '--';
             } else if (theoreticalProduction > 0) {
                 // Performance = (production réelle / production théorique) × 100
                 const performance = (actualProduction / theoreticalProduction) * 100;
                 // Afficher la vraie valeur sans limitation
                 this.performanceRate = Math.max(0, performance).toFixed(1);
+                
+                // Calculer le taux de performance projeté
+                this.calculateProjectedPerformance(actualProduction, theoreticalProduction);
             } else {
                 this.performanceRate = '--';
+                this.projectedPerformanceRate = '--';
             }
             
             this.calculateTRS();
             this.updateProductionDisplay();
+        },
+        
+        calculateProjectedPerformance(actualProduction, theoreticalProduction) {
+            // Calculer le temps restant dans le poste
+            const endTime = window.sessionData?.end_time;
+            if (!endTime) {
+                this.projectedPerformanceRate = '--';
+                return;
+            }
+            
+            // Calculer le temps restant en minutes
+            const now = new Date();
+            const [endH, endM] = endTime.split(':').map(Number);
+            const endDate = new Date();
+            endDate.setHours(endH, endM, 0);
+            
+            // Si fin de poste est le lendemain (vacation de nuit)
+            if (endDate < now) {
+                endDate.setDate(endDate.getDate() + 1);
+            }
+            
+            const remainingMinutes = Math.max(0, (endDate - now) / 60000);
+            
+            if (remainingMinutes > 0) {
+                // Production possible dans le temps restant
+                const possibleProduction = remainingMinutes * this.beltSpeed;
+                
+                // Production totale projetée = production actuelle + production possible
+                const projectedProduction = actualProduction + possibleProduction;
+                
+                // Taux projeté = (production projetée / production théorique) × 100
+                const projectedPerformance = (projectedProduction / theoreticalProduction) * 100;
+                this.projectedPerformanceRate = Math.min(100, Math.round(projectedPerformance));
+            } else {
+                // Pas de temps restant, le taux projeté est le taux actuel
+                this.projectedPerformanceRate = this.performanceRate;
+            }
         },
         
         calculateTRS() {
@@ -322,9 +386,17 @@ function kpiDashboard() {
             // Si un des taux n'est pas calculable, afficher --
             if (this.performanceRate === '--' || this.qualityRate === '--') {
                 this.trsRate = '--';
+                this.projectedTrsRate = '--';
             } else {
                 const trs = (availability * performance * quality) / 10000; // Division par 10000 car on multiplie 3 pourcentages
                 this.trsRate = trs.toFixed(1);
+                
+                // Calculer le TRS projeté si on a un taux de performance projeté
+                if (this.projectedPerformanceRate !== '--') {
+                    const projectedPerf = parseFloat(this.projectedPerformanceRate) || 0;
+                    const projectedTrs = (availability * projectedPerf * quality) / 10000;
+                    this.projectedTrsRate = projectedTrs.toFixed(1);
+                }
             }
         },
         
@@ -378,16 +450,24 @@ function kpiDashboard() {
                 const finalOk = Math.max(0, adjustedOk);
                 
                 this.qualityDisplay = finalOk + ' m OK | ' + adjustedNok + ' m NOK';
+                this.qualityOkDisplay = finalOk + ' m OK';
+                this.qualityNokDisplay = adjustedNok + ' m NOK';
             } else {
                 // Si pas de rouleaux, utiliser la production nette
                 const netProduction = this.getNetProduction();
                 if (netProduction > 0) {
                     this.qualityDisplay = Math.round(netProduction) + ' m OK | 0 m NOK';
+                    this.qualityOkDisplay = Math.round(netProduction) + ' m OK';
+                    this.qualityNokDisplay = '0 m NOK';
                 } else if (this.productionStats && this.productionStats.has_data) {
                     // Fallback sur les stats API
                     this.qualityDisplay = this.productionStats.production.conforming_rolls + ' OK / ' + this.productionStats.production.total_rolls + ' rouleaux';
+                    this.qualityOkDisplay = '-- m OK';
+                    this.qualityNokDisplay = '-- m NOK';
                 } else {
                     this.qualityDisplay = 'Pas de données';
+                    this.qualityOkDisplay = '-- m OK';
+                    this.qualityNokDisplay = '-- m NOK';
                 }
             }
         }
@@ -565,6 +645,13 @@ function kpiDashboard() {
                     <div class="kpi-details">
                         <span x-text="productionDisplay"></span>
                     </div>
+                    <div class="kpi-details" style="justify-content: flex-end;" x-show="projectedPerformanceRate !== '--'">
+                        <span class="text-secondary">projeté</span>
+                        <span class="kpi-trend up">
+                            <i :class="parseFloat(projectedPerformanceRate) > parseFloat(performanceRate) ? 'bi bi-arrow-up' : 'bi bi-arrow-down'"></i>
+                            <span x-text="projectedPerformanceRate + '%'"></span>
+                        </span>
+                    </div>
                     <div class="kpi-progress">
                         <div class="kpi-progress-bar" :style="'width: ' + performanceRate + '%'"></div>
                     </div>
@@ -581,8 +668,9 @@ function kpiDashboard() {
                     <div class="kpi-value">
                         <span x-text="qualityRate"></span><span class="kpi-unit">%</span>
                     </div>
-                    <div class="kpi-details">
-                        <span x-text="qualityDisplay"></span>
+                    <div class="kpi-details" style="flex-direction: column; align-items: flex-start;">
+                        <div x-text="qualityOkDisplay"></div>
+                        <div x-text="qualityNokDisplay"></div>
                     </div>
                     <div class="kpi-progress">
                         <div class="kpi-progress-bar" :style="'width: ' + qualityRate + '%'"></div>
@@ -600,12 +688,12 @@ function kpiDashboard() {
                     <div class="kpi-value">
                         <span x-text="trsRate"></span><span class="kpi-unit">%</span>
                     </div>
-                    <div class="kpi-details">
+                    <div class="kpi-details" style="justify-content: flex-end;">
+                        <span class="text-secondary">obj. <span x-text="oeeTarget + '%'"></span></span>
                         <span :class="parseFloat(trsRate) >= oeeTarget ? 'kpi-trend up' : 'kpi-trend down'">
                             <i :class="parseFloat(trsRate) >= oeeTarget ? 'bi bi-arrow-up' : 'bi bi-arrow-down'"></i>
                             <span x-text="(parseFloat(trsRate) - oeeTarget).toFixed(1) + '%'"></span>
                         </span>
-                        <span x-text="'obj. ' + oeeTarget + '%'"></span>
                     </div>
                     <div class="kpi-progress">
                         <div class="kpi-progress-bar" :style="'width: ' + trsRate + '%'"></div>

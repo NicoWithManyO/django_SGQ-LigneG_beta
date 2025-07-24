@@ -49,8 +49,6 @@ def production(request):
         'lost_time_entries': request.session.get('lost_time_entries', []),
         'temps_total': request.session.get('temps_total', '0h00'),
         'has_startup_time': request.session.get('has_startup_time', False),
-        # Timer dernier save rouleau
-        'last_roll_save_time': request.session.get('last_roll_save_time'),
         # Vitesse du tapis
         'belt_speed_mpm': request.session.get('belt_speed_mpm'),
         # Compteurs de production

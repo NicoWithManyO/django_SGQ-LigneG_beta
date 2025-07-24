@@ -96,11 +96,10 @@
                 </div>
                 
                 <!-- Paragraphe informatif -->
-                <div class="mt-3 text-center" x-data="rollTimer()" x-init="init()">
+                <div class="mt-3 text-center">
                     <p class="text-primary fw-bold d-flex align-items-center justify-content-center">
                         <i class="bi bi-clock-history me-2 text-white"></i>
-                        ETA~ : 12min (12:34) | 
-                        ETD :&nbsp;<span x-text="elapsedTime">--:--</span>&nbsp;(<span x-text="lastSaveHour">--:--</span>)
+                        Production en cours
                     </p>
                 </div>
             </div>
@@ -161,7 +160,6 @@ window.operatorsData = {{ operators_json|safe }};
 <script src="{% static 'frontend/js/checklist.js' %}"></script>
 <script src="{% static 'frontend/js/roll.js' %}"></script>
 <script src="{% static 'frontend/js/roll-save-modal.js' %}"></script>
-<script src="{% static 'frontend/js/roll-timer.js' %}"></script>
 <script src="{% static 'frontend/js/kpi-calculations.js' %}"></script>
 <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
 <script>

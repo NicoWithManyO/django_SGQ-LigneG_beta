@@ -770,8 +770,7 @@ function stickyBottom() {
                 window.dispatchEvent(new CustomEvent('roll-saved', {
                     detail: {
                         roll: savedRoll,
-                        isNonConform: detail.isNonConform,
-                        createdAt: savedRoll.created_at
+                        isNonConform: detail.isNonConform
                     }
                 }));
                 
@@ -872,10 +871,8 @@ function stickyBottom() {
             
             await api.saveToSession(resetData);
             
-            // Mettre à jour la session locale aussi
-            if (window.sessionData) {
-                window.sessionData.roll_number = this.rollNumber;
-            }
+            // Forcer la mise à jour de window.sessionData avec les nouvelles valeurs
+            Object.assign(window.sessionData, resetData);
         }
     };
 }
