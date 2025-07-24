@@ -1,12 +1,15 @@
 # Base de données
 db.sqlite3
 *.sqlite3
+*.sqlite3.backup
 
 # Dossier de référence
 AIDE/
 
 # Environnement virtuel
 .venv/
+venv/
+env/
 
 # Claude
 .claude/
@@ -18,6 +21,8 @@ __pycache__/
 
 # Django
 *.log
+staticfiles/
+media/
 
 # IDE
 .vscode/
@@ -36,3 +41,11 @@ __pycache__/
 
 # Fichiers Windows Zone.Identifier
 *:Zone.Identifier
+
+# Environment variables
+.env
+.env.local
+.env.production
+
+# Railway
+.railway/
