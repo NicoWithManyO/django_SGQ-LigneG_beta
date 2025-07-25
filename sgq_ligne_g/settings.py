@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     'quality',
     'livesession',  # App pour gérer les sessions
     'frontend',  # App pour l'interface utilisateur
+    'exporting',  # App pour l'export des données
 ]
 
 MIDDLEWARE = [
