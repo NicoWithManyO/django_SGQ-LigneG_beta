@@ -203,16 +203,17 @@ class Roll(models.Model):
         return f"{self.roll_id} - {self.length}m" if self.length else self.roll_id
     
     def save(self, *args, **kwargs):
-        """Génère automatiquement le roll_id si non fourni."""
-        # Génération du roll_id si non fourni
-        if not self.roll_id:
-            if self.fabrication_order and self.roll_number:
-                # Format standard: OF_NumRouleau
-                self.roll_id = f"{self.fabrication_order.order_number}_{self.roll_number:03d}"
-            else:
-                # Format alternatif si pas d'OF: ROLL_YYYYMMDD_HHMMSS
-                from datetime import datetime
-                now = datetime.now()
-                self.roll_id = f"ROLL_{now.strftime('%Y%m%d_%H%M%S')}"
+        """Génère ou met à jour automatiquement le roll_id."""
+        # Toujours recalculer si on a OF et numéro
+        if self.fabrication_order and self.roll_number:
+            new_roll_id = f"{self.fabrication_order.order_number}_{self.roll_number:03d}"
+            # Mettre à jour si différent
+            if self.roll_id != new_roll_id:
+                self.roll_id = new_roll_id
+        elif not self.roll_id:
+            # Format alternatif si pas d'OF: ROLL_YYYYMMDD_HHMMSS
+            from datetime import datetime
+            now = datetime.now()
+            self.roll_id = f"ROLL_{now.strftime('%Y%m%d_%H%M%S')}"
         
         super().save(*args, **kwargs)

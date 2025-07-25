@@ -21,7 +21,7 @@ class RollExcelExporter:
         
         # En-têtes des colonnes - TOUS les champs du modèle Roll
         self.headers = [
-            'ID Rouleau', 'OF', 'Numéro', 'Date/Heure', 'Opérateur', 'Shift',
+            'ID', 'ID Rouleau', 'OF', 'Numéro', 'Date/Heure', 'Opérateur', 'Shift',
             'Longueur (m)', 'Statut', 'Destination', 'Masse Tube (g)', 'Masse Totale (g)', 
             'Masse Nette (g)', 'Défauts Bloquants', 'Problèmes Épaisseur',
             'Épaisseur Moy. Gauche', 'Épaisseur Moy. Droite', 'Grammage Calc.',
@@ -48,26 +48,27 @@ class RollExcelExporter:
             
         # Largeur des colonnes
         column_widths = {
-            'A': 20,  # ID Rouleau
-            'B': 10,  # OF
-            'C': 10,  # Numéro
-            'D': 20,  # Date/Heure
-            'E': 20,  # Opérateur
-            'F': 25,  # Shift
-            'G': 12,  # Longueur (m)
-            'H': 15,  # Statut
-            'I': 15,  # Destination
-            'J': 12,  # Masse Tube
-            'K': 12,  # Masse Totale
-            'L': 12,  # Masse Nette
-            'M': 15,  # Défauts Bloquants
-            'N': 18,  # Problèmes Épaisseur
-            'O': 18,  # Épaisseur Moy. Gauche
-            'P': 18,  # Épaisseur Moy. Droite
-            'Q': 15,  # Grammage Calc.
-            'R': 30,  # Défauts
-            'S': 20,  # Profil
-            'T': 30,  # Commentaire
+            'A': 8,   # ID
+            'B': 20,  # ID Rouleau
+            'C': 10,  # OF
+            'D': 10,  # Numéro
+            'E': 20,  # Date/Heure
+            'F': 20,  # Opérateur
+            'G': 25,  # Shift
+            'H': 12,  # Longueur (m)
+            'I': 15,  # Statut
+            'J': 15,  # Destination
+            'K': 12,  # Masse Tube
+            'L': 12,  # Masse Totale
+            'M': 12,  # Masse Nette
+            'N': 15,  # Défauts Bloquants
+            'O': 18,  # Problèmes Épaisseur
+            'P': 18,  # Épaisseur Moy. Gauche
+            'Q': 18,  # Épaisseur Moy. Droite
+            'R': 15,  # Grammage Calc.
+            'S': 30,  # Défauts
+            'T': 20,  # Profil
+            'U': 30,  # Commentaire
         }
         
         for col, width in column_widths.items():
@@ -97,6 +98,7 @@ class RollExcelExporter:
             profile_name = roll.fabrication_order.profile.name
         
         return [
+            roll.id,  # ID unique de la base de données
             roll.roll_id,
             roll.fabrication_order.order_number if roll.fabrication_order else '',
             roll.roll_number or '',
@@ -158,11 +160,11 @@ class RollExcelExporter:
             # Récupérer les données du rouleau
             row_data = self._get_roll_data(roll)
             
-            # Chercher si le rouleau existe déjà (par roll_id en colonne A)
+            # Chercher si le rouleau existe déjà (par ID en colonne A)
             roll_row = None
             if update:
                 for row_num in range(2, ws.max_row + 1):  # Commencer à 2 pour skip les en-têtes
-                    if ws.cell(row=row_num, column=1).value == roll.roll_id:
+                    if ws.cell(row=row_num, column=1).value == roll.id:
                         roll_row = row_num
                         break
             
