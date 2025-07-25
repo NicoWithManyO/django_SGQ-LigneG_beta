@@ -6,13 +6,6 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 SGQ Ligne G is a Production Quality Management System for the fiber optics industry, ensuring complete traceability, quality control, and performance optimization according to ISO 9001, 14001, and 45001 standards.
 
-## Workflow de commit assisté
-
-- Lorsque je tape "+commit", je vérifie automatiquement les conventions de code et la qualité du code
-- Je prépare un message de commit concis, en anglais, sans préfixe textuel
-- Le message de commit inclut un résumé des modifications depuis le dernier commit
-- L'objectif est de faciliter la copie du message de commit pour l'utilisateur
-
 ## Common Development Commands
 
 ```bash
@@ -39,6 +32,9 @@ python manage.py shell          # Interactive Python shell with Django context
 python manage.py test          # Run all tests
 python manage.py test catalog  # Run tests for specific app
 
+# Excel export testing
+python manage.py shell
+# Then: from exporting.utils import test_excel_export; test_excel_export()
 ```
 
 ## Project Architecture
@@ -48,6 +44,7 @@ python manage.py test catalog  # Run tests for specific app
 - **Frontend**: Server-side rendered Django templates with Alpine.js 3.x for reactivity
 - **CSS**: Bootstrap 5.3 with custom CSS variables, no build process required
 - **Database**: SQLite
+- **Excel Export**: openpyxl for production reports
 
 ### Django Apps Organization
 
@@ -63,12 +60,14 @@ python manage.py test catalog  # Run tests for specific app
    - Roll tracking with full traceability
    - Current production state and active orders
    - Links to quality controls and defects
+   - Models split: shift.py, roll.py, current.py
 
 3. **quality/** - Quality control and assurance
    - Quality control records with 12x7 grid validation
    - Roll defects tracking with timestamps
    - Thickness measurements with real-time validation
    - NOK (non-conforming) product management
+   - Models split: control.py, defect.py, thickness.py
 
 4. **wcm/** - World Class Manufacturing operations
    - Lost time tracking with categorization
@@ -91,6 +90,10 @@ python manage.py test catalog  # Run tests for specific app
    - Alpine.js for client-side reactivity
    - Session API integration for data persistence
    - Advanced UI features (keyboard navigation, visual indicators)
+
+8. **exporting/** - Data export functionality
+   - Excel report generation for production analysis
+   - Automatic formatting and styling with openpyxl
 
 ### Critical Auto-Generated IDs (NEVER MODIFY)
 
@@ -155,6 +158,7 @@ Components communicate through:
 - Models: Singular names (e.g., `Operator`, not `Operators`)
 - Apps: Plural or functional names (e.g., `production`, `quality`)
 - Use Class-Based Views when appropriate
+- Models split into separate files for complex apps
 
 ### Commit Messages
 Follow conventional format in English:
@@ -343,8 +347,21 @@ python manage.py loaddata backups/backup_XXXXXX.json
 All migrations have been recreated to work properly on a fresh database. The previous issues with catalog.0002 and catalog.0003 have been resolved.
 
 ## Missing Infrastructure
-- Requirements.txt exists with minimal dependencies (Django, DRF, asgiref, sqlparse)
+- Requirements.txt exists with dependencies: Django, DRF, asgiref, sqlparse, openpyxl, tzdata
 - No configured test framework beyond basic Django tests
 - No linting/formatting configuration
 - No CI/CD pipeline
-```
+
+## Workflow de commit assisté
+
+- Lorsque je tape "+commit", je vérifie automatiquement les conventions de code et la qualité du code
+- Je prépare un message de commit concis, en anglais, sans préfixe textuel
+- Le message de commit inclut un résumé des modifications depuis le dernier commit
+- L'objectif est de faciliter la copie du message de commit pour l'utilisateur
+
+## Commit Message Generation
+
+- When "+commit" is requested, automatically generate a commit message
+- Analyze the git diff to understand the changes
+- Prepare a concise, clear message in English
+- Make it easy to copy the commit message for the user

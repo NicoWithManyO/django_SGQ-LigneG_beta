@@ -1,12 +1,12 @@
+{% load static %}
 <!-- Sticky Bottom Bar -->
 <div class="sticky-bottom-bar" x-data="stickyBottom()" x-init="init()">
     <div class="container-fluid">
         <div class="row align-items-center h-100">
-            <!-- État en cours -->
+            <!-- Logo -->
             <div class="col-auto">
-                <div class="status-indicator">
-                    <i class="bi bi-circle-fill text-success me-2"></i>
-                    <span class="fw-medium">En cours</span>
+                <div class="d-flex align-items-center">
+                    <img src="{% static 'frontend/img/logo-white-text.svg' %}" alt="Logo SGQ" style="height: 40px;">
                 </div>
             </div>
             
