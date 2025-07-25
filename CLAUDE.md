@@ -2,6 +2,10 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Project Overview
+
+SGQ Ligne G is a Production Quality Management System for the fiber optics industry, ensuring complete traceability, quality control, and performance optimization according to ISO 9001, 14001, and 45001 standards.
+
 ## Workflow de commit assisté
 
 - Lorsque je tape "+commit", je vérifie automatiquement les conventions de code et la qualité du code
@@ -20,6 +24,11 @@ python manage.py makemigrations # Create new migrations
 python manage.py migrate        # Apply migrations to database
 python manage.py showmigrations # Check migration status
 
+# Load initial reference data
+python manage.py load_initial_data              # Load all reference data
+python manage.py load_initial_data --clear      # Clear existing data first
+python manage.py load_initial_data --dry-run    # Preview changes without applying
+
 # User management
 python manage.py createsuperuser # Create admin user for /admin/
 
@@ -29,6 +38,7 @@ python manage.py shell          # Interactive Python shell with Django context
 # Testing (basic Django tests exist but no test framework configured)
 python manage.py test          # Run all tests
 python manage.py test catalog  # Run tests for specific app
+
 ```
 
 ## Project Architecture
@@ -37,7 +47,7 @@ python manage.py test catalog  # Run tests for specific app
 - **Backend**: Django 5.2.4 with Django REST Framework 3.16.0
 - **Frontend**: Server-side rendered Django templates with Alpine.js 3.x for reactivity
 - **CSS**: Bootstrap 5.3 with custom CSS variables, no build process required
-- **Database**: SQLite for development, PostgreSQL recommended for production
+- **Database**: SQLite
 
 ### Django Apps Organization
 
@@ -46,6 +56,7 @@ python manage.py test catalog  # Run tests for specific app
    - Machine parameters and temperature settings
    - Defect types catalog with severity levels
    - WCM checklist templates
+   - Custom management command: `load_initial_data`
 
 2. **production/** - Core production management
    - Shift management with auto-generated IDs
@@ -63,7 +74,7 @@ python manage.py test catalog  # Run tests for specific app
    - Lost time tracking with categorization
    - Dynamic checklists based on production profiles
    - Machine parameters history and auditing
-   - Performance metrics calculation
+   - Performance metrics calculation (TRS/OEE)
 
 5. **planification/** - Planning and resource management
    - Operator management with unique employee IDs
@@ -157,22 +168,14 @@ Types: feat, fix, refactor, docs, style, test, chore
 
 Main endpoints:
 - `/admin/` - Django admin interface
-- `/api/session/` - Session state management
+- `/api/session/` - Session state management (GET/PATCH)
 - `/api/` - REST API root (DRF browsable API)
+- `/api/rolls/` - Roll CRUD operations
+- `/api/shifts/` - Shift management
+- `/api/lost-time-entries/` - WCM time tracking
+- `/api/checklist-responses/` - Quality checklist responses
 
 ## Development Notes
-
-### Missing Infrastructure
-- Requirements.txt exists with minimal dependencies (Django, DRF, asgiref, sqlparse)
-- No configured test framework beyond basic Django tests
-- No linting/formatting configuration
-- No CI/CD pipeline
-
-### Environment Setup
-Currently using Django's default development settings with:
-- DEBUG = True
-- SQLite database
-- No environment variable configuration
 
 ### Best Practices for This Codebase
 1. Always check existing patterns in similar components before creating new ones
@@ -181,6 +184,7 @@ Currently using Django's default development settings with:
 4. Maintain the French comments for team documentation
 5. Test with keyboard navigation for accessibility
 6. Verify against the three ISO standards (9001, 14001, 45001) for compliance features
+7. Bonne pratique : toujours vérifier les références avant de supprimer des fichiers, même s'ils semblent inutiles !
 
 ## Key Architectural Patterns
 
@@ -214,6 +218,7 @@ window.dispatchEvent(new CustomEvent('roll-created', {
 - **Quality Control**: Must be completed before shift can be saved
 - **Thickness Grid**: Values outside min/max are flagged as NOK
 - **Machine State**: Must track if machine was on at start/end of shift
+- **Thickness Measurements**: Taken at 1m for rolls <3m, every 5m for rolls ≥3m
 
 ## Frontend Component Dependencies
 
@@ -255,7 +260,7 @@ The KPI dashboard (`kpiDashboard()` in profile.html) calculates metrics in real-
    - OK Length adjusted = wound_length_ok - length_start + length_end
    - NOK Length remains unchanged
 
-4. **TRS**:
+4. **TRS (Overall Equipment Effectiveness)**:
    - Formula: (Availability × Performance × Quality) / 10000
 
 ### Session Counters
@@ -292,3 +297,54 @@ Key Bootstrap customizations in use:
 - Larger touch targets for production floor usage (min 44px)
 - High contrast ratios for industrial lighting conditions
 - Sticky components for constant visibility during scrolling
+
+## Visual Indicators
+
+Production uses color-coded system:
+- **Green (success)**: Within specifications
+- **Orange (warning)**: Alert threshold reached but still acceptable
+- **Red (danger)**: Out of specifications or blocking defect
+
+## Database Initialization
+
+### Fresh Database Setup
+The project includes a `load_initial_data` management command that populates a clean database with:
+- Quality defect types (Autre, Epaisseurs, Infibré, Insectes, Marque Tapis, Shot, Trou)
+- Specification items (thickness, micronaire, surface_mass, resistance, elongation)
+- Machine parameters (temperatures, speeds, pressures)
+- Product profiles (STANDARD 15MM, PREMIUM 20MM, ECO 12MM)
+- WCM lost time reasons (18 categories)
+- Checklist items (17 items across 5 categories)
+- Sample operators (8 operators)
+- Operating modes (Normal, Permissif, Dégradé, Maintenance)
+- Mood counters (happy, neutral, unhappy, no_response)
+
+To reset and initialize a fresh database:
+```bash
+rm db.sqlite3
+python manage.py migrate
+python manage.py load_initial_data
+python manage.py createsuperuser  # Create admin user
+```
+
+### Data Backup and Restore
+
+Before any database reset:
+```bash
+# Full backup
+python manage.py dumpdata --indent 2 > backups/backup_$(date +%Y%m%d_%H%M%S).json
+
+# Restore specific apps
+python manage.py loaddata backups/backup_XXXXXX.json
+```
+
+### Migration Management
+
+All migrations have been recreated to work properly on a fresh database. The previous issues with catalog.0002 and catalog.0003 have been resolved.
+
+## Missing Infrastructure
+- Requirements.txt exists with minimal dependencies (Django, DRF, asgiref, sqlparse)
+- No configured test framework beyond basic Django tests
+- No linting/formatting configuration
+- No CI/CD pipeline
+```

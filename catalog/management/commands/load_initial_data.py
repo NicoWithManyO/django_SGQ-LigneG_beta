@@ -55,6 +55,7 @@ class Command(BaseCommand):
             ('operators', self.load_operators),
             ('modes', self.load_modes),
             ('mood_counters', self.load_mood_counters),
+            ('fabrication_orders', self.load_fabrication_orders),
         ]
         
         # Statistiques
@@ -112,46 +113,42 @@ class Command(BaseCommand):
         """Charge les types de défauts qualité."""
         defect_types = [
             {
+                'name': 'Autre',
+                'severity': 'non_blocking',
+                'description': 'Autre type de défaut'
+            },
+            {
+                'name': 'Epaisseurs',
+                'severity': 'threshold',
+                'threshold_value': 3,
+                'description': 'Défaut d\'épaisseur'
+            },
+            {
+                'name': 'Infibré',
+                'severity': 'threshold',
+                'threshold_value': 3,
+                'description': 'Défaut de fibrage'
+            },
+            {
+                'name': 'Insectes',
+                'severity': 'blocking',
+                'description': 'Présence d\'insectes'
+            },
+            {
+                'name': 'Marque Tapis',
+                'severity': 'blocking',
+                'description': 'Marque du tapis visible'
+            },
+            {
+                'name': 'Shot',
+                'severity': 'threshold',
+                'threshold_value': 3,
+                'description': 'Défaut de shot'
+            },
+            {
                 'name': 'Trou',
                 'severity': 'blocking',
                 'description': 'Perforation dans le matériau'
-            },
-            {
-                'name': 'Pli',
-                'severity': 'non_blocking',
-                'description': 'Pliure ou déformation'
-            },
-            {
-                'name': 'Tache',
-                'severity': 'threshold',
-                'threshold_value': 5,
-                'description': 'Salissure ou contamination'
-            },
-            {
-                'name': 'Déchirure',
-                'severity': 'blocking',
-                'description': 'Déchirement du matériau'
-            },
-            {
-                'name': 'Corps étranger',
-                'severity': 'blocking',
-                'description': 'Présence de matière étrangère'
-            },
-            {
-                'name': 'Surépaisseur',
-                'severity': 'non_blocking',
-                'description': 'Zone trop épaisse'
-            },
-            {
-                'name': 'Défaut de tension',
-                'severity': 'non_blocking',
-                'description': 'Tension incorrecte du matériau'
-            },
-            {
-                'name': 'Défaut de couleur',
-                'severity': 'threshold',
-                'threshold_value': 3,
-                'description': 'Variation de couleur non conforme'
             },
         ]
         
@@ -181,38 +178,38 @@ class Command(BaseCommand):
         """Charge les items de spécifications."""
         spec_items = [
             {
-                'name': 'thickness',
-                'display_name': 'Épaisseur',
-                'unit': 'mm',
-                'description': 'Épaisseur du produit',
+                'name': 'Micronaire',
+                'display_name': 'Micronaire',
+                'unit': 'mlAir/min',
+                'description': '',
                 'order': 1
             },
             {
-                'name': 'micronaire',
-                'display_name': 'Micronaire',
-                'unit': '',
-                'description': 'Indice de finesse des fibres',
+                'name': 'Épaisseur',
+                'display_name': 'Épaisseur',
+                'unit': 'mm',
+                'description': '',
                 'order': 2
             },
             {
-                'name': 'surface_mass',
-                'display_name': 'Grammage',
-                'unit': 'g/m²',
-                'description': 'Masse surfacique',
+                'name': 'Masse Surfacique',
+                'display_name': 'Masse Surfacique',
+                'unit': 'g/25cm²',
+                'description': '',
                 'order': 3
             },
             {
-                'name': 'resistance',
-                'display_name': 'Résistance',
-                'unit': 'cN/tex',
-                'description': 'Résistance à la traction',
+                'name': 'Masse Surfacique Globale',
+                'display_name': 'Masse Surfacique Globale',
+                'unit': 'g/m2',
+                'description': '',
                 'order': 4
             },
             {
-                'name': 'elongation',
-                'display_name': 'Allongement',
+                'name': 'Extrait Sec',
+                'display_name': 'Extrait Sec',
                 'unit': '%',
-                'description': 'Allongement à la rupture',
+                'description': '',
                 'order': 5
             },
         ]
@@ -242,78 +239,69 @@ class Command(BaseCommand):
     def load_param_items(self):
         """Charge les items de paramètres machine."""
         param_items = [
-            # Fibrage - Températures
             {
-                'name': 'temp_cylinder_1',
-                'display_name': 'Température Cylindre 1',
+                'name': 'Oxygène Primaire',
+                'display_name': 'Oxygène Primaire',
                 'category': 'fibrage',
-                'unit': '°C',
-                'default_value': 180.0,
-                'min_value': 150.0,
-                'max_value': 250.0,
+                'unit': '',
+                'default_value': '0.00',
                 'order': 1
             },
             {
-                'name': 'temp_cylinder_2',
-                'display_name': 'Température Cylindre 2',
+                'name': 'Oxygène Secondaire',
+                'display_name': 'Oxygène Secondaire',
                 'category': 'fibrage',
-                'unit': '°C',
-                'default_value': 185.0,
-                'min_value': 150.0,
-                'max_value': 250.0,
+                'unit': '',
+                'default_value': '0.00',
                 'order': 2
             },
             {
-                'name': 'temp_cylinder_3',
-                'display_name': 'Température Cylindre 3',
+                'name': 'Propane Primaire',
+                'display_name': 'Propane Primaire',
                 'category': 'fibrage',
-                'unit': '°C',
-                'default_value': 190.0,
-                'min_value': 150.0,
-                'max_value': 250.0,
+                'unit': '',
+                'default_value': '0.00',
                 'order': 3
             },
             {
-                'name': 'temp_cylinder_4',
-                'display_name': 'Température Cylindre 4',
+                'name': 'Propane Secondaire',
+                'display_name': 'Propane Secondaire',
                 'category': 'fibrage',
-                'unit': '°C',
-                'default_value': 195.0,
-                'min_value': 150.0,
-                'max_value': 250.0,
+                'unit': '',
+                'default_value': '0.00',
                 'order': 4
             },
-            # Fibrage - Vitesses
             {
-                'name': 'line_speed',
-                'display_name': 'Vitesse Ligne',
+                'name': 'Vitesse Rouleaux Primaire',
+                'display_name': 'Vitesse Primaire',
                 'category': 'fibrage',
-                'unit': 'm/min',
-                'default_value': 25.0,
-                'min_value': 10.0,
-                'max_value': 50.0,
+                'unit': 'm/h',
+                'default_value': '0.00',
                 'order': 5
             },
-            # Ensimeuse
             {
-                'name': 'winder_speed',
-                'display_name': 'Vitesse Enrouleur',
-                'category': 'ensimeuse',
-                'unit': 'm/min',
-                'default_value': 25.0,
-                'min_value': 10.0,
-                'max_value': 50.0,
+                'name': 'Vitesse Rouleaux Secondaire',
+                'display_name': 'Vitesse Secondaire',
+                'category': 'fibrage',
+                'unit': 'm/h',
+                'default_value': '0.00',
                 'order': 6
             },
             {
-                'name': 'winder_pressure',
-                'display_name': 'Pression Enrouleur',
+                'name': 'Vitesse Convoyeur',
+                'display_name': 'Vitesse Convoyeur',
                 'category': 'ensimeuse',
-                'unit': 'bar',
-                'default_value': 3.0,
-                'min_value': 1.0,
-                'max_value': 10.0,
+                'unit': 'm/h',
+                'default_value': '0.00',
                 'order': 7
+            },
+            {
+                'name': 'Vitesse Tapis',
+                'display_name': 'Vitesse Tapis',
+                'category': 'ensimeuse',
+                'unit': 'm/h',
+                'default_value': '0.00',
+                'order': 8
             },
         ]
         
@@ -342,118 +330,138 @@ class Command(BaseCommand):
 
     def load_profiles(self):
         """Charge les profils (templates) produits."""
+        from catalog.models import ProfileSpecValue, ProfileParamValue
+        
         profiles = [
             {
-                'name': 'STANDARD 15MM',
-                'description': 'Profil standard pour production 15mm',
-                'belt_speed_m_per_minute': 25.0,
-                'oee_target_percentage': 85.0,
-                'min_thickness': 14.0,
-                'max_thickness': 16.0,
-                'target_thickness': 15.0,
-                'micronaire_min': 3.8,
-                'micronaire_max': 4.2,
-                'micronaire_target': 4.0,
-                'weight_min': 480.0,
-                'weight_max': 520.0,
-                'weight_target': 500.0,
+                'name': 'std 80gr/m²',
+                'description': '',
+                'belt_speed_m_per_minute': 0.29,
+                'oee_target': 85.0,
+                'is_default': True,
+                'specs': {
+                    'Extrait Sec': {'min': 0.16, 'min_alert': 0.22, 'nominal': 0.26, 'max_alert': 0.30, 'max': 0.34},
+                    'Masse Surfacique': {'min': 0.008, 'min_alert': 0.01, 'nominal': 0.0112, 'max_alert': 0.116, 'max': 0.118},
+                    'Masse Surfacique Globale': {'min': 72.0, 'min_alert': 80.0, 'nominal': 81.0, 'max_alert': 83.0, 'max': 88.0},
+                    'Micronaire': {'min': 25.0, 'min_alert': 29.0, 'nominal': 32.0, 'max_alert': 36.0, 'max': 42.0},
+                    'Épaisseur': {'min': 3.2, 'min_alert': 4.0, 'nominal': 6.5, 'max_alert': 9.0, 'max': None},
+                },
+                'params': {
+                    'Vitesse Tapis': 17.40,
+                    'Vitesse Rouleaux Primaire': 34.00,
+                    'Vitesse Convoyeur': 26.00,
+                    'Vitesse Rouleaux Secondaire': 41.00,
+                    'Oxygène Primaire': 0.00,
+                    'Oxygène Secondaire': 0.00,
+                    'Propane Primaire': 0.00,
+                    'Propane Secondaire': 0.00,
+                }
             },
             {
-                'name': 'PREMIUM 20MM',
-                'description': 'Profil premium haute qualité',
-                'belt_speed_m_per_minute': 20.0,
-                'oee_target_percentage': 80.0,
-                'min_thickness': 19.0,
-                'max_thickness': 21.0,
-                'target_thickness': 20.0,
-                'micronaire_min': 3.6,
-                'micronaire_max': 4.0,
-                'micronaire_target': 3.8,
-                'weight_min': 580.0,
-                'weight_max': 620.0,
-                'weight_target': 600.0,
+                'name': '40gr/m²',
+                'description': '',
+                'belt_speed_m_per_minute': 0.58,
+                'oee_target': 85.0,
+                'is_default': False,
+                'specs': {
+                    'Extrait Sec': {'min': None, 'min_alert': None, 'nominal': 0.22, 'max_alert': None, 'max': None},
+                    'Masse Surfacique': {'min': None, 'min_alert': None, 'nominal': 0.0, 'max_alert': None, 'max': None},
+                    'Masse Surfacique Globale': {'min': None, 'min_alert': None, 'nominal': 0.0, 'max_alert': None, 'max': None},
+                    'Micronaire': {'min': None, 'min_alert': None, 'nominal': 0.0, 'max_alert': None, 'max': None},
+                    'Épaisseur': {'min': None, 'min_alert': None, 'nominal': 0.0, 'max_alert': None, 'max': None},
+                },
+                'params': {
+                    'Vitesse Rouleaux Primaire': 35.00,
+                    'Vitesse Tapis': 35.00,
+                }
             },
             {
-                'name': 'ECO 12MM',
-                'description': 'Profil économique',
-                'belt_speed_m_per_minute': 30.0,
-                'oee_target_percentage': 90.0,
-                'min_thickness': 11.5,
-                'max_thickness': 12.5,
-                'target_thickness': 12.0,
-                'micronaire_min': 4.0,
-                'micronaire_max': 4.4,
-                'micronaire_target': 4.2,
-                'weight_min': 380.0,
-                'weight_max': 420.0,
-                'weight_target': 400.0,
+                'name': 'temp',
+                'description': '',
+                'belt_speed_m_per_minute': 1.67,
+                'oee_target': 85.0,
+                'is_default': False,
+                'specs': {},
+                'params': {
+                    'Vitesse Tapis': 100.00,
+                }
             },
         ]
         
         if self.clear and not self.dry_run:
             ProfileTemplate.objects.all().delete()
         
-        for data in profiles:
+        for profile_data in profiles:
             if self.dry_run:
-                exists = ProfileTemplate.objects.filter(name=data['name']).exists()
+                exists = ProfileTemplate.objects.filter(name=profile_data['name']).exists()
                 if not exists:
-                    self.stdout.write(f"  Créerait ProfileTemplate: {data['name']}")
+                    self.stdout.write(f"  Créerait ProfileTemplate: {profile_data['name']}")
                     self.stats['profiles']['created'] += 1
                 else:
                     self.stats['profiles']['skipped'] += 1
             else:
-                obj, created = ProfileTemplate.objects.get_or_create(
-                    name=data['name'],
-                    defaults=data
+                # Extraire les specs et params
+                specs = profile_data.pop('specs', {})
+                params = profile_data.pop('params', {})
+                
+                # Créer uniquement avec les champs qui existent dans le modèle
+                profile_fields = {
+                    'name': profile_data['name'],
+                    'description': profile_data.get('description', ''),
+                    'belt_speed_m_per_minute': profile_data['belt_speed_m_per_minute'],
+                    'oee_target': profile_data['oee_target'],
+                    'is_default': profile_data.get('is_default', False)
+                }
+                
+                # Créer le profil
+                profile, created = ProfileTemplate.objects.get_or_create(
+                    name=profile_fields['name'],
+                    defaults=profile_fields
                 )
+                
                 if created:
-                    self.stdout.write(f"  ✓ Créé ProfileTemplate: {obj.name}")
+                    self.stdout.write(f"  ✓ Créé ProfileTemplate: {profile.name}")
                     self.stats['profiles']['created'] += 1
                     
-                    # Associer les spec items et param items si ils existent
-                    # Les ProfileTemplate ont des ManyToMany vers spec_items et param_items
-                    spec_items = SpecItem.objects.filter(is_active=True)
-                    param_items = ParamItem.objects.filter(is_active=True)
+                    # Créer les ProfileSpecValue pour chaque spec
+                    for spec_name, values in specs.items():
+                        try:
+                            spec_item = SpecItem.objects.get(name=spec_name)
+                            ProfileSpecValue.objects.create(
+                                profile=profile,
+                                spec_item=spec_item,
+                                value_min=values.get('min'),
+                                value_min_alert=values.get('min_alert'),
+                                value_nominal=values.get('nominal', 0.0),
+                                value_max_alert=values.get('max_alert'),
+                                value_max=values.get('max')
+                            )
+                            self.stdout.write(f"    → Associé spec {spec_name}")
+                        except SpecItem.DoesNotExist:
+                            self.stdout.write(self.style.WARNING(f"    ⚠ Spec {spec_name} non trouvée"))
                     
-                    if spec_items.exists():
-                        obj.spec_items.set(spec_items)
-                    if param_items.exists():
-                        obj.param_items.set(param_items)
+                    # Créer les ProfileParamValue pour chaque param
+                    for param_name, value in params.items():
+                        try:
+                            param_item = ParamItem.objects.get(name=param_name)
+                            ProfileParamValue.objects.create(
+                                profile=profile,
+                                param_item=param_item,
+                                value=str(value)
+                            )
+                            self.stdout.write(f"    → Associé param {param_name}: {value}")
+                        except ParamItem.DoesNotExist:
+                            self.stdout.write(self.style.WARNING(f"    ⚠ Param {param_name} non trouvé"))
                 else:
                     self.stats['profiles']['skipped'] += 1
 
     def load_lost_time_reasons(self):
         """Charge les motifs de temps perdu WCM."""
         reasons = [
-            # Changements
-            {'name': 'Changement OF', 'category': 'changement', 'color': '#FF9800', 'is_planned': True},
-            {'name': 'Changement produit', 'category': 'changement', 'color': '#FF9800', 'is_planned': True},
-            {'name': 'Changement bobine', 'category': 'changement', 'color': '#FF9800', 'is_planned': False},
-            
-            # Pannes
-            {'name': 'Panne mécanique', 'category': 'panne', 'color': '#F44336', 'is_planned': False},
-            {'name': 'Panne électrique', 'category': 'panne', 'color': '#F44336', 'is_planned': False},
-            {'name': 'Panne informatique', 'category': 'panne', 'color': '#F44336', 'is_planned': False},
-            
-            # Qualité
-            {'name': 'Défaut qualité', 'category': 'qualite', 'color': '#9C27B0', 'is_planned': False},
-            {'name': 'Contrôle qualité', 'category': 'qualite', 'color': '#9C27B0', 'is_planned': True},
-            {'name': 'Réglage qualité', 'category': 'qualite', 'color': '#9C27B0', 'is_planned': False},
-            
-            # Organisation
-            {'name': 'Attente matière', 'category': 'organisation', 'color': '#2196F3', 'is_planned': False},
-            {'name': 'Attente opérateur', 'category': 'organisation', 'color': '#2196F3', 'is_planned': False},
-            {'name': 'Attente maintenance', 'category': 'organisation', 'color': '#2196F3', 'is_planned': False},
-            
-            # Maintenance
-            {'name': 'Maintenance préventive', 'category': 'maintenance', 'color': '#4CAF50', 'is_planned': True},
-            {'name': 'Nettoyage', 'category': 'maintenance', 'color': '#4CAF50', 'is_planned': True},
-            {'name': 'Graissage', 'category': 'maintenance', 'color': '#4CAF50', 'is_planned': True},
-            
-            # Autres
-            {'name': 'Pause réglementaire', 'category': 'autre', 'color': '#607D8B', 'is_planned': True},
-            {'name': 'Formation', 'category': 'autre', 'color': '#607D8B', 'is_planned': True},
-            {'name': 'Essai', 'category': 'autre', 'color': '#607D8B', 'is_planned': False},
+            {'name': 'Démarrage', 'category': None, 'is_planned': False},
+            {'name': 'Maintenance opérateur', 'category': None, 'is_planned': False},
+            {'name': 'Panne', 'category': None, 'is_planned': False},
+            {'name': 'Réamorçage', 'category': None, 'is_planned': False},
         ]
         
         if self.clear and not self.dry_run:
@@ -482,9 +490,15 @@ class Command(BaseCommand):
 
     def load_checklist_items(self):
         """Charge les items de checklist WCM."""
-        # D'abord créer le template par défaut
+        from catalog.models import WcmChecklistTemplateItem
+        
+        # D'abord créer les templates
+        template_standard = None
+        template_prise_poste = None
+        
         if not self.dry_run:
-            template, _ = WcmChecklistTemplate.objects.get_or_create(
+            # Template standard
+            template_standard, _ = WcmChecklistTemplate.objects.get_or_create(
                 name='Template Standard',
                 defaults={
                     'description': 'Template de checklist standard pour tous les profils',
@@ -492,40 +506,37 @@ class Command(BaseCommand):
                     'is_active': True
                 }
             )
+            
+            # Template pour prise/fin de poste (référencé dans migration 0012)
+            template_prise_poste, _ = WcmChecklistTemplate.objects.get_or_create(
+                name='Checklist Prise/Fin de poste',
+                defaults={
+                    'description': 'Checklist pour la prise et fin de poste',
+                    'is_default': False,
+                    'is_active': True
+                }
+            )
         
         items = [
-            # Sécurité
-            {'category': 'securite', 'text': 'Port des EPI conforme', 'order': 1},
-            {'category': 'securite', 'text': 'Zone de travail sécurisée', 'order': 2},
-            {'category': 'securite', 'text': 'Arrêts d\'urgence fonctionnels', 'order': 3},
-            
-            # Machine
-            {'category': 'machine', 'text': 'Températures dans les tolérances', 'order': 4},
-            {'category': 'machine', 'text': 'Pressions correctes', 'order': 5},
-            {'category': 'machine', 'text': 'Vitesses réglées', 'order': 6},
-            {'category': 'machine', 'text': 'Pas de fuite hydraulique', 'order': 7},
-            {'category': 'machine', 'text': 'Niveau d\'huile correct', 'order': 8},
-            
-            # Produit
-            {'category': 'produit', 'text': 'Matière première conforme', 'order': 9},
-            {'category': 'produit', 'text': 'Aspect visuel correct', 'order': 10},
-            {'category': 'produit', 'text': 'Dimensions respectées', 'order': 11},
-            
-            # Propreté
-            {'category': 'proprete', 'text': 'Machine propre', 'order': 12},
-            {'category': 'proprete', 'text': 'Sol propre et dégagé', 'order': 13},
-            {'category': 'proprete', 'text': 'Bacs de déchets vidés', 'order': 14},
-            
-            # Documentation
-            {'category': 'documentation', 'text': 'OF disponible et à jour', 'order': 15},
-            {'category': 'documentation', 'text': 'Fiches de contrôle remplies', 'order': 16},
-            {'category': 'documentation', 'text': 'Consignes affichées', 'order': 17},
+            {'category': '', 'text': 'Contrôler l\'état des outils et équipements', 'order': 1},
+            {'category': '', 'text': 'Contrôler le stock de consommables (étiquettes, film, cartons)', 'order': 2},
+            {'category': '', 'text': 'Contrôler les dispositifs d\'arrêt d\'urgence', 'order': 3},
+            {'category': '', 'text': 'Contrôler les paramètres machine selon la fiche de production', 'order': 4},
+            {'category': '', 'text': 'Lire les consignes du poste précédent dans le cahier de liaison', 'order': 5},
+            {'category': '', 'text': 'Noter les événements et anomalies dans le cahier de liaison', 'order': 6},
+            {'category': '', 'text': 'Vérifier l\'état de la plante, et l\'entretenir si nécéssaire et/ou avertir', 'order': 7},
+            {'category': '', 'text': 'Vérifier la conformité des matières premières disponibles', 'order': 8},
+            {'category': '', 'text': 'Vérifier la propreté et le rangement du poste de travail', 'order': 9},
+            {'category': '', 'text': 'Vérifier la présence et l\'état des EPI (casque, lunettes, chaussures)', 'order': 10},
+            {'category': '', 'text': 'Vérifier le bon fonctionnement des instruments de mesure', 'order': 11},
+            {'category': '', 'text': 'Vérifier le niveau des bacs de récupération', 'order': 12},
         ]
         
         if self.clear and not self.dry_run:
             WcmChecklistItem.objects.all().delete()
         
         for data in items:
+            order = data.pop('order')
             if self.dry_run:
                 self.stdout.write(f"  Créerait WcmChecklistItem: {data['text']}")
                 self.stats['checklist_items']['created'] += 1
@@ -540,22 +551,28 @@ class Command(BaseCommand):
                 if created:
                     self.stdout.write(f"  ✓ Créé WcmChecklistItem: {obj.text}")
                     self.stats['checklist_items']['created'] += 1
-                    # Associer au template
-                    template.items.add(obj)
                 else:
                     self.stats['checklist_items']['skipped'] += 1
+                
+                # Associer au template standard via la table intermédiaire
+                if template_standard:
+                    WcmChecklistTemplateItem.objects.get_or_create(
+                        template=template_standard,
+                        item=obj,
+                        defaults={'order': order, 'is_required': True}
+                    )
 
     def load_operators(self):
         """Charge les opérateurs."""
         operators = [
-            {'first_name': 'Jean', 'last_name': 'DUPONT', 'is_active': True},
-            {'first_name': 'Marie', 'last_name': 'MARTIN', 'is_active': True},
-            {'first_name': 'Pierre', 'last_name': 'BERNARD', 'is_active': True},
-            {'first_name': 'Sophie', 'last_name': 'THOMAS', 'is_active': True},
-            {'first_name': 'Michel', 'last_name': 'ROBERT', 'is_active': True},
-            {'first_name': 'Nathalie', 'last_name': 'RICHARD', 'is_active': True},
-            {'first_name': 'Alain', 'last_name': 'PETIT', 'is_active': False},
-            {'first_name': 'Isabelle', 'last_name': 'DURAND', 'is_active': True},
+            {'first_name': 'Jerry', 'last_name': 'BABET', 'is_active': True},
+            {'first_name': 'Nicolas', 'last_name': 'BOULAIS', 'is_active': True},
+            {'first_name': 'Houy', 'last_name': 'DAVID', 'is_active': True},
+            {'first_name': 'Nicolas', 'last_name': 'FOUGERARD', 'is_active': True},
+            {'first_name': 'Demba', 'last_name': 'HAÏDARA', 'is_active': True},
+            {'first_name': 'Morgan', 'last_name': 'HOUY', 'is_active': True},
+            {'first_name': 'Thomas', 'last_name': 'NAU', 'is_active': True},
+            {'first_name': 'Jonathan', 'last_name': 'NESTORET', 'is_active': True},
         ]
         
         if self.clear and not self.dry_run:
@@ -579,7 +596,7 @@ class Command(BaseCommand):
                     defaults=data
                 )
                 if created:
-                    self.stdout.write(f"  ✓ Créé Operator: {obj.full_name} ({obj.employee_id})")
+                    self.stdout.write(f"  ✓ Créé Operator: {obj.first_name} {obj.last_name} ({obj.employee_id})")
                     self.stats['operators']['created'] += 1
                 else:
                     self.stats['operators']['skipped'] += 1
@@ -660,3 +677,48 @@ class Command(BaseCommand):
                     self.stats['mood_counters']['created'] += 1
                 else:
                     self.stats['mood_counters']['skipped'] += 1
+
+    def load_fabrication_orders(self):
+        """Charge l'OF de découpe 9999."""
+        from catalog.models import ProfileTemplate
+        
+        # Récupérer le profil par défaut
+        try:
+            default_profile = ProfileTemplate.objects.get(is_default=True)
+        except ProfileTemplate.DoesNotExist:
+            default_profile = ProfileTemplate.objects.first()
+        
+        if not default_profile:
+            self.stdout.write(self.style.WARNING("  ⚠ Aucun profil disponible pour créer l'OF"))
+            return
+        
+        orders = [
+            {
+                'order_number': '9999',
+                'required_length': None,
+                'target_roll_length': None,
+                'for_cutting': True
+            }
+        ]
+        
+        if self.clear and not self.dry_run:
+            FabricationOrder.objects.filter(order_number='9999').delete()
+        
+        for data in orders:
+            if self.dry_run:
+                exists = FabricationOrder.objects.filter(order_number=data['order_number']).exists()
+                if not exists:
+                    self.stdout.write(f"  Créerait FabricationOrder: {data['order_number']}")
+                    self.stats['fabrication_orders']['created'] += 1
+                else:
+                    self.stats['fabrication_orders']['skipped'] += 1
+            else:
+                obj, created = FabricationOrder.objects.get_or_create(
+                    order_number=data['order_number'],
+                    defaults=data
+                )
+                if created:
+                    self.stdout.write(f"  ✓ Créé FabricationOrder: {obj.order_number} (découpe)")
+                    self.stats['fabrication_orders']['created'] += 1
+                else:
+                    self.stats['fabrication_orders']['skipped'] += 1

@@ -3,10 +3,3 @@ asgiref==3.9.1
 Django==5.2.4
 djangorestframework==3.16.0
 sqlparse==0.5.3
-
-# Production dependencies
-dj-database-url==2.1.0
-psycopg2-binary==2.9.9
-whitenoise==6.6.0
-gunicorn==21.2.0
-python-decouple==3.8

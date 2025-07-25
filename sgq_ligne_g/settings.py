@@ -141,8 +141,3 @@ MEDIA_ROOT = BASE_DIR / 'media'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
-# Import des settings de production si on est sur Railway
-import os
-if os.environ.get('RAILWAY_ENVIRONMENT'):
-    from .settings_production import *
