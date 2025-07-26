@@ -13,10 +13,12 @@
 catalog/        # Données référence (profils, specs, défauts)
 production/     # Gestion postes et rouleaux  
 quality/        # Contrôles qualité et mesures
-wcm/           # World Class Manufacturing
+wcm/           # World Class Manufacturing + TRS
 planification/ # Opérateurs et ordres fabrication
 livesession/   # Persistance formulaires
 frontend/      # Interface utilisateur
+management/    # Supervision production et reporting
+exporting/     # Export Excel des données production
 ```
 
 ## 🚨 Règles Critiques
@@ -153,6 +155,11 @@ validateForm() {
 ### Session
 - `GET/PATCH /api/session/` - Gestion session
 
+### Management
+- `GET /management/` - Dashboard supervision
+- `GET /management/api/dashboard-stats/` - Statistiques temps réel
+- `POST /management/api/checklists/{id}/sign/` - Viser checklist
+
 ## 🔄 Workflow Type
 
 1. **Page Load**: Charger données référence + session
@@ -181,6 +188,17 @@ Conforme SI:
 - **Bloquant** (rouge): Arrêt production immédiat
 - **Non-bloquant** (orange): Production continue
 - **Avec seuil** (orange→rouge): Bloquant après X occurrences
+
+### Calcul TRS (OEE)
+```
+Disponibilité = (Temps Disponible / Temps Ouverture) × 100
+Performance = (Production Réelle / Production Théorique) × 100
+Qualité = (Production OK / Production Totale) × 100
+TRS = (Disponibilité × Performance × Qualité) / 10000
+```
+- Calculé à la sauvegarde du poste
+- Utilise la vitesse réelle du profil de production
+- Stocké dans le modèle TRS pour reporting
 
 ## 🛠️ Développement
 
