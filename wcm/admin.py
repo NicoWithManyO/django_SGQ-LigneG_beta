@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.utils.html import format_html
 from .models import (Mode, MoodCounter, 
-                     LostTimeEntry, ChecklistResponse)
+                     LostTimeEntry, ChecklistResponse, TRS)
 
 
 
@@ -207,3 +207,109 @@ class ChecklistResponseAdmin(admin.ModelAdmin):
                 obj.management_visa_date = timezone.now()
         
         super().save_model(request, obj, form, change)
+
+
+@admin.register(TRS)
+class TRSAdmin(admin.ModelAdmin):
+    """Administration des TRS (Taux de Rendement Synthétique)."""
+    
+    list_display = [
+        'shift_display', 
+        'trs_colored', 
+        'availability_colored', 
+        'performance_colored', 
+        'quality_colored',
+        'profile_name',
+        'created_at'
+    ]
+    list_filter = ['created_at', 'profile_name']
+    search_fields = ['shift__shift_id', 'profile_name']
+    date_hierarchy = 'created_at'
+    ordering = ['-created_at']
+    
+    readonly_fields = [
+        'shift', 'opening_time', 'availability_time', 'lost_time',
+        'total_length', 'ok_length', 'nok_length', 'raw_waste_length',
+        'trs_percentage', 'availability_percentage', 'performance_percentage', 
+        'quality_percentage', 'theoretical_production',
+        'profile_name', 'belt_speed_m_per_min', 'created_at'
+    ]
+    
+    fieldsets = (
+        ('Identification', {
+            'fields': ('shift', 'profile_name', 'belt_speed_m_per_min')
+        }),
+        ('Temps', {
+            'fields': ('opening_time', 'availability_time', 'lost_time'),
+            'classes': ('wide',)
+        }),
+        ('Production', {
+            'fields': ('total_length', 'ok_length', 'nok_length', 'raw_waste_length'),
+            'classes': ('wide',)
+        }),
+        ('Métriques TRS', {
+            'fields': (
+                'trs_percentage', 
+                'availability_percentage', 
+                'performance_percentage', 
+                'quality_percentage',
+                'theoretical_production'
+            ),
+            'classes': ('wide',)
+        }),
+        ('Métadonnées', {
+            'fields': ('created_at',),
+            'classes': ('collapse',)
+        }),
+    )
+    
+    def has_add_permission(self, request):
+        """Empêche l'ajout manuel (calculé automatiquement)."""
+        return False
+    
+    def has_change_permission(self, request, obj=None):
+        """Empêche la modification (données calculées)."""
+        return False
+    
+    def shift_display(self, obj):
+        """Affiche l'ID du shift."""
+        return obj.shift.shift_id if obj.shift else "-"
+    shift_display.short_description = "Poste"
+    
+    def trs_colored(self, obj):
+        """Affiche le TRS avec couleur selon la valeur."""
+        return self._colored_percentage(obj.trs_percentage, "TRS")
+    trs_colored.short_description = "TRS %"
+    
+    def availability_colored(self, obj):
+        """Affiche la disponibilité avec couleur."""
+        return self._colored_percentage(obj.availability_percentage, "Dispo")
+    availability_colored.short_description = "Dispo %"
+    
+    def performance_colored(self, obj):
+        """Affiche la performance avec couleur."""
+        return self._colored_percentage(obj.performance_percentage, "Perf")
+    performance_colored.short_description = "Perf %"
+    
+    def quality_colored(self, obj):
+        """Affiche la qualité avec couleur."""
+        return self._colored_percentage(obj.quality_percentage, "Qual")
+    quality_colored.short_description = "Qual %"
+    
+    def _colored_percentage(self, value, label=""):
+        """Affiche un pourcentage avec couleur selon seuils."""
+        if value >= 80:
+            color = 'green'
+        elif value >= 60:
+            color = 'orange'
+        else:
+            color = 'red'
+        
+        # Formater la valeur avant de la passer à format_html
+        formatted_value = f"{float(value):.1f}%"
+        
+        return format_html(
+            '<span style="color: {}; font-weight: bold;">{}</span>',
+            color,
+            formatted_value
+        )

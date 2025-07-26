@@ -246,3 +246,127 @@ class ChecklistResponse(models.Model):
     
     def __str__(self):
         return f"Checklist - {self.shift}"
+
+
+class TRS(models.Model):
+    """Taux de Rendement Synthétique (OEE) calculé et stocké pour chaque poste."""
+    
+    # Lien vers le shift
+    shift = models.OneToOneField(
+        'production.Shift',
+        on_delete=models.CASCADE,
+        related_name='trs',
+        verbose_name="Poste"
+    )
+    
+    # === TEMPS ===
+    opening_time = models.DurationField(
+        verbose_name="Temps d'ouverture",
+        help_text="Temps total entre début et fin du poste"
+    )
+    
+    availability_time = models.DurationField(
+        verbose_name="Temps disponible",
+        help_text="Temps d'ouverture - Temps perdu"
+    )
+    
+    lost_time = models.DurationField(
+        verbose_name="Temps perdu",
+        help_text="Somme des temps d'arrêt"
+    )
+    
+    # === PRODUCTION ===
+    total_length = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        verbose_name="Longueur totale (m)",
+        help_text="Longueur totale produite"
+    )
+    
+    ok_length = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        verbose_name="Longueur conforme (m)",
+        help_text="Longueur de production conforme"
+    )
+    
+    nok_length = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        verbose_name="Longueur non conforme (m)",
+        help_text="Longueur de production non conforme"
+    )
+    
+    raw_waste_length = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=0,
+        verbose_name="Déchet brut (m)",
+        help_text="Longueur de déchet brut"
+    )
+    
+    # === MÉTRIQUES TRS CALCULÉES ===
+    trs_percentage = models.DecimalField(
+        max_digits=5,
+        decimal_places=1,
+        verbose_name="TRS (%)",
+        help_text="Taux de Rendement Synthétique (OEE)"
+    )
+    
+    availability_percentage = models.DecimalField(
+        max_digits=5,
+        decimal_places=1,
+        verbose_name="Disponibilité (%)",
+        help_text="(Temps disponible / Temps d'ouverture) × 100"
+    )
+    
+    performance_percentage = models.DecimalField(
+        max_digits=5,
+        decimal_places=1,
+        verbose_name="Performance (%)",
+        help_text="(Production réelle / Production théorique) × 100"
+    )
+    
+    quality_percentage = models.DecimalField(
+        max_digits=5,
+        decimal_places=1,
+        verbose_name="Qualité (%)",
+        help_text="(Longueur OK / Longueur totale) × 100"
+    )
+    
+    # === DONNÉES DE CALCUL ===
+    theoretical_production = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        verbose_name="Production théorique (m)",
+        help_text="Temps disponible × Vitesse tapis"
+    )
+    
+    # === PROFIL UTILISÉ (pour historisation) ===
+    profile_name = models.CharField(
+        max_length=100,
+        verbose_name="Profil utilisé",
+        help_text="Nom du profil de production utilisé"
+    )
+    
+    belt_speed_m_per_min = models.DecimalField(
+        max_digits=8,
+        decimal_places=2,
+        verbose_name="Vitesse tapis (m/min)",
+        help_text="Vitesse tapis du profil utilisé"
+    )
+    
+    # Métadonnées
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        verbose_name = "TRS"
+        verbose_name_plural = "TRS"
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['shift']),
+            models.Index(fields=['-created_at']),
+        ]
+    
+    def __str__(self):
+        return f"TRS {self.shift.shift_id} - {self.trs_percentage}%"

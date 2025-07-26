@@ -215,6 +215,7 @@ class ShiftViewSet(viewsets.ModelViewSet):
             'checklist_signature': request.session.get('checklist_signature'),
             'checklist_signature_time': request.session.get('checklist_signature_time'),
             'quality_control': request.session.get('quality_control', {}),
+            'lost_time_entries': request.session.get('lost_time_entries', []),
         }
         
         # Ajouter les données de signature de checklist si présentes

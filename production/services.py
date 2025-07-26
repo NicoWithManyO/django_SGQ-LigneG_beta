@@ -446,17 +446,54 @@ class ShiftService:
                     operator_signature_date=timezone.now()
                 )
         
-        # Associer les temps perdus existants
+        # Créer les temps perdus depuis la session
         session_key = session_data.get('session_key')
+        lost_time_entries_data = session_data.get('lost_time_entries', [])
+        
+        # Créer les LostTimeEntry depuis les données de session
+        created_entries = []
+        if lost_time_entries_data:
+            from catalog.models import WcmLostTimeReason
+            
+            for entry_data in lost_time_entries_data:
+                try:
+                    # Récupérer le motif
+                    reason = None
+                    if entry_data.get('reason'):
+                        reason = WcmLostTimeReason.objects.get(id=entry_data['reason'])
+                    
+                    # Créer l'entrée
+                    entry = LostTimeEntry.objects.create(
+                        shift=shift,
+                        session_key=session_key,
+                        reason=reason,
+                        motif=entry_data.get('motif', ''),
+                        comment=entry_data.get('comment', ''),
+                        duration=entry_data.get('duration', 0),
+                        created_by=shift.operator
+                    )
+                    created_entries.append(entry)
+                except Exception as e:
+                    import logging
+                    logger = logging.getLogger(__name__)
+                    logger.error(f"Erreur création temps perdu: {str(e)}", exc_info=True)
+        
+        # Associer aussi les temps perdus existants (créés via API)
         if session_key:
-            lost_time_entries = LostTimeEntry.objects.filter(
+            existing_entries = LostTimeEntry.objects.filter(
                 session_key=session_key,
                 shift__isnull=True
             )
-            lost_time_entries.update(shift=shift)
+            existing_entries.update(shift=shift)
             
-            # Calculer le temps perdu total
-            shift.lost_time = self.calculate_lost_time(lost_time_entries)
+            # Combiner toutes les entrées pour le calcul
+            all_entries = list(created_entries) + list(existing_entries)
+        else:
+            all_entries = created_entries
+        
+        # Calculer le temps perdu total
+        if all_entries:
+            shift.lost_time = self.calculate_lost_time(all_entries)
         else:
             shift.lost_time = timedelta(0)
         
@@ -500,6 +537,16 @@ class ShiftService:
                 import logging
                 logger = logging.getLogger(__name__)
                 logger.error(f"Erreur création contrôles qualité: {str(e)}", exc_info=True)
+        
+        # Calculer et créer le TRS
+        from wcm.services import calculate_and_create_trs
+        try:
+            calculate_and_create_trs(shift)
+        except Exception as e:
+            # Logger l'erreur mais ne pas faire échouer la création du poste
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f"Erreur création TRS: {str(e)}", exc_info=True)
         
         return shift
 

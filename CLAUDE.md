@@ -9,6 +9,9 @@ SGQ Ligne G is a Production Quality Management System for the fiber optics indus
 ## Common Development Commands
 
 ```bash
+# Installation
+pip install -r requirements.txt  # Install all dependencies
+
 # Development server
 python manage.py runserver      # Start at http://127.0.0.1:8000/
 
@@ -35,6 +38,8 @@ python manage.py test catalog  # Run tests for specific app
 # Excel export testing
 python manage.py shell
 # Then: from exporting.utils import test_excel_export; test_excel_export()
+
+# Note: No linting/formatting tools configured (no black, flake8, isort, etc.)
 ```
 
 ## Project Architecture
@@ -365,3 +370,8 @@ All migrations have been recreated to work properly on a fresh database. The pre
 - Analyze the git diff to understand the changes
 - Prepare a concise, clear message in English
 - Make it easy to copy the commit message for the user
+```
+
+## Interactions et Commandes Linguistiques
+
+- **parle moi en francais**: Par défaut, je communique en français lorsque cette demande est faite
